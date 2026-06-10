@@ -1,10 +1,11 @@
-const CACHE_NAME = "pocos-cache-v8";
+const CACHE_NAME = "pocos-cache-v9";
 
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
 
   "/dashboard.html",
+
   "/projetos.html",
   "/novo-projeto.html",
   "/projeto-detalhe.html",
@@ -12,6 +13,7 @@ const FILES_TO_CACHE = [
   "/novo-poco.html",
   "/editar-poco.html",
   "/historico-poco.html",
+  "/fotos-poco.html",
 
   "/nova-medicao.html",
   "/editar-medicao.html",
@@ -38,6 +40,7 @@ const FILES_TO_CACHE = [
   "/js/novo-poco.js",
   "/js/editar-poco.js",
   "/js/historico-poco.js",
+  "/js/fotos-poco.js",
 
   "/js/nova-medicao.js",
   "/js/editar-medicao.js",
