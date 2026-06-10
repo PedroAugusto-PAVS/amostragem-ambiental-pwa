@@ -12,6 +12,11 @@ if (!pocoLocalId) {
 
 let pocoAtual = null;
 
+function editarPoco() {
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  window.location.href = "editar-poco.html";
+}
+
 async function carregarHistorico() {
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
@@ -36,6 +41,8 @@ async function carregarHistorico() {
       <p>Latitude: ${pocoAtual.latitude || "-"}</p>
       <p>Longitude: ${pocoAtual.longitude || "-"}</p>
       <p>Profundidade total: ${pocoAtual.profundidade_total || 0} m</p>
+<p>Diâmetro: ${pocoAtual.diametro || "-"} cm</p>
+<p>Status: ${pocoAtual.ativo === false ? "Inativo" : "Ativo"}</p>
     </div>
   `;
 
