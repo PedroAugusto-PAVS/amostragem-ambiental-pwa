@@ -36,8 +36,8 @@ async function carregarProjeto() {
   `;
 
   const pocosDoProjeto = pocos.filter(
-    (p) => p.projeto_local_id === projetoAtual.local_id
-  );
+  (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
+);
 
   const lista = document.getElementById("listaPocosProjeto");
   lista.innerHTML = "";
