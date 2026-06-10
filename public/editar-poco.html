@@ -38,6 +38,8 @@
     <label>Local / Propriedade</label>
     <input id="localPropriedade">
 
+    <h3>Localização GPS</h3>
+
     <div class="grid">
       <div>
         <label>UTM E</label>
@@ -47,6 +49,18 @@
       <div>
         <label>UTM N</label>
         <input id="utmN">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Zona UTM</label>
+        <input id="zonaUtm" readonly>
+      </div>
+
+      <div>
+        <label>Hemisfério</label>
+        <input id="hemisferioUtm" readonly>
       </div>
     </div>
 
@@ -62,8 +76,29 @@
       </div>
     </div>
 
+    <div class="grid">
+      <div>
+        <label>Precisão GPS</label>
+        <input id="precisaoGps" readonly>
+      </div>
+
+      <div>
+        <label>Altitude</label>
+        <input id="altitudeGps" readonly>
+      </div>
+    </div>
+
+    <label>Data/Hora da captura GPS</label>
+    <input id="dataHoraGps" readonly>
+
     <button type="button" class="btn-primary" onclick="capturarGPS()">
       Atualizar GPS
+    </button>
+
+    <br><br>
+
+    <button type="button" class="btn-blue" onclick="abrirGoogleMaps()">
+      Abrir no Google Maps
     </button>
 
     <label>Profundidade total do poço (m)</label>
