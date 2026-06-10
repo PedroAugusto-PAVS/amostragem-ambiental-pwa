@@ -143,3 +143,17 @@ async function atualizarPocoLocal(poco) {
     tx.onerror = () => reject("Erro ao atualizar poço");
   });
 }
+
+async function excluirPocoLocal(localId) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["pocos"], "readwrite");
+    const store = tx.objectStore("pocos");
+
+    store.delete(localId);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao excluir PM");
+  });
+}
