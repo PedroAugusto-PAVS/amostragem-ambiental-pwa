@@ -33,7 +33,12 @@ const FILES_TO_CACHE = [
   "/js/excel.js",
   "/editar-medicao.html",
   "/js/editar-medicao.js",
-
+"/projetos.html",
+"/novo-projeto.html",
+"/projeto-detalhe.html",
+"/js/projetos.js",
+"/js/novo-projeto.js",
+"/js/projeto-detalhe.js",
   "/manifest.json",
 ];
 
