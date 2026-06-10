@@ -135,21 +135,24 @@
 
     <textarea id="observacoesGerais" placeholder="Observações gerais"></textarea>
 
-    <br><br>
-<h3>Fotos da Medição</h3>
+    <h3>Fotos da Medição</h3>
 
-<input 
-  type="file" 
-  id="fotosMedicao" 
-  accept="image/*" 
-  capture="environment" 
-  multiple
->
+    <input
+      type="file"
+      id="fotosMedicao"
+      accept="image/*"
+      capture="environment"
+      multiple
+    >
 
-<br><br>
+    <p style="font-size:13px;color:#64748b;">
+      Fotos da coleta, purga, sonda e amostras.
+    </p>
+
+    <br>
 
     <button type="button" class="btn-blue" onclick="salvarMedicao()">
-      Salvar medição
+      Salvar Medição
     </button>
 
   </form>
@@ -157,8 +160,8 @@
 </main>
 
 <nav class="bottom-nav">
-  <a href="dashboard.html"><span>⌂</span>Início</a>
-  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
   <a href="novo-poco.html"><span>＋</span>Adicionar</a>
   <a class="active" href="medicoes.html"><span>▣</span>Medições</a>
   <a href="configuracoes.html"><span>⚙</span>Config.</a>
