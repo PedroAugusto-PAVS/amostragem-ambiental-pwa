@@ -62,8 +62,12 @@
     </div>
 
     <button type="button" class="btn-blue" onclick="gerarHorarios()">
-      Gerar horários
+      Gerar novos horários
     </button>
+
+    <p style="font-size:13px;color:#64748b;">
+      Se gerar novos horários, as leituras atuais serão substituídas na tela.
+    </p>
 
     <div class="table-wrapper">
       <table>
@@ -135,10 +139,27 @@
 
     <textarea id="observacoesGerais" placeholder="Observações gerais"></textarea>
 
-    <br><br>
+    <h3>Fotos Existentes</h3>
+    <section id="fotosExistentes"></section>
 
-    <button type="button" class="btn-blue" onclick="salvarMedicao()">
-      Salvar medição
+    <h3>Adicionar Novas Fotos</h3>
+
+    <input
+      type="file"
+      id="fotosMedicao"
+      accept="image/*"
+      capture="environment"
+      multiple
+    >
+
+    <p style="font-size:13px;color:#64748b;">
+      As novas fotos serão adicionadas às já existentes.
+    </p>
+
+    <br>
+
+    <button type="button" class="btn-blue" onclick="salvarEdicaoMedicao()">
+      Salvar alterações
     </button>
 
   </form>
@@ -146,15 +167,16 @@
 </main>
 
 <nav class="bottom-nav">
-  <a href="dashboard.html"><span>⌂</span>Início</a>
-  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
   <a href="novo-poco.html"><span>＋</span>Adicionar</a>
   <a class="active" href="medicoes.html"><span>▣</span>Medições</a>
   <a href="configuracoes.html"><span>⚙</span>Config.</a>
 </nav>
 
+<script src="js/db-local.js"></script>
+<script src="js/calculos.js"></script>
 <script src="js/editar-medicao.js"></script>
-
 
 </body>
 </html>
