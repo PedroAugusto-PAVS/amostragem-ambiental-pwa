@@ -1,5 +1,5 @@
 const DB_NAME = "amostragem_offline";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db;
 
@@ -102,5 +102,31 @@ async function atualizarMedicaoLocal(medicao) {
 
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject("Erro ao atualizar medição");
+  });
+}
+async function salvarProjetoLocal(projeto) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["projetos"], "readwrite");
+    const store = tx.objectStore("projetos");
+
+    store.put(projeto);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao salvar projeto");
+  });
+}
+
+async function listarProjetosLocais() {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["projetos"], "readonly");
+    const store = tx.objectStore("projetos");
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject("Erro ao listar projetos");
   });
 }
