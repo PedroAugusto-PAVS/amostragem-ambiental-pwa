@@ -130,3 +130,16 @@ async function listarProjetosLocais() {
     request.onerror = () => reject("Erro ao listar projetos");
   });
 }
+async function atualizarPocoLocal(poco) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["pocos"], "readwrite");
+    const store = tx.objectStore("pocos");
+
+    store.put(poco);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao atualizar poço");
+  });
+}
