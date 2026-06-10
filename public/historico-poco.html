@@ -3,40 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico do Poço</title>
+  <title>Histórico do PM</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <main class="container">
+
   <button class="back-btn" onclick="history.back()">← Voltar</button>
+
   <div class="page-title">
     <h1 id="tituloPoco">Histórico</h1>
     <p>Dados mensais do ponto</p>
   </div>
 
   <section id="infoPoco"></section>
-<button class="btn-blue" onclick="editarPoco()">
-  Editar PM
-</button>
 
-<br><br>
-
-<button class="btn-blue" id="btnStatusPoco" onclick="alternarStatusPoco()">
-  Inativar PM
-</button>
-
-<br><br>
-
-<button class="btn-blue" style="background:#ef4444;" onclick="excluirPoco()">
-  Excluir PM
-</button>
-
-<br><br>
-
-<br><br>
   <button class="btn-blue" onclick="novaMedicao()">
     Adicionar medição mensal
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" onclick="editarPoco()">
+    Editar PM
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" onclick="verFotos()">
+    Ver Fotos
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" id="btnStatusPoco" onclick="alternarStatusPoco()">
+    Inativar PM
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" style="background:#ef4444;" onclick="excluirPoco()">
+    Excluir PM
   </button>
 
   <br><br>
@@ -48,8 +56,8 @@
 </main>
 
 <nav class="bottom-nav">
-  <a href="dashboard.html"><span>⌂</span>Início</a>
-  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
   <a href="novo-poco.html"><span>＋</span>Adicionar</a>
   <a href="medicoes.html"><span>▣</span>Medições</a>
   <a href="configuracoes.html"><span>⚙</span>Config.</a>
