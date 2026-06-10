@@ -1,5 +1,5 @@
 const DB_NAME = "amostragem_offline";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let db;
 
@@ -17,6 +17,12 @@ function abrirBancoLocal() {
     request.onupgradeneeded = (event) => {
       db = event.target.result;
 
+      if (!db.objectStoreNames.contains("projetos")) {
+        db.createObjectStore("projetos", {
+          keyPath: "local_id"
+        });
+      }
+
       if (!db.objectStoreNames.contains("pocos")) {
         db.createObjectStore("pocos", {
           keyPath: "local_id"
@@ -28,14 +34,44 @@ function abrirBancoLocal() {
           keyPath: "local_id"
         });
       }
-if (!db.objectStoreNames.contains("projetos")) {
-  db.createObjectStore("projetos", {
-    keyPath: "local_id"
-  });
-}
     };
   });
 }
+
+/* PROJETOS */
+
+async function salvarProjetoLocal(projeto) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["projetos"], "readwrite");
+    const store = tx.objectStore("projetos");
+
+    store.put(projeto);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao salvar projeto");
+  });
+}
+
+async function listarProjetosLocais() {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["projetos"], "readonly");
+    const store = tx.objectStore("projetos");
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject("Erro ao listar projetos");
+  });
+}
+
+async function atualizarProjetoLocal(projeto) {
+  return salvarProjetoLocal(projeto);
+}
+
+/* POÇOS / PMs */
 
 async function salvarPocoLocal(poco) {
   await abrirBancoLocal();
@@ -47,7 +83,7 @@ async function salvarPocoLocal(poco) {
     store.put(poco);
 
     tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao salvar poço");
+    tx.onerror = () => reject("Erro ao salvar PM");
   });
 }
 
@@ -60,9 +96,29 @@ async function listarPocosLocais() {
     const request = store.getAll();
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject("Erro ao listar poços");
+    request.onerror = () => reject("Erro ao listar PMs");
   });
 }
+
+async function atualizarPocoLocal(poco) {
+  return salvarPocoLocal(poco);
+}
+
+async function excluirPocoLocal(localId) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["pocos"], "readwrite");
+    const store = tx.objectStore("pocos");
+
+    store.delete(localId);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao excluir PM");
+  });
+}
+
+/* MEDIÇÕES */
 
 async function salvarMedicaoLocal(medicao) {
   await abrirBancoLocal();
@@ -92,82 +148,19 @@ async function listarMedicoesLocais() {
 }
 
 async function atualizarMedicaoLocal(medicao) {
+  return salvarMedicaoLocal(medicao);
+}
+
+async function excluirMedicaoLocal(localId) {
   await abrirBancoLocal();
 
   return new Promise((resolve, reject) => {
     const tx = db.transaction(["medicoes"], "readwrite");
     const store = tx.objectStore("medicoes");
-
-    store.put(medicao);
-
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao atualizar medição");
-  });
-}
-async function salvarProjetoLocal(projeto) {
-  await abrirBancoLocal();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(["projetos"], "readwrite");
-    const store = tx.objectStore("projetos");
-
-    store.put(projeto);
-
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao salvar projeto");
-  });
-}
-
-async function listarProjetosLocais() {
-  await abrirBancoLocal();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(["projetos"], "readonly");
-    const store = tx.objectStore("projetos");
-    const request = store.getAll();
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject("Erro ao listar projetos");
-  });
-}
-async function atualizarPocoLocal(poco) {
-  await abrirBancoLocal();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(["pocos"], "readwrite");
-    const store = tx.objectStore("pocos");
-
-    store.put(poco);
-
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao atualizar poço");
-  });
-}
-
-async function excluirPocoLocal(localId) {
-  await abrirBancoLocal();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(["pocos"], "readwrite");
-    const store = tx.objectStore("pocos");
 
     store.delete(localId);
 
     tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao excluir PM");
-  });
-}
-
-async function atualizarMedicaoLocal(medicao) {
-  await abrirBancoLocal();
-
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(["medicoes"], "readwrite");
-    const store = tx.objectStore("medicoes");
-
-    store.put(medicao);
-
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject("Erro ao atualizar medição");
+    tx.onerror = () => reject("Erro ao excluir medição");
   });
 }
