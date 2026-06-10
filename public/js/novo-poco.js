@@ -117,10 +117,11 @@ async function salvarPoco() {
   const fotoBase64 = await converterFotoBase64(fotoFile);
 
   const poco = {
-    local_id: crypto.randomUUID(),
-    usuario_id: usuario.id,
-    nome,
-    tipo,
+  local_id: crypto.randomUUID(),
+  usuario_id: usuario.id,
+  projeto_local_id: document.getElementById("projetoSelect").value,
+  nome,
+  tipo,
     local_propriedade: document.getElementById("localPropriedade").value,
     utm_e: document.getElementById("utmE").value,
     utm_n: document.getElementById("utmN").value,
@@ -138,3 +139,22 @@ async function salvarPoco() {
   alert("Poço cadastrado com sucesso.");
   window.location.href = "dashboard.html";
 }
+async function carregarProjetosNoSelect() {
+  const projetos = await listarProjetosLocais();
+  const select = document.getElementById("projetoSelect");
+
+  projetos.forEach((projeto) => {
+    const option = document.createElement("option");
+    option.value = projeto.local_id;
+    option.textContent = projeto.nome;
+    select.appendChild(option);
+  });
+
+  const projetoSelecionado = localStorage.getItem("projeto_selecionado");
+
+  if (projetoSelecionado) {
+    select.value = projetoSelecionado;
+  }
+}
+
+carregarProjetosNoSelect();
