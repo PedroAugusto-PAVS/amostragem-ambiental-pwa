@@ -11,8 +11,11 @@ async function carregarDashboard() {
   pocosCarregados = await listarPocosLocais();
   medicoesCarregadas = await listarMedicoesLocais();
 
-  document.getElementById("totalPocos").innerText = pocosCarregados.length;
+  document.getElementById("totalPocos").innerText =
+    pocosCarregados.filter((p) => p.ativo !== false).length;
+
   document.getElementById("totalMedicoes").innerText = medicoesCarregadas.length;
+
   document.getElementById("totalPendentes").innerText =
     medicoesCarregadas.filter((m) => !m.sincronizado).length;
 
@@ -23,17 +26,19 @@ function renderizarPocos(pocos) {
   const lista = document.getElementById("listaPocos");
   lista.innerHTML = "";
 
-  if (pocos.length === 0) {
+  const pocosAtivos = pocos.filter((poco) => poco.ativo !== false);
+
+  if (pocosAtivos.length === 0) {
     lista.innerHTML = `
       <div class="card">
-        <strong>Nenhum poço cadastrado</strong>
+        <strong>Nenhum poço ativo cadastrado</strong>
         <p>Clique em adicionar para cadastrar um ponto fixo.</p>
       </div>
     `;
     return;
   }
 
-  pocos.forEach((poco) => {
+  pocosAtivos.forEach((poco) => {
     const medicoesDoPoco = medicoesCarregadas.filter(
       (m) => m.poco_local_id === poco.local_id
     );
@@ -46,7 +51,6 @@ function renderizarPocos(pocos) {
 
     lista.innerHTML += `
       <div class="poco-item" onclick="abrirHistorico('${poco.local_id}')">
-
         <div class="avatar">${letras}</div>
 
         <div class="poco-info">
@@ -63,7 +67,6 @@ function renderizarPocos(pocos) {
               : "Sem<br>dados"
           }
         </div>
-
       </div>
     `;
   });
