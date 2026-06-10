@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v9";
+const CACHE_NAME = "pocos-cache-v10";
 
 const FILES_TO_CACHE = [
   "/",
@@ -52,8 +52,10 @@ const FILES_TO_CACHE = [
 
   "/js/pdf.js",
   "/js/excel.js",
+  "/duplicar-medicao.html",
+  "/js/duplicar-medicao.js",
 
-  "/manifest.json"
+  "/manifest.json",
 ];
 
 self.addEventListener("install", (event) => {

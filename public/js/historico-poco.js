@@ -217,4 +217,19 @@ async function excluirPoco() {
   window.location.href = "dashboard.html";
 }
 
+function duplicarMedicaoAnterior() {
+  if (pocoAtual.ativo === false) {
+    alert("Este PM está inativo. Reative antes de duplicar medição.");
+    return;
+  }
+
+  if (medicoesDoPoco.length === 0) {
+    alert("Este PM ainda não possui medições para duplicar.");
+    return;
+  }
+
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  window.location.href = "duplicar-medicao.html";
+}
+
 carregarHistorico();

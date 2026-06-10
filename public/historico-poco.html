@@ -1,82 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico do PM</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico do PM</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-<main class="container">
+      <div class="page-title">
+        <h1 id="tituloPoco">Histórico</h1>
+        <p>Dados mensais do ponto</p>
+      </div>
 
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+      <section id="infoPoco"></section>
 
-  <div class="page-title">
-    <h1 id="tituloPoco">Histórico</h1>
-    <p>Dados mensais do ponto</p>
-  </div>
+      <button class="btn-blue" onclick="novaMedicao()">
+        Adicionar medição mensal
+      </button>
 
-  <section id="infoPoco"></section>
+      <br /><br />
 
-  <button class="btn-blue" onclick="novaMedicao()">
-    Adicionar medição mensal
-  </button>
+      <button class="btn-blue" onclick="duplicarMedicaoAnterior()">
+        Duplicar medição anterior
+      </button>
 
-  <br><br>
+      <button class="btn-blue" onclick="editarPoco()">Editar PM</button>
 
-  <button class="btn-blue" onclick="editarPoco()">
-    Editar PM
-  </button>
+      <br /><br />
 
-  <br><br>
+      <button class="btn-blue" onclick="verFotos()">Ver Fotos</button>
 
-  <button class="btn-blue" onclick="verFotos()">
-    Ver Fotos
-  </button>
+      <br /><br />
 
-  <br><br>
+      <button
+        class="btn-blue"
+        id="btnStatusPoco"
+        onclick="alternarStatusPoco()"
+      >
+        Inativar PM
+      </button>
 
-  <button class="btn-blue" id="btnStatusPoco" onclick="alternarStatusPoco()">
-    Inativar PM
-  </button>
+      <br /><br />
 
-  <br><br>
+      <button
+        class="btn-blue"
+        style="background: #ef4444"
+        onclick="excluirPoco()"
+      >
+        Excluir PM
+      </button>
 
-  <button class="btn-blue" style="background:#ef4444;" onclick="excluirPoco()">
-    Excluir PM
-  </button>
+      <br /><br />
 
-  <br><br>
+      <button class="btn-blue" onclick="abrirGoogleMaps()">
+        Abrir no Google Maps
+      </button>
 
- <button class="btn-blue" onclick="abrirGoogleMaps()">
-  Abrir no Google Maps
-</button>
+      <br /><br />
 
-<br><br>
+      <button class="btn-blue" onclick="navegarAtePM()">
+        Navegar até o PM
+      </button>
 
-<button class="btn-blue" onclick="navegarAtePM()">
-  Navegar até o PM
-</button>
+      <br /><br />
 
-<br><br>
+      <h3 class="section-title">Histórico de medições</h3>
 
-  <h3 class="section-title">Histórico de medições</h3>
+      <section id="listaHistorico"></section>
+    </main>
 
-  <section id="listaHistorico"></section>
+    <nav class="bottom-nav">
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+      <a href="medicoes.html"><span>▣</span>Medições</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
 
-</main>
-
-<nav class="bottom-nav">
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
-  <a href="medicoes.html"><span>▣</span>Medições</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
-</nav>
-
-<script src="js/db-local.js"></script>
-<script src="js/historico-poco.js"></script>
-
-</body>
+    <script src="js/db-local.js"></script>
+    <script src="js/historico-poco.js"></script>
+  </body>
 </html>

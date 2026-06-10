@@ -29,6 +29,10 @@ async function sincronizarDados() {
       carregarDashboard();
     }
 
+    if (typeof carregarMapa === "function") {
+      carregarMapa();
+    }
+
   } catch (error) {
     console.error(error);
 
@@ -40,7 +44,7 @@ async function sincronizarDados() {
   }
 }
 
-/* SINCRONIZAR PROJETOS */
+/* PROJETOS */
 
 async function sincronizarProjetos() {
   const projetos = await listarProjetosLocais();
@@ -52,11 +56,14 @@ async function sincronizarProjetos() {
       .upsert({
         local_id: projeto.local_id,
         usuario_id: projeto.usuario_id,
+
         nome: projeto.nome,
         cliente: projeto.cliente,
         local: projeto.local,
         descricao: projeto.descricao,
+
         ativo: projeto.ativo !== false,
+
         criado_em: projeto.criado_em,
         atualizado_em: projeto.atualizado_em || null
       }, {
@@ -75,7 +82,7 @@ async function sincronizarProjetos() {
   }
 }
 
-/* SINCRONIZAR POÇOS */
+/* PMS / POÇOS */
 
 async function sincronizarPocos() {
   const pocos = await listarPocosLocais();
@@ -87,6 +94,7 @@ async function sincronizarPocos() {
       .upsert({
         local_id: poco.local_id,
         usuario_id: poco.usuario_id,
+
         projeto_local_id: poco.projeto_local_id || null,
 
         nome: poco.nome,
@@ -95,8 +103,15 @@ async function sincronizarPocos() {
 
         utm_e: poco.utm_e,
         utm_n: poco.utm_n,
+        zona_utm: poco.zona_utm || null,
+        hemisferio_utm: poco.hemisferio_utm || null,
+
         latitude: poco.latitude || null,
         longitude: poco.longitude || null,
+        precisao_gps: poco.precisao_gps || null,
+        altitude_gps: poco.altitude_gps || null,
+        gps_capturado_em: poco.gps_capturado_em || null,
+        gps: poco.gps || null,
 
         profundidade_total: poco.profundidade_total || null,
         diametro: poco.diametro,
@@ -104,6 +119,7 @@ async function sincronizarPocos() {
         fotos: poco.fotos || [],
 
         ativo: poco.ativo !== false,
+
         criado_em: poco.criado_em,
         atualizado_em: poco.atualizado_em || null
       }, {
@@ -122,7 +138,7 @@ async function sincronizarPocos() {
   }
 }
 
-/* SINCRONIZAR MEDIÇÕES */
+/* MEDIÇÕES */
 
 async function sincronizarMedicoes() {
   const medicoes = await listarMedicoesLocais();
@@ -133,6 +149,7 @@ async function sincronizarMedicoes() {
       .from("medicoes")
       .upsert({
         local_id: medicao.local_id,
+
         poco_local_id: medicao.poco_local_id,
         poco_nome: medicao.poco_nome,
 
@@ -153,10 +170,12 @@ async function sincronizarMedicoes() {
 
         leituras: medicao.leituras || [],
         condicoes_ambientais: medicao.condicoes_ambientais || {},
+
         fotos: medicao.fotos || [],
 
         criado_em: medicao.criado_em,
-        atualizado_em: medicao.atualizado_em || null
+        atualizado_em: medicao.atualizado_em || null,
+        duplicada_de: medicao.duplicada_de || null
       }, {
         onConflict: "local_id"
       });
