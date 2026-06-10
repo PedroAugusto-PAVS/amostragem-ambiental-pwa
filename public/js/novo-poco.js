@@ -156,5 +156,25 @@ async function carregarProjetosNoSelect() {
     select.value = projetoSelecionado;
   }
 }
+function converterFotosBase64(files) {
+  return Promise.all(
+    Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve({
+            nome: file.name,
+            tipo: file.type,
+            base64: reader.result,
+            criado_em: new Date().toISOString()
+          });
+        };
+
+        reader.readAsDataURL(file);
+      });
+    })
+  );
+}
 
 carregarProjetosNoSelect();
