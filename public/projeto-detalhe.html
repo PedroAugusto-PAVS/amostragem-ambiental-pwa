@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeto</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1 id="tituloProjeto">Projeto</h1>
+    <p>Poços vinculados ao projeto</p>
+  </div>
+
+  <section id="infoProjeto"></section>
+
+  <button class="btn-blue" onclick="novoPocoProjeto()">
+    Adicionar PM neste projeto
+  </button>
+
+  <br><br>
+
+  <h3 class="section-title">PMs do projeto</h3>
+
+  <section id="listaPocosProjeto"></section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a class="active" href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/projeto-detalhe.js"></script>
+
+</body>
+</html>
