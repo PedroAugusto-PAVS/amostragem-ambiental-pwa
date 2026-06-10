@@ -28,6 +28,11 @@ function abrirBancoLocal() {
           keyPath: "local_id"
         });
       }
+if (!db.objectStoreNames.contains("projetos")) {
+  db.createObjectStore("projetos", {
+    keyPath: "local_id"
+  });
+}
     };
   });
 }
