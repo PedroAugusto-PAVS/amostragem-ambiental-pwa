@@ -1,13 +1,22 @@
-const CACHE_NAME = "pocos-cache-v7";
+const CACHE_NAME = "pocos-cache-v8";
+
 const FILES_TO_CACHE = [
   "/",
   "/index.html",
 
   "/dashboard.html",
+  "/projetos.html",
+  "/novo-projeto.html",
+  "/projeto-detalhe.html",
+
   "/novo-poco.html",
+  "/editar-poco.html",
   "/historico-poco.html",
+
   "/nova-medicao.html",
+  "/editar-medicao.html",
   "/medicoes.html",
+
   "/mapa.html",
   "/configuracoes.html",
   "/admin.html",
@@ -21,27 +30,27 @@ const FILES_TO_CACHE = [
   "/js/sync.js",
 
   "/js/dashboard-lista.js",
+
+  "/js/projetos.js",
+  "/js/novo-projeto.js",
+  "/js/projeto-detalhe.js",
+
   "/js/novo-poco.js",
+  "/js/editar-poco.js",
   "/js/historico-poco.js",
+
   "/js/nova-medicao.js",
+  "/js/editar-medicao.js",
   "/js/medicoes.js",
+
   "/js/mapa.js",
   "/js/configuracoes.js",
   "/js/admin.js",
 
   "/js/pdf.js",
   "/js/excel.js",
-  "/editar-medicao.html",
-  "/js/editar-medicao.js",
-  "/projetos.html",
-  "/novo-projeto.html",
-  "/projeto-detalhe.html",
-  "/js/projetos.js",
-  "/js/novo-projeto.js",
-  "/js/projeto-detalhe.js",
-  "/editar-poco.html",
-  "/js/editar-poco.js",
-  "/manifest.json",
+
+  "/manifest.json"
 ];
 
 self.addEventListener("install", (event) => {
