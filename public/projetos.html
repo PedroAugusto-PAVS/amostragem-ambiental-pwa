@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projetos</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+
+  <div class="page-title">
+    <h1>Projetos</h1>
+    <p>Clientes, contratos ou áreas de monitoramento</p>
+  </div>
+
+  <section class="card">
+    <input
+      type="text"
+      id="pesquisaProjeto"
+      placeholder="Pesquisar projeto..."
+      oninput="filtrarProjetos()"
+    >
+  </section>
+
+  <section id="listaProjetos"></section>
+
+</main>
+
+<button class="float-btn" onclick="window.location.href='novo-projeto.html'">+</button>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a class="active" href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/projetos.js"></script>
+
+</body>
+</html>
