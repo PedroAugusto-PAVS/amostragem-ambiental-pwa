@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Medição</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+  <div class="page-title">
+    <h1>Nova Medição</h1>
+    <p id="nomePocoSelecionado">Poço selecionado</p>
+  </div>
+
+  <form class="form-card">
+
+    <div class="grid">
+      <div>
+        <label>Data da medição</label>
+        <input type="date" id="dataMedicao">
+      </div>
+
+      <div>
+        <label>Mês referência</label>
+        <input type="month" id="mesReferencia">
+      </div>
+    </div>
+
+    <label>Nível d'água (m)</label>
+    <input type="number" step="0.01" id="nivelAgua">
+
+    <label>Profundidade da bomba (m)</label>
+    <input type="number" step="0.01" id="profundidadeBomba">
+
+    <div class="result-box">
+      <p>Coluna d'água: <strong id="colunaAgua">0</strong> m</p>
+      <p>Volume estagnado: <strong id="volumeEstagnado">0</strong> L</p>
+      <p>Volume esgotado mínimo: <strong id="volumePurga">0</strong> L</p>
+      <p>Volume total esgotado: <strong id="volumeTotalEsgotado">0</strong> L</p>
+    </div>
+
+    <h3>Leituras da Sonda</h3>
+
+    <div class="grid">
+      <div>
+        <label>Horário inicial</label>
+        <input type="time" id="horarioInicial">
+      </div>
+
+      <div>
+        <label>Quantidade</label>
+        <input type="number" id="quantidadeLeituras" value="6" min="1">
+      </div>
+    </div>
+
+    <button type="button" class="btn-blue" onclick="gerarHorarios()">
+      Gerar horários
+    </button>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>pH</th>
+            <th>Cond.</th>
+            <th>Temp.</th>
+            <th>OD</th>
+            <th>ORP</th>
+            <th>Turb.</th>
+            <th>Aspecto</th>
+          </tr>
+        </thead>
+        <tbody id="leiturasBody"></tbody>
+      </table>
+    </div>
+
+    <h3>Condições da Água</h3>
+
+    <div class="grid">
+      <select id="corAgua">
+        <option value="">Cor da água</option>
+        <option value="Incolor">Incolor</option>
+        <option value="Amarelada">Amarelada</option>
+        <option value="Avermelhada">Avermelhada</option>
+        <option value="Marrom">Marrom</option>
+        <option value="Esverdeada">Esverdeada</option>
+      </select>
+
+      <select id="odorAgua">
+        <option value="">Odor</option>
+        <option value="Ausente">Ausente</option>
+        <option value="Fraco">Fraco</option>
+        <option value="Forte">Forte</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <select id="oleoAgua">
+        <option value="">Óleo</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+      </select>
+
+      <select id="espumaAgua">
+        <option value="">Espuma</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <select id="materialFlutuante">
+        <option value="">Material flutuante</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+      </select>
+
+      <select id="chuva24h">
+        <option value="">Chuva 24h</option>
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+      </select>
+    </div>
+
+    <input type="number" step="0.1" id="temperaturaAmbiente" placeholder="Temperatura ambiente °C">
+
+    <textarea id="observacoesGerais" placeholder="Observações gerais"></textarea>
+
+    <br><br>
+
+    <button type="button" class="btn-blue" onclick="salvarMedicao()">
+      Salvar medição
+    </button>
+
+  </form>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Início</a>
+  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a class="active" href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/calculos.js"></script>
+<script src="js/nova-medicao.js"></script>
+
+</body>
+</html>

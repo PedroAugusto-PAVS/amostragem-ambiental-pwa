@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Medições</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+    <div class="page-title">
+        <h1>Medições</h1>
+        <p>Histórico das coletas</p>
+      </div>
+  <section class="card offline-card">
+    <div class="offline-icon">⌁</div>
+    <div>
+      <strong>Status</strong>
+      <p id="statusSync">Dados salvos localmente</p>
+    </div>
+  </section>
+
+  <h3 class="section-title">Fichas salvas</h3>
+
+  <section id="listaMedicoes"></section>
+
+  <button class="btn-blue" onclick="exportarPDFSelecionadas()">
+    Gerar PDF das selecionadas
+  </button>
+  
+  <br><br>
+  
+  <button class="btn-blue" onclick="exportarExcelSelecionadas()">
+    Gerar Excel das selecionadas
+  </button>
+  
+  <br><br>
+  
+  <button class="btn-blue" onclick="selecionarTodas()">
+    Selecionar todas
+  </button>
+  
+  <br><br>
+  
+  <button class="btn-blue" onclick="sincronizarDados()">
+    Sincronizar com Supabase
+  </button>
+
+<nav class="bottom-nav">
+    <a href="dashboard.html"><span>⌂</span>Início</a>
+    <a href="mapa.html"><span>🗺</span>Mapa</a>
+    <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+    <a class="active" href="medicoes.html"><span>▣</span>Medições</a>
+    <a href="configuracoes.html"><span>⚙</span>Config.</a>
+  </nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script src="js/supabase.js"></script>
+<script src="js/db-local.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/medicoes.js"></script>
+
+</body>
+</html>

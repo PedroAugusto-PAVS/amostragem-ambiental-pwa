@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Poço</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1>Novo Poço</h1>
+    <p>Cadastro do ponto fixo</p>
+  </div>
+
+  <form class="form-card">
+
+    <label>Nome do poço *</label>
+    <input id="nomePoco" placeholder="Ex.: PM-01">
+
+    <label>Tipo do ponto *</label>
+    <select id="tipoPoco">
+      <option value="">Selecione</option>
+      <option value="PM">PM - Poço de Monitoramento</option>
+      <option value="PJ">PJ</option>
+      <option value="POCO_PRODUCAO">Poço de Produção</option>
+    </select>
+
+    <label>Local / Propriedade</label>
+    <input id="localPropriedade" placeholder="Ex.: Fazenda Boa Vista">
+
+    <div class="grid">
+      <div>
+        <label>UTM E</label>
+        <input id="utmE">
+      </div>
+
+      <div>
+        <label>UTM N</label>
+        <input id="utmN">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Latitude</label>
+        <input id="latitudeGps" readonly>
+      </div>
+
+      <div>
+        <label>Longitude</label>
+        <input id="longitudeGps" readonly>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" onclick="capturarGPS()">
+      Capturar GPS
+    </button>
+
+    <label>Profundidade total do poço (m)</label>
+    <input type="number" step="0.01" id="profundidadeTotal">
+
+    <label>Diâmetro do poço</label>
+<select id="diametro">
+  <option value="">Selecione</option>
+  <option value="5">5 cm - Área 2.03</option>
+  <option value="2.5">2,5 cm - Área 0.51</option>
+</select>
+
+    <label>Foto do poço</label>
+    <input type="file" id="fotoPoco" accept="image/*" capture="environment">
+
+    <br><br>
+
+    <button type="button" class="btn-blue" onclick="salvarPoco()">
+      Salvar Poço
+    </button>
+
+  </form>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Início</a>
+  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a class="active" href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/novo-poco.js"></script>
+
+</body>
+</html>

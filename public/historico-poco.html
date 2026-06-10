@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico do Poço</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+  <div class="page-title">
+    <h1 id="tituloPoco">Histórico</h1>
+    <p>Dados mensais do ponto</p>
+  </div>
+
+  <section id="infoPoco"></section>
+
+  <button class="btn-blue" onclick="novaMedicao()">
+    Adicionar medição mensal
+  </button>
+
+  <br><br>
+
+  <h3 class="section-title">Histórico de medições</h3>
+
+  <section id="listaHistorico"></section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Início</a>
+  <a href="mapa.html"><span>🗺</span>Mapa</a>
+  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/historico-poco.js"></script>
+
+</body>
+</html>

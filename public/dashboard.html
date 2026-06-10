@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Poços</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+
+
+<main class="container">
+  <div class="page-title">
+    <h1>Meus Poços</h1>
+    <p>Pesquise e veja o histórico de cada poço</p>
+  </div>
+  
+  <section class="card">
+    <input 
+      type="text" 
+      id="pesquisaPoco" 
+      placeholder="Pesquisar pelo nome do poço..."
+      oninput="filtrarPocos()"
+    >
+  </section>
+  
+  <section class="card stats">
+    <div>
+      <strong id="totalPocos">0</strong>
+      <span>poços</span>
+    </div>
+  
+    <div>
+      <strong id="totalMedicoes">0</strong>
+      <span>medições</span>
+    </div>
+  
+    <div>
+      <strong id="totalPendentes">0</strong>
+      <span>pendentes</span>
+    </div>
+  </section>
+  
+  <h3 class="section-title">Lista de Poços</h3>
+  
+  <section id="listaPocos"></section>
+
+</main>
+
+<button class="float-btn" onclick="window.location.href='novo-poco.html'">+</button>
+
+<nav class="bottom-nav">
+    <a class="active" href="dashboard.html"><span>⌂</span>Início</a>
+    <a href="mapa.html"><span>🗺</span>Mapa</a>
+    <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+    <a href="medicoes.html"><span>▣</span>Medições</a>
+    <a href="configuracoes.html"><span>⚙</span>Config.</a>
+  </nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/db-local.js"></script>
+<script src="js/dashboard-lista.js"></script>
+
+</body>
+</html>

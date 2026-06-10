@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Painel Administrador</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body>
+
+<header class="topbar">
+  <h2>Painel Administrador</h2>
+  <button onclick="logout()">Sair</button>
+</header>
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+  <section class="form-card">
+    <h3>Cadastrar Coletor</h3>
+
+    <form id="coletorForm">
+      <input type="text" id="nomeColetor" placeholder="Nome do coletor" required />
+      <input type="email" id="emailColetor" placeholder="E-mail" required />
+      <input type="password" id="senhaColetor" placeholder="Senha inicial" required />
+
+      <button type="submit">Cadastrar coletor</button>
+    </form>
+  </section>
+
+  <section class="form-card">
+    <h3>Fichas Enviadas</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Coletor</th>
+            <th>Poço</th>
+            <th>Tipo</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="fichasAdmin"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/admin.js"></script>
+
+</body>
+</html>

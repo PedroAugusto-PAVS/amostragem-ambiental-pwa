@@ -1,0 +1,8 @@
+{
+  "appId": "br.com.pavs.pocos",
+  "appName": "Poços Subterrâneos",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https"
+  }
+}
