@@ -37,7 +37,7 @@ async function carregarEdicao() {
   pocoAtual = pocos.find((p) => p.local_id === medicaoAtual.poco_local_id);
 
   if (!pocoAtual) {
-    alert("Poço da medição não encontrado.");
+    alert("PM da medição não encontrado.");
     window.location.href = "dashboard.html";
     return;
   }
@@ -62,6 +62,7 @@ async function carregarEdicao() {
   document.getElementById("observacoesGerais").value = c.observacoes_gerais || "";
 
   renderizarLeituras(medicaoAtual.leituras || []);
+  renderizarFotosExistentes();
 
   atualizarCalculos();
 }
@@ -88,6 +89,10 @@ function atualizarCalculos() {
 function renderizarLeituras(leituras) {
   const tbody = document.getElementById("leiturasBody");
   tbody.innerHTML = "";
+
+  if (!leituras || leituras.length === 0) {
+    return;
+  }
 
   leituras.forEach((l) => {
     tbody.innerHTML += `
@@ -175,8 +180,62 @@ function obterLeituras() {
   return leituras;
 }
 
+function converterFotosBase64(files) {
+  return Promise.all(
+    Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve({
+            nome: file.name,
+            tipo: file.type,
+            base64: reader.result,
+            criado_em: new Date().toISOString()
+          });
+        };
+
+        reader.readAsDataURL(file);
+      });
+    })
+  );
+}
+
+function renderizarFotosExistentes() {
+  const container = document.getElementById("fotosExistentes");
+  const fotos = medicaoAtual.fotos || [];
+
+  container.innerHTML = "";
+
+  if (fotos.length === 0) {
+    container.innerHTML = `
+      <div class="card">
+        <strong>Nenhuma foto cadastrada</strong>
+        <p>Esta medição ainda não possui fotos.</p>
+      </div>
+    `;
+    return;
+  }
+
+  fotos.forEach((foto, index) => {
+    container.innerHTML += `
+      <div class="card">
+        <strong>Foto ${index + 1}</strong>
+        <p>${foto.criado_em ? new Date(foto.criado_em).toLocaleString("pt-BR") : ""}</p>
+        <img 
+          src="${foto.base64}" 
+          style="width:100%; border-radius:12px; margin-top:10px;"
+        >
+      </div>
+    `;
+  });
+}
+
 async function salvarEdicaoMedicao() {
   atualizarCalculos();
+
+  const novasFotosFiles = document.getElementById("fotosMedicao").files;
+  const novasFotos = await converterFotosBase64(novasFotosFiles);
 
   medicaoAtual.data_medicao = document.getElementById("dataMedicao").value;
   medicaoAtual.mes_referencia = document.getElementById("mesReferencia").value;
@@ -202,6 +261,11 @@ async function salvarEdicaoMedicao() {
     temperatura_ambiente: document.getElementById("temperaturaAmbiente").value,
     observacoes_gerais: document.getElementById("observacoesGerais").value
   };
+
+  medicaoAtual.fotos = [
+    ...(medicaoAtual.fotos || []),
+    ...novasFotos
+  ];
 
   medicaoAtual.sincronizado = false;
   medicaoAtual.atualizado_em = new Date().toISOString();
