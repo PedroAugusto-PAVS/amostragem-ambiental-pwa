@@ -4,6 +4,8 @@ if (!usuario) {
   window.location.href = "index.html";
 }
 
+let gpsAtual = null;
+
 function latLonToUTM(lat, lon) {
   const a = 6378137.0;
   const f = 1 / 298.257223563;
@@ -46,12 +48,15 @@ function latLonToUTM(lat, lon) {
     )
   );
 
+  const hemisferio = lat < 0 ? "Sul" : "Norte";
+
   if (lat < 0) {
     utmN += 10000000.0;
   }
 
   return {
     zona: zone,
+    hemisferio,
     utmE: Math.round(utmE),
     utmN: Math.round(utmN)
   };
@@ -59,36 +64,72 @@ function latLonToUTM(lat, lon) {
 
 function capturarGPS() {
   if (!navigator.geolocation) {
-    alert("GPS não disponível.");
+    alert("GPS não disponível neste aparelho.");
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      const gps = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        precisao: position.coords.accuracy
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const precisao = position.coords.accuracy;
+      const altitude = position.coords.altitude;
+
+      const utm = latLonToUTM(latitude, longitude);
+
+      gpsAtual = {
+        latitude,
+        longitude,
+        precisao,
+        altitude,
+        zona_utm: utm.zona,
+        hemisferio_utm: utm.hemisferio,
+        utm_e: utm.utmE,
+        utm_n: utm.utmN,
+        capturado_em: new Date().toISOString()
       };
 
-      const utm = latLonToUTM(gps.latitude, gps.longitude);
+      document.getElementById("latitudeGps").value = latitude;
+      document.getElementById("longitudeGps").value = longitude;
+      document.getElementById("precisaoGps").value = precisao
+        ? `${precisao.toFixed(2)} m`
+        : "";
 
-      document.getElementById("latitudeGps").value = gps.latitude;
-      document.getElementById("longitudeGps").value = gps.longitude;
+      document.getElementById("altitudeGps").value = altitude
+        ? `${altitude.toFixed(2)} m`
+        : "Não disponível";
+
       document.getElementById("utmE").value = utm.utmE;
       document.getElementById("utmN").value = utm.utmN;
+      document.getElementById("zonaUtm").value = utm.zona;
+      document.getElementById("hemisferioUtm").value = utm.hemisferio;
 
-      alert("GPS e UTM preenchidos.");
+      document.getElementById("dataHoraGps").value =
+        new Date(gpsAtual.capturado_em).toLocaleString("pt-BR");
+
+      alert("GPS capturado com sucesso.");
     },
     () => {
       alert("Não foi possível capturar o GPS. Verifique a permissão de localização.");
     },
     {
       enableHighAccuracy: true,
-      timeout: 15000,
+      timeout: 20000,
       maximumAge: 0
     }
   );
+}
+
+function abrirGoogleMaps() {
+  const lat = document.getElementById("latitudeGps").value;
+  const lng = document.getElementById("longitudeGps").value;
+
+  if (!lat || !lng) {
+    alert("Capture o GPS primeiro.");
+    return;
+  }
+
+  window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
 }
 
 function converterFotosBase64(files) {
@@ -154,11 +195,19 @@ async function salvarPoco() {
     tipo,
 
     local_propriedade: document.getElementById("localPropriedade").value,
+
     utm_e: document.getElementById("utmE").value,
     utm_n: document.getElementById("utmN").value,
+    zona_utm: document.getElementById("zonaUtm").value,
+    hemisferio_utm: document.getElementById("hemisferioUtm").value,
 
     latitude: document.getElementById("latitudeGps").value,
     longitude: document.getElementById("longitudeGps").value,
+    precisao_gps: gpsAtual ? gpsAtual.precisao : null,
+    altitude_gps: gpsAtual ? gpsAtual.altitude : null,
+    gps_capturado_em: gpsAtual ? gpsAtual.capturado_em : null,
+
+    gps: gpsAtual,
 
     profundidade_total: Number(document.getElementById("profundidadeTotal").value),
     diametro: document.getElementById("diametro").value,
