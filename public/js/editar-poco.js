@@ -12,6 +12,7 @@ if (!pocoLocalId) {
 }
 
 let pocoAtual = null;
+let gpsAtual = null;
 
 function latLonToUTM(lat, lon) {
   const a = 6378137.0;
@@ -55,12 +56,15 @@ function latLonToUTM(lat, lon) {
     )
   );
 
+  const hemisferio = lat < 0 ? "Sul" : "Norte";
+
   if (lat < 0) {
     utmN += 10000000.0;
   }
 
   return {
     zona: zone,
+    hemisferio,
     utmE: Math.round(utmE),
     utmN: Math.round(utmN)
   };
@@ -68,36 +72,73 @@ function latLonToUTM(lat, lon) {
 
 function capturarGPS() {
   if (!navigator.geolocation) {
-    alert("GPS não disponível.");
+    alert("GPS não disponível neste aparelho.");
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      const gps = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        precisao: position.coords.accuracy
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const precisao = position.coords.accuracy;
+      const altitude = position.coords.altitude;
+
+      const utm = latLonToUTM(latitude, longitude);
+
+      gpsAtual = {
+        latitude,
+        longitude,
+        precisao,
+        altitude,
+        zona_utm: utm.zona,
+        hemisferio_utm: utm.hemisferio,
+        utm_e: utm.utmE,
+        utm_n: utm.utmN,
+        capturado_em: new Date().toISOString()
       };
 
-      const utm = latLonToUTM(gps.latitude, gps.longitude);
+      document.getElementById("latitudeGps").value = latitude;
+      document.getElementById("longitudeGps").value = longitude;
 
-      document.getElementById("latitudeGps").value = gps.latitude;
-      document.getElementById("longitudeGps").value = gps.longitude;
+      document.getElementById("precisaoGps").value = precisao
+        ? `${precisao.toFixed(2)} m`
+        : "";
+
+      document.getElementById("altitudeGps").value = altitude
+        ? `${altitude.toFixed(2)} m`
+        : "Não disponível";
+
       document.getElementById("utmE").value = utm.utmE;
       document.getElementById("utmN").value = utm.utmN;
+      document.getElementById("zonaUtm").value = utm.zona;
+      document.getElementById("hemisferioUtm").value = utm.hemisferio;
+
+      document.getElementById("dataHoraGps").value =
+        new Date(gpsAtual.capturado_em).toLocaleString("pt-BR");
 
       alert("GPS atualizado com sucesso.");
     },
     () => {
-      alert("Não foi possível capturar o GPS.");
+      alert("Não foi possível capturar o GPS. Verifique a permissão de localização.");
     },
     {
       enableHighAccuracy: true,
-      timeout: 15000,
+      timeout: 20000,
       maximumAge: 0
     }
   );
+}
+
+function abrirGoogleMaps() {
+  const lat = document.getElementById("latitudeGps").value;
+  const lng = document.getElementById("longitudeGps").value;
+
+  if (!lat || !lng) {
+    alert("Este PM ainda não possui latitude e longitude.");
+    return;
+  }
+
+  window.open(`https://www.google.com/maps?q=${lat},${lng}`, "_blank");
 }
 
 async function carregarProjetosNoSelect() {
@@ -127,14 +168,43 @@ async function carregarPoco() {
 
   await carregarProjetosNoSelect();
 
+  gpsAtual = pocoAtual.gps || {
+    latitude: pocoAtual.latitude,
+    longitude: pocoAtual.longitude,
+    precisao: pocoAtual.precisao_gps,
+    altitude: pocoAtual.altitude_gps,
+    zona_utm: pocoAtual.zona_utm,
+    hemisferio_utm: pocoAtual.hemisferio_utm,
+    utm_e: pocoAtual.utm_e,
+    utm_n: pocoAtual.utm_n,
+    capturado_em: pocoAtual.gps_capturado_em
+  };
+
   document.getElementById("projetoSelect").value = pocoAtual.projeto_local_id || "";
   document.getElementById("nomePoco").value = pocoAtual.nome || "";
   document.getElementById("tipoPoco").value = pocoAtual.tipo || "";
   document.getElementById("localPropriedade").value = pocoAtual.local_propriedade || "";
+
   document.getElementById("utmE").value = pocoAtual.utm_e || "";
   document.getElementById("utmN").value = pocoAtual.utm_n || "";
+  document.getElementById("zonaUtm").value = pocoAtual.zona_utm || "";
+  document.getElementById("hemisferioUtm").value = pocoAtual.hemisferio_utm || "";
+
   document.getElementById("latitudeGps").value = pocoAtual.latitude || "";
   document.getElementById("longitudeGps").value = pocoAtual.longitude || "";
+
+  document.getElementById("precisaoGps").value = pocoAtual.precisao_gps
+    ? `${Number(pocoAtual.precisao_gps).toFixed(2)} m`
+    : "";
+
+  document.getElementById("altitudeGps").value = pocoAtual.altitude_gps
+    ? `${Number(pocoAtual.altitude_gps).toFixed(2)} m`
+    : "Não disponível";
+
+  document.getElementById("dataHoraGps").value = pocoAtual.gps_capturado_em
+    ? new Date(pocoAtual.gps_capturado_em).toLocaleString("pt-BR")
+    : "";
+
   document.getElementById("profundidadeTotal").value = pocoAtual.profundidade_total || "";
   document.getElementById("diametro").value = pocoAtual.diametro || "";
 }
@@ -149,15 +219,27 @@ async function salvarEdicaoPoco() {
   }
 
   pocoAtual.projeto_local_id = document.getElementById("projetoSelect").value;
+
   pocoAtual.nome = nome;
   pocoAtual.tipo = tipo;
   pocoAtual.local_propriedade = document.getElementById("localPropriedade").value;
+
   pocoAtual.utm_e = document.getElementById("utmE").value;
   pocoAtual.utm_n = document.getElementById("utmN").value;
+  pocoAtual.zona_utm = document.getElementById("zonaUtm").value;
+  pocoAtual.hemisferio_utm = document.getElementById("hemisferioUtm").value;
+
   pocoAtual.latitude = document.getElementById("latitudeGps").value;
   pocoAtual.longitude = document.getElementById("longitudeGps").value;
+
+  pocoAtual.precisao_gps = gpsAtual ? gpsAtual.precisao : pocoAtual.precisao_gps;
+  pocoAtual.altitude_gps = gpsAtual ? gpsAtual.altitude : pocoAtual.altitude_gps;
+  pocoAtual.gps_capturado_em = gpsAtual ? gpsAtual.capturado_em : pocoAtual.gps_capturado_em;
+  pocoAtual.gps = gpsAtual;
+
   pocoAtual.profundidade_total = Number(document.getElementById("profundidadeTotal").value);
   pocoAtual.diametro = document.getElementById("diametro").value;
+
   pocoAtual.sincronizado = false;
   pocoAtual.atualizado_em = new Date().toISOString();
 
