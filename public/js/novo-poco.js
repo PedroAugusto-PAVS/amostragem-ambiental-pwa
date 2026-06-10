@@ -81,7 +81,7 @@ function capturarGPS() {
       alert("GPS e UTM preenchidos.");
     },
     () => {
-      alert("Não foi possível capturar o GPS.");
+      alert("Não foi possível capturar o GPS. Verifique a permissão de localização.");
     },
     {
       enableHighAccuracy: true,
@@ -91,71 +91,6 @@ function capturarGPS() {
   );
 }
 
-function converterFotoBase64(file) {
-  return new Promise((resolve) => {
-    if (!file) {
-      resolve(null);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-async function salvarPoco() {
-  const nome = document.getElementById("nomePoco").value.trim();
-  const tipo = document.getElementById("tipoPoco").value;
-
-  if (!nome || !tipo) {
-    alert("Preencha o nome e o tipo do poço.");
-    return;
-  }
-
-  const fotoFile = document.getElementById("fotoPoco").files[0];
-  const fotoBase64 = await converterFotoBase64(fotoFile);
-
-  const poco = {
-  local_id: crypto.randomUUID(),
-  usuario_id: usuario.id,
-  projeto_local_id: document.getElementById("projetoSelect").value,
-  nome,
-  tipo,
-    local_propriedade: document.getElementById("localPropriedade").value,
-    utm_e: document.getElementById("utmE").value,
-    utm_n: document.getElementById("utmN").value,
-    latitude: document.getElementById("latitudeGps").value,
-    longitude: document.getElementById("longitudeGps").value,
-    profundidade_total: Number(document.getElementById("profundidadeTotal").value),
-    diametro: document.getElementById("diametro").value,
-    foto_base64: fotoBase64,
-    sincronizado: false,
-    criado_em: new Date().toISOString()
-  };
-
-  await salvarPocoLocal(poco);
-
-  alert("Poço cadastrado com sucesso.");
-  window.location.href = "dashboard.html";
-}
-async function carregarProjetosNoSelect() {
-  const projetos = await listarProjetosLocais();
-  const select = document.getElementById("projetoSelect");
-
-  projetos.forEach((projeto) => {
-    const option = document.createElement("option");
-    option.value = projeto.local_id;
-    option.textContent = projeto.nome;
-    select.appendChild(option);
-  });
-
-  const projetoSelecionado = localStorage.getItem("projeto_selecionado");
-
-  if (projetoSelecionado) {
-    select.value = projetoSelecionado;
-  }
-}
 function converterFotosBase64(files) {
   return Promise.all(
     Array.from(files).map((file) => {
@@ -175,6 +110,73 @@ function converterFotosBase64(files) {
       });
     })
   );
+}
+
+async function carregarProjetosNoSelect() {
+  const projetos = await listarProjetosLocais();
+  const select = document.getElementById("projetoSelect");
+
+  select.innerHTML = `<option value="">Sem projeto</option>`;
+
+  projetos.forEach((projeto) => {
+    const option = document.createElement("option");
+    option.value = projeto.local_id;
+    option.textContent = projeto.nome;
+    select.appendChild(option);
+  });
+
+  const projetoSelecionado = localStorage.getItem("projeto_selecionado");
+
+  if (projetoSelecionado) {
+    select.value = projetoSelecionado;
+  }
+}
+
+async function salvarPoco() {
+  const nome = document.getElementById("nomePoco").value.trim();
+  const tipo = document.getElementById("tipoPoco").value;
+
+  if (!nome || !tipo) {
+    alert("Preencha o nome e o tipo do PM.");
+    return;
+  }
+
+  const fotosFiles = document.getElementById("fotosPoco").files;
+  const fotosBase64 = await converterFotosBase64(fotosFiles);
+
+  const poco = {
+    local_id: crypto.randomUUID(),
+    usuario_id: usuario.id,
+
+    projeto_local_id: document.getElementById("projetoSelect").value,
+
+    nome,
+    tipo,
+
+    local_propriedade: document.getElementById("localPropriedade").value,
+    utm_e: document.getElementById("utmE").value,
+    utm_n: document.getElementById("utmN").value,
+
+    latitude: document.getElementById("latitudeGps").value,
+    longitude: document.getElementById("longitudeGps").value,
+
+    profundidade_total: Number(document.getElementById("profundidadeTotal").value),
+    diametro: document.getElementById("diametro").value,
+
+    fotos: fotosBase64,
+
+    ativo: true,
+    sincronizado: false,
+    criado_em: new Date().toISOString()
+  };
+
+  await salvarPocoLocal(poco);
+
+  alert("PM cadastrado com sucesso.");
+
+  localStorage.removeItem("projeto_selecionado");
+
+  window.location.href = "dashboard.html";
 }
 
 carregarProjetosNoSelect();
