@@ -1,57 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Painel Administrador</title>
-
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administração</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header class="topbar">
-  <h2>Painel Administrador</h2>
-  <button onclick="logout()">Sair</button>
-</header>
-
 <main class="container">
+
   <button class="back-btn" onclick="history.back()">← Voltar</button>
-  <section class="form-card">
-    <h3>Cadastrar Coletor</h3>
 
-    <form id="coletorForm">
-      <input type="text" id="nomeColetor" placeholder="Nome do coletor" required />
-      <input type="email" id="emailColetor" placeholder="E-mail" required />
-      <input type="password" id="senhaColetor" placeholder="Senha inicial" required />
+  <div class="page-title">
+    <h1>Painel Admin</h1>
+    <p>Gestão de projetos, PMs, medições e coletores</p>
+  </div>
 
-      <button type="submit">Cadastrar coletor</button>
-    </form>
-  </section>
+  <section class="card stats">
+    <div>
+      <strong id="totalProjetos">0</strong>
+      <span>Projetos</span>
+    </div>
 
-  <section class="form-card">
-    <h3>Fichas Enviadas</h3>
+    <div>
+      <strong id="totalPocos">0</strong>
+      <span>PMs</span>
+    </div>
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Coletor</th>
-            <th>Poço</th>
-            <th>Tipo</th>
-            <th>Data</th>
-          </tr>
-        </thead>
-        <tbody id="fichasAdmin"></tbody>
-      </table>
+    <div>
+      <strong id="totalMedicoes">0</strong>
+      <span>Medições</span>
     </div>
   </section>
 
+  <section class="card stats">
+    <div>
+      <strong id="totalColetores">0</strong>
+      <span>Coletores</span>
+    </div>
+
+    <div>
+      <strong id="totalPendentes">0</strong>
+      <span>Pendentes</span>
+    </div>
+
+    <div>
+      <strong id="totalInativos">0</strong>
+      <span>PMs inativos</span>
+    </div>
+  </section>
+
+  <button class="btn-blue" onclick="carregarAdmin()">
+    Atualizar painel
+  </button>
+
+  <h3 class="section-title">Coletores</h3>
+  <section id="listaColetores"></section>
+
+  <h3 class="section-title">Últimas Medições</h3>
+  <section id="listaUltimasMedicoes"></section>
+
 </main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a class="active" href="admin.html"><span>⚙</span>Admin</a>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
+<script src="js/db-local.js"></script>
 <script src="js/admin.js"></script>
 
 </body>
