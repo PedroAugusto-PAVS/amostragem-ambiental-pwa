@@ -13,9 +13,11 @@ if (!pocoLocalId) {
 
 let pocoAtual = null;
 
+const profundidadeTotalMesInput = document.getElementById("profundidadeTotalMes");
 const nivelAguaInput = document.getElementById("nivelAgua");
 const profundidadeBombaInput = document.getElementById("profundidadeBomba");
 
+profundidadeTotalMesInput.addEventListener("input", atualizarCalculos);
 nivelAguaInput.addEventListener("input", atualizarCalculos);
 profundidadeBombaInput.addEventListener("input", atualizarCalculos);
 
@@ -37,20 +39,23 @@ async function carregarPoco() {
   document.getElementById("dataMedicao").value = hoje.toISOString().split("T")[0];
   document.getElementById("mesReferencia").value = hoje.toISOString().slice(0, 7);
 
+  document.getElementById("profundidadeTotalMes").value =
+    pocoAtual.profundidade_total || "";
+
   atualizarCalculos();
 }
 
 function atualizarCalculos() {
   if (!pocoAtual) return;
 
-  const profundidadeTotal = Number(pocoAtual.profundidade_total);
-  const nivelAgua = Number(nivelAguaInput.value);
-  const profundidadeBomba = Number(profundidadeBombaInput.value);
+  const profundidadeTotal = document.getElementById("profundidadeTotalMes").value;
+  const nivelAgua = document.getElementById("nivelAgua").value;
+  const profundidadeBomba = document.getElementById("profundidadeBomba").value;
   const diametroPoco = pocoAtual.diametro;
 
   const coluna = calcularColunaAgua(profundidadeTotal, nivelAgua);
   const volumeEstagnado = calcularVolumeEstagnado(coluna, diametroPoco);
-  const volumePurga = calcularVolumePurga(profundidadeBomba, "1");
+  const volumePurga = calcularVolumePurga(profundidadeBomba);
   const volumeTotalEsgotado = calcularVolumeTotalEsgotado(volumeEstagnado);
 
   document.getElementById("colunaAgua").innerText = coluna;
@@ -145,6 +150,7 @@ async function salvarMedicao() {
     data_medicao: document.getElementById("dataMedicao").value,
     mes_referencia: document.getElementById("mesReferencia").value,
 
+    profundidade_total_mes: Number(document.getElementById("profundidadeTotalMes").value),
     nivel_agua: Number(document.getElementById("nivelAgua").value),
     profundidade_bomba: Number(document.getElementById("profundidadeBomba").value),
 
