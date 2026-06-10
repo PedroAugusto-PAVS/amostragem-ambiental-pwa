@@ -9,7 +9,9 @@
 <body>
 
 <main class="container">
+
   <button class="back-btn" onclick="history.back()">← Voltar</button>
+
   <div class="page-title">
     <h1>Nova Medição</h1>
     <p id="nomePocoSelecionado">Poço selecionado</p>
@@ -28,6 +30,9 @@
         <input type="month" id="mesReferencia">
       </div>
     </div>
+
+    <label>Profundidade Total Medida (m)</label>
+    <input type="number" step="0.01" id="profundidadeTotalMes">
 
     <label>Nível d'água (m)</label>
     <input type="number" step="0.01" id="nivelAgua">
