@@ -7,7 +7,7 @@ if (!usuario) {
 const pocoLocalId = localStorage.getItem("poco_selecionado");
 
 if (!pocoLocalId) {
-  alert("Selecione um poço primeiro.");
+  alert("Selecione um PM primeiro.");
   window.location.href = "dashboard.html";
 }
 
@@ -27,8 +27,14 @@ async function carregarPoco() {
   pocoAtual = pocos.find((p) => p.local_id === pocoLocalId);
 
   if (!pocoAtual) {
-    alert("Poço não encontrado.");
+    alert("PM não encontrado.");
     window.location.href = "dashboard.html";
+    return;
+  }
+
+  if (pocoAtual.ativo === false) {
+    alert("Este PM está inativo. Reative antes de adicionar medição.");
+    window.location.href = "historico-poco.html";
     return;
   }
 
@@ -136,8 +142,45 @@ function obterLeituras() {
   return leituras;
 }
 
+function converterFotosBase64(files) {
+  return Promise.all(
+    Array.from(files).map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          resolve({
+            nome: file.name,
+            tipo: file.type,
+            base64: reader.result,
+            criado_em: new Date().toISOString()
+          });
+        };
+
+        reader.readAsDataURL(file);
+      });
+    })
+  );
+}
+
 async function salvarMedicao() {
   atualizarCalculos();
+
+  const dataMedicao = document.getElementById("dataMedicao").value;
+  const mesReferencia = document.getElementById("mesReferencia").value;
+
+  if (!dataMedicao || !mesReferencia) {
+    alert("Informe a data da medição e o mês de referência.");
+    return;
+  }
+
+  if (!document.getElementById("profundidadeTotalMes").value) {
+    alert("Informe a profundidade total medida.");
+    return;
+  }
+
+  const fotosFiles = document.getElementById("fotosMedicao").files;
+  const fotosBase64 = await converterFotosBase64(fotosFiles);
 
   const medicao = {
     local_id: crypto.randomUUID(),
@@ -147,8 +190,8 @@ async function salvarMedicao() {
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
 
-    data_medicao: document.getElementById("dataMedicao").value,
-    mes_referencia: document.getElementById("mesReferencia").value,
+    data_medicao: dataMedicao,
+    mes_referencia: mesReferencia,
 
     profundidade_total_mes: Number(document.getElementById("profundidadeTotalMes").value),
     nivel_agua: Number(document.getElementById("nivelAgua").value),
@@ -172,6 +215,8 @@ async function salvarMedicao() {
       observacoes_gerais: document.getElementById("observacoesGerais").value
     },
 
+    fotos: fotosBase64,
+
     sincronizado: false,
     criado_em: new Date().toISOString()
   };
@@ -179,6 +224,8 @@ async function salvarMedicao() {
   await salvarMedicaoLocal(medicao);
 
   alert("Medição salva com sucesso.");
+
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
   window.location.href = "historico-poco.html";
 }
 
