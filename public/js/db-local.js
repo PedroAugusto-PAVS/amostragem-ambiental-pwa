@@ -157,3 +157,17 @@ async function excluirPocoLocal(localId) {
     tx.onerror = () => reject("Erro ao excluir PM");
   });
 }
+
+async function atualizarMedicaoLocal(medicao) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["medicoes"], "readwrite");
+    const store = tx.objectStore("medicoes");
+
+    store.put(medicao);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao atualizar medição");
+  });
+}
