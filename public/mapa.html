@@ -11,14 +11,21 @@
 
 
 <main class="container">
+
   <button class="back-btn" onclick="history.back()">← Voltar</button>
-    <div class="page-title">
-        <h1>Mapa</h1>
-        <p>Localização dos poços</p>
-      </div>
+
+  <div class="page-title">
+    <h1>Mapa</h1>
+    <p>PMs com localização GPS cadastrada</p>
+  </div>
+
   <section class="card">
-    <strong>Localização dos Poços</strong>
-    <p>Lista dos pontos com GPS salvo.</p>
+    <input
+      type="text"
+      id="pesquisaMapa"
+      placeholder="Pesquisar PM..."
+      oninput="filtrarMapa()"
+    >
   </section>
 
   <section id="listaMapa"></section>
