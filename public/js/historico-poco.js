@@ -32,14 +32,41 @@ async function carregarHistorico() {
   document.getElementById("infoPoco").innerHTML = `
     <div class="card">
       <strong>${pocoAtual.nome}</strong>
+
       <p>Tipo: ${pocoAtual.tipo || "-"}</p>
       <p>Local: ${pocoAtual.local_propriedade || "-"}</p>
+
+      <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+
+      <strong>Localização</strong>
       <p>UTM E: ${pocoAtual.utm_e || "-"}</p>
       <p>UTM N: ${pocoAtual.utm_n || "-"}</p>
+      <p>Zona UTM: ${pocoAtual.zona_utm || "-"}</p>
+      <p>Hemisfério: ${pocoAtual.hemisferio_utm || "-"}</p>
       <p>Latitude: ${pocoAtual.latitude || "-"}</p>
       <p>Longitude: ${pocoAtual.longitude || "-"}</p>
+      <p>Precisão GPS: ${
+        pocoAtual.precisao_gps
+          ? Number(pocoAtual.precisao_gps).toFixed(2) + " m"
+          : "-"
+      }</p>
+      <p>Altitude: ${
+        pocoAtual.altitude_gps
+          ? Number(pocoAtual.altitude_gps).toFixed(2) + " m"
+          : "-"
+      }</p>
+      <p>GPS capturado em: ${
+        pocoAtual.gps_capturado_em
+          ? new Date(pocoAtual.gps_capturado_em).toLocaleString("pt-BR")
+          : "-"
+      }</p>
+
+      <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+
+      <strong>Dados do PM</strong>
       <p>Profundidade total cadastrada: ${pocoAtual.profundidade_total || 0} m</p>
       <p>Diâmetro: ${pocoAtual.diametro || "-"} cm</p>
+      <p>Fotos do PM: ${(pocoAtual.fotos || []).length}</p>
       <p>Status: ${pocoAtual.ativo === false ? "Inativo" : "Ativo"}</p>
     </div>
   `;
@@ -72,6 +99,7 @@ async function carregarHistorico() {
     lista.innerHTML += `
       <div class="card">
         <strong>${m.mes_referencia || "Medição"}</strong>
+
         <p>Data: ${m.data_medicao || "-"}</p>
         <p>Profundidade total medida: ${m.profundidade_total_mes || 0} m</p>
         <p>Nível d'água: ${m.nivel_agua || 0} m</p>
@@ -115,6 +143,30 @@ function verFotos() {
 function editarMedicao(localId) {
   localStorage.setItem("medicao_selecionada", localId);
   window.location.href = "editar-medicao.html";
+}
+
+function abrirGoogleMaps() {
+  if (!pocoAtual.latitude || !pocoAtual.longitude) {
+    alert("Este PM não possui coordenadas GPS.");
+    return;
+  }
+
+  window.open(
+    `https://www.google.com/maps?q=${pocoAtual.latitude},${pocoAtual.longitude}`,
+    "_blank"
+  );
+}
+
+function navegarAtePM() {
+  if (!pocoAtual.latitude || !pocoAtual.longitude) {
+    alert("Este PM não possui coordenadas GPS.");
+    return;
+  }
+
+  window.open(
+    `https://www.google.com/maps/dir/?api=1&destination=${pocoAtual.latitude},${pocoAtual.longitude}`,
+    "_blank"
+  );
 }
 
 async function alternarStatusPoco() {
