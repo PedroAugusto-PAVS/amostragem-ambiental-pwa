@@ -31,6 +31,9 @@
       </div>
     </div>
 
+    <label>Profundidade Total Medida (m)</label>
+    <input type="number" step="0.01" id="profundidadeTotalMes">
+
     <label>Nível d'água (m)</label>
     <input type="number" step="0.01" id="nivelAgua">
 
@@ -134,8 +137,8 @@
 
     <br><br>
 
-    <button type="button" class="btn-blue" onclick="salvarEdicaoMedicao()">
-      Salvar alterações
+    <button type="button" class="btn-blue" onclick="salvarMedicao()">
+      Salvar medição
     </button>
 
   </form>
@@ -150,9 +153,8 @@
   <a href="configuracoes.html"><span>⚙</span>Config.</a>
 </nav>
 
-<script src="js/db-local.js"></script>
-<script src="js/calculos.js"></script>
 <script src="js/editar-medicao.js"></script>
+
 
 </body>
 </html>
