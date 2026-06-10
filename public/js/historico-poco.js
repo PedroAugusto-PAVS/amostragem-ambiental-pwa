@@ -11,11 +11,7 @@ if (!pocoLocalId) {
 }
 
 let pocoAtual = null;
-
-function editarPoco() {
-  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
-  window.location.href = "editar-poco.html";
-}
+let medicoesDoPoco = [];
 
 async function carregarHistorico() {
   const pocos = await listarPocosLocais();
@@ -24,10 +20,12 @@ async function carregarHistorico() {
   pocoAtual = pocos.find((p) => p.local_id === pocoLocalId);
 
   if (!pocoAtual) {
-    alert("Poço não encontrado.");
+    alert("PM não encontrado.");
     window.location.href = "dashboard.html";
     return;
   }
+
+  medicoesDoPoco = medicoes.filter((m) => m.poco_local_id === pocoLocalId);
 
   document.getElementById("tituloPoco").innerText = pocoAtual.nome;
 
@@ -40,15 +38,22 @@ async function carregarHistorico() {
       <p>UTM N: ${pocoAtual.utm_n || "-"}</p>
       <p>Latitude: ${pocoAtual.latitude || "-"}</p>
       <p>Longitude: ${pocoAtual.longitude || "-"}</p>
-      <p>Profundidade total: ${pocoAtual.profundidade_total || 0} m</p>
-<p>Diâmetro: ${pocoAtual.diametro || "-"} cm</p>
-<p>Status: ${pocoAtual.ativo === false ? "Inativo" : "Ativo"}</p>
+      <p>Profundidade total cadastrada: ${pocoAtual.profundidade_total || 0} m</p>
+      <p>Diâmetro: ${pocoAtual.diametro || "-"} cm</p>
+      <p>Status: ${pocoAtual.ativo === false ? "Inativo" : "Ativo"}</p>
     </div>
   `;
 
-  const historico = medicoes
-    .filter((m) => m.poco_local_id === pocoLocalId)
-    .sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+  const btnStatus = document.getElementById("btnStatusPoco");
+
+  if (btnStatus) {
+    btnStatus.innerText = pocoAtual.ativo === false ? "Reativar PM" : "Inativar PM";
+    btnStatus.style.background = pocoAtual.ativo === false ? "#16a34a" : "#f59e0b";
+  }
+
+  const historico = medicoesDoPoco.sort(
+    (a, b) => new Date(b.criado_em) - new Date(a.criado_em)
+  );
 
   const lista = document.getElementById("listaHistorico");
   lista.innerHTML = "";
@@ -57,7 +62,7 @@ async function carregarHistorico() {
     lista.innerHTML = `
       <div class="card">
         <strong>Nenhuma medição cadastrada</strong>
-        <p>Adicione a primeira medição mensal desse poço.</p>
+        <p>Adicione a primeira medição mensal desse PM.</p>
       </div>
     `;
     return;
@@ -68,16 +73,17 @@ async function carregarHistorico() {
       <div class="card">
         <strong>${m.mes_referencia || "Medição"}</strong>
         <p>Data: ${m.data_medicao || "-"}</p>
+        <p>Profundidade total medida: ${m.profundidade_total_mes || 0} m</p>
         <p>Nível d'água: ${m.nivel_agua || 0} m</p>
         <p>Coluna d'água: ${m.coluna_agua || 0} m</p>
         <p>Volume estagnado: ${m.volume_estagnado || 0} L</p>
         <p>Volume esgotado mínimo: ${m.volume_purga || 0} L</p>
         <p>Volume total esgotado: ${m.volume_total_esgotado || 0} L</p>
         <p>Status: ${m.sincronizado ? "Sincronizado" : "Pendente"}</p>
-  
+
         <div class="card-actions">
           <button class="btn-blue" onclick="editarMedicao('${m.local_id}')">
-            Editar
+            Editar Medição
           </button>
         </div>
       </div>
@@ -86,13 +92,71 @@ async function carregarHistorico() {
 }
 
 function novaMedicao() {
-  localStorage.setItem("poco_selecionado", pocoLocalId);
+  if (pocoAtual.ativo === false) {
+    alert("Este PM está inativo. Reative antes de adicionar medição.");
+    return;
+  }
+
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
   window.location.href = "nova-medicao.html";
+}
+
+function editarPoco() {
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  window.location.href = "editar-poco.html";
 }
 
 function editarMedicao(localId) {
   localStorage.setItem("medicao_selecionada", localId);
   window.location.href = "editar-medicao.html";
+}
+
+async function alternarStatusPoco() {
+  if (!pocoAtual) return;
+
+  const estaInativo = pocoAtual.ativo === false;
+
+  const confirmar = confirm(
+    estaInativo
+      ? "Deseja reativar este PM?"
+      : "Deseja inativar este PM? Ele não aparecerá nas listas principais, mas o histórico será mantido."
+  );
+
+  if (!confirmar) return;
+
+  pocoAtual.ativo = estaInativo ? true : false;
+  pocoAtual.sincronizado = false;
+  pocoAtual.atualizado_em = new Date().toISOString();
+
+  await atualizarPocoLocal(pocoAtual);
+
+  alert(estaInativo ? "PM reativado com sucesso." : "PM inativado com sucesso.");
+
+  carregarHistorico();
+}
+
+async function excluirPoco() {
+  if (!pocoAtual) return;
+
+  if (medicoesDoPoco.length > 0) {
+    const confirmarComHistorico = confirm(
+      `Este PM possui ${medicoesDoPoco.length} medição(ões). O ideal é inativar, não excluir. Deseja continuar mesmo assim?`
+    );
+
+    if (!confirmarComHistorico) return;
+  }
+
+  const confirmar = confirm(
+    `Tem certeza que deseja excluir o PM "${pocoAtual.nome}"? Essa ação remove o PM do aparelho.`
+  );
+
+  if (!confirmar) return;
+
+  await excluirPocoLocal(pocoAtual.local_id);
+
+  alert("PM excluído com sucesso.");
+
+  window.location.href = "dashboard.html";
 }
 
 carregarHistorico();
