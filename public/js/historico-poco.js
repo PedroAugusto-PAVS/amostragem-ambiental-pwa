@@ -55,11 +55,6 @@ async function carregarHistorico() {
           ? Number(pocoAtual.altitude_gps).toFixed(2) + " m"
           : "-"
       }</p>
-      <p>GPS capturado em: ${
-        pocoAtual.gps_capturado_em
-          ? new Date(pocoAtual.gps_capturado_em).toLocaleString("pt-BR")
-          : "-"
-      }</p>
 
       <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
 
@@ -108,11 +103,28 @@ async function carregarHistorico() {
         <p>Volume esgotado mínimo: ${m.volume_purga || 0} L</p>
         <p>Volume total esgotado: ${m.volume_total_esgotado || 0} L</p>
         <p>Fotos: ${(m.fotos || []).length}</p>
+
+        <p>Estabilização: ${
+          m.estabilizacao?.estavel
+            ? "✅ Estável"
+            : "⚠ Não estabilizado"
+        }</p>
+
+        ${
+          m.alertas && m.alertas.length > 0
+            ? `<p>Alertas: ${m.alertas.join(", ")}</p>`
+            : `<p>Alertas: Nenhum</p>`
+        }
+
         <p>Status: ${m.sincronizado ? "Sincronizado" : "Pendente"}</p>
 
         <div class="card-actions">
           <button class="btn-blue" onclick="editarMedicao('${m.local_id}')">
-            Editar Medição
+            Editar
+          </button>
+
+          <button class="btn-blue" onclick="imprimirFichaMedicao('${m.local_id}')">
+            Imprimir ficha
           </button>
         </div>
       </div>
@@ -128,6 +140,21 @@ function novaMedicao() {
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
   window.location.href = "nova-medicao.html";
+}
+
+function duplicarMedicaoAnterior() {
+  if (pocoAtual.ativo === false) {
+    alert("Este PM está inativo. Reative antes de duplicar medição.");
+    return;
+  }
+
+  if (medicoesDoPoco.length === 0) {
+    alert("Este PM ainda não possui medições para duplicar.");
+    return;
+  }
+
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  window.location.href = "duplicar-medicao.html";
 }
 
 function editarPoco() {
@@ -215,21 +242,6 @@ async function excluirPoco() {
   alert("PM excluído com sucesso.");
 
   window.location.href = "dashboard.html";
-}
-
-function duplicarMedicaoAnterior() {
-  if (pocoAtual.ativo === false) {
-    alert("Este PM está inativo. Reative antes de duplicar medição.");
-    return;
-  }
-
-  if (medicoesDoPoco.length === 0) {
-    alert("Este PM ainda não possui medições para duplicar.");
-    return;
-  }
-
-  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
-  window.location.href = "duplicar-medicao.html";
 }
 
 carregarHistorico();

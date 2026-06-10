@@ -142,6 +142,13 @@ function obterLeituras() {
   return leituras;
 }
 
+function avaliarEstabilizacaoTela() {
+  const leituras = obterLeituras();
+  const estabilizacao = calcularEstabilizacao(leituras);
+
+  renderizarEstabilizacao("resultadoEstabilizacao", estabilizacao);
+}
+
 function converterFotosBase64(files) {
   return Promise.all(
     Array.from(files).map((file) => {
@@ -179,6 +186,10 @@ async function salvarMedicao() {
     return;
   }
 
+  const leituras = obterLeituras();
+  const estabilizacao = calcularEstabilizacao(leituras);
+  const alertas = gerarAlertasAmbientais(leituras);
+
   const fotosFiles = document.getElementById("fotosMedicao").files;
   const fotosBase64 = await converterFotosBase64(fotosFiles);
 
@@ -202,7 +213,9 @@ async function salvarMedicao() {
     volume_purga: Number(document.getElementById("volumePurga").innerText),
     volume_total_esgotado: Number(document.getElementById("volumeTotalEsgotado").innerText),
 
-    leituras: obterLeituras(),
+    leituras,
+    estabilizacao,
+    alertas,
 
     condicoes_ambientais: {
       cor_agua: document.getElementById("corAgua").value,
