@@ -51,7 +51,7 @@ async function carregarHistorico() {
     btnStatus.style.background = pocoAtual.ativo === false ? "#16a34a" : "#f59e0b";
   }
 
-  const historico = medicoesDoPoco.sort(
+  const historico = [...medicoesDoPoco].sort(
     (a, b) => new Date(b.criado_em) - new Date(a.criado_em)
   );
 
@@ -79,6 +79,7 @@ async function carregarHistorico() {
         <p>Volume estagnado: ${m.volume_estagnado || 0} L</p>
         <p>Volume esgotado mínimo: ${m.volume_purga || 0} L</p>
         <p>Volume total esgotado: ${m.volume_total_esgotado || 0} L</p>
+        <p>Fotos: ${(m.fotos || []).length}</p>
         <p>Status: ${m.sincronizado ? "Sincronizado" : "Pendente"}</p>
 
         <div class="card-actions">
@@ -106,6 +107,11 @@ function editarPoco() {
   window.location.href = "editar-poco.html";
 }
 
+function verFotos() {
+  localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  window.location.href = "fotos-poco.html";
+}
+
 function editarMedicao(localId) {
   localStorage.setItem("medicao_selecionada", localId);
   window.location.href = "editar-medicao.html";
@@ -119,7 +125,7 @@ async function alternarStatusPoco() {
   const confirmar = confirm(
     estaInativo
       ? "Deseja reativar este PM?"
-      : "Deseja inativar este PM? Ele não aparecerá nas listas principais, mas o histórico será mantido."
+      : "Deseja inativar este PM? O histórico será mantido."
   );
 
   if (!confirmar) return;
@@ -140,14 +146,14 @@ async function excluirPoco() {
 
   if (medicoesDoPoco.length > 0) {
     const confirmarComHistorico = confirm(
-      `Este PM possui ${medicoesDoPoco.length} medição(ões). O ideal é inativar, não excluir. Deseja continuar mesmo assim?`
+      `Este PM possui ${medicoesDoPoco.length} medição(ões). O recomendado é inativar. Deseja excluir mesmo assim?`
     );
 
     if (!confirmarComHistorico) return;
   }
 
   const confirmar = confirm(
-    `Tem certeza que deseja excluir o PM "${pocoAtual.nome}"? Essa ação remove o PM do aparelho.`
+    `Tem certeza que deseja excluir o PM "${pocoAtual.nome}"?`
   );
 
   if (!confirmar) return;
