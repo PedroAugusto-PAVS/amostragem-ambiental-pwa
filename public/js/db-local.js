@@ -110,6 +110,20 @@ async function atualizarCampanhaLocal(campanha) {
   return salvarCampanhaLocal(campanha);
 }
 
+async function excluirCampanhaLocal(localId) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["campanhas"], "readwrite");
+    const store = tx.objectStore("campanhas");
+
+    store.delete(localId);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao excluir campanha");
+  });
+}
+
 /* POÇOS / PMs */
 
 async function salvarPocoLocal(poco) {
