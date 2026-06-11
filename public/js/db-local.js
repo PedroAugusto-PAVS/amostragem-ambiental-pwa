@@ -1,5 +1,5 @@
 const DB_NAME = "amostragem_offline";
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 let db;
 
@@ -19,6 +19,12 @@ function abrirBancoLocal() {
 
       if (!db.objectStoreNames.contains("projetos")) {
         db.createObjectStore("projetos", {
+          keyPath: "local_id"
+        });
+      }
+
+      if (!db.objectStoreNames.contains("campanhas")) {
+        db.createObjectStore("campanhas", {
           keyPath: "local_id"
         });
       }
@@ -69,6 +75,39 @@ async function listarProjetosLocais() {
 
 async function atualizarProjetoLocal(projeto) {
   return salvarProjetoLocal(projeto);
+}
+
+/* CAMPANHAS */
+
+async function salvarCampanhaLocal(campanha) {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["campanhas"], "readwrite");
+    const store = tx.objectStore("campanhas");
+
+    store.put(campanha);
+
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject("Erro ao salvar campanha");
+  });
+}
+
+async function listarCampanhasLocais() {
+  await abrirBancoLocal();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(["campanhas"], "readonly");
+    const store = tx.objectStore("campanhas");
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject("Erro ao listar campanhas");
+  });
+}
+
+async function atualizarCampanhaLocal(campanha) {
+  return salvarCampanhaLocal(campanha);
 }
 
 /* POÇOS / PMs */

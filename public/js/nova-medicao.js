@@ -5,6 +5,7 @@ if (!usuario) {
 }
 
 const pocoLocalId = localStorage.getItem("poco_selecionado");
+const campanhaLocalId = localStorage.getItem("campanha_selecionada");
 
 if (!pocoLocalId) {
   alert("Selecione um PM primeiro.");
@@ -195,8 +196,11 @@ async function salvarMedicao() {
 
   const medicao = {
     local_id: crypto.randomUUID(),
+
     poco_local_id: pocoAtual.local_id,
     poco_nome: pocoAtual.nome,
+
+    campanha_local_id: campanhaLocalId || null,
 
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
@@ -239,7 +243,12 @@ async function salvarMedicao() {
   alert("Medição salva com sucesso.");
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
-  window.location.href = "historico-poco.html";
+
+  if (campanhaLocalId) {
+    window.location.href = "campanha-detalhe.html";
+  } else {
+    window.location.href = "historico-poco.html";
+  }
 }
 
 carregarPoco();

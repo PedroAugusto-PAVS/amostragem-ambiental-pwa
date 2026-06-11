@@ -13,6 +13,7 @@ async function sincronizarDados() {
   try {
     await sincronizarProjetos();
     await sincronizarPocos();
+    await sincronizarCampanhas();
     await sincronizarMedicoes();
 
     if (statusSync) {
@@ -31,6 +32,14 @@ async function sincronizarDados() {
 
     if (typeof carregarMapa === "function") {
       carregarMapa();
+    }
+
+    if (typeof carregarCampanhas === "function") {
+      carregarCampanhas();
+    }
+
+    if (typeof carregarCampanha === "function") {
+      carregarCampanha();
     }
 
   } catch (error) {
@@ -138,6 +147,49 @@ async function sincronizarPocos() {
   }
 }
 
+/* CAMPANHAS */
+
+async function sincronizarCampanhas() {
+  const campanhas = await listarCampanhasLocais();
+  const pendentes = campanhas.filter((c) => !c.sincronizado);
+
+  for (const campanha of pendentes) {
+    const { error } = await supabaseClient
+      .from("campanhas")
+      .upsert({
+        local_id: campanha.local_id,
+
+        projeto_local_id: campanha.projeto_local_id,
+        usuario_id: campanha.usuario_id,
+
+        nome: campanha.nome,
+        mes_referencia: campanha.mes_referencia,
+
+        data_inicio: campanha.data_inicio || null,
+        data_fim: campanha.data_fim || null,
+
+        observacoes: campanha.observacoes,
+
+        ativo: campanha.ativo !== false,
+
+        criado_em: campanha.criado_em,
+        atualizado_em: campanha.atualizado_em || null
+      }, {
+        onConflict: "local_id"
+      });
+
+    if (error) {
+      console.error(error);
+      throw new Error("Erro ao sincronizar campanha: " + error.message);
+    }
+
+    campanha.sincronizado = true;
+    campanha.sincronizado_em = new Date().toISOString();
+
+    await atualizarCampanhaLocal(campanha);
+  }
+}
+
 /* MEDIÇÕES */
 
 async function sincronizarMedicoes() {
@@ -152,6 +204,8 @@ async function sincronizarMedicoes() {
 
         poco_local_id: medicao.poco_local_id,
         poco_nome: medicao.poco_nome,
+
+        campanha_local_id: medicao.campanha_local_id || null,
 
         usuario_id: medicao.usuario_id,
         coletor_nome: medicao.coletor_nome,
@@ -169,6 +223,9 @@ async function sincronizarMedicoes() {
         volume_total_esgotado: medicao.volume_total_esgotado || null,
 
         leituras: medicao.leituras || [],
+        estabilizacao: medicao.estabilizacao || null,
+        alertas: medicao.alertas || [],
+
         condicoes_ambientais: medicao.condicoes_ambientais || {},
 
         fotos: medicao.fotos || [],

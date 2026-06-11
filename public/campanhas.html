@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campanhas</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1>Campanhas</h1>
+    <p>Controle mensal das coletas</p>
+  </div>
+
+  <section id="listaCampanhas"></section>
+
+</main>
+
+<button class="float-btn" onclick="window.location.href='nova-campanha.html'">+</button>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a class="active" href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/campanhas.js"></script>
+
+</body>
+</html>
