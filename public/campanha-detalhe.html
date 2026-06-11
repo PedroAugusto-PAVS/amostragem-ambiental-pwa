@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalhe da Campanha</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1 id="tituloCampanha">Campanha</h1>
+    <p id="subtituloCampanha">Controle de coleta</p>
+  </div>
+
+  <section id="resumoCampanha"></section>
+
+  <button class="btn-blue" onclick="editarCampanha()">
+    Editar Campanha
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" id="btnStatusCampanha" onclick="alternarStatusCampanha()">
+    Inativar Campanha
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" style="background:#ef4444;" onclick="excluirCampanha()">
+    Excluir Campanha
+  </button>
+
+  <br><br>
+
+  <h3 class="section-title">PMs da Campanha</h3>
+
+  <section id="listaPmsCampanha"></section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a class="active" href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/campanha-detalhe.js"></script>
+
+</body>
+</html>
