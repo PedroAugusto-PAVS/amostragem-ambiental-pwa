@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v14";
+const CACHE_NAME = "pocos-cache-v15";
 
 const FILES_TO_CACHE = [
   "/",
@@ -10,6 +10,11 @@ const FILES_TO_CACHE = [
   "/novo-projeto.html",
   "/projeto-detalhe.html",
 
+  "/campanhas.html",
+  "/nova-campanha.html",
+  "/campanha-detalhe.html",
+  "/editar-campanha.html",
+
   "/novo-poco.html",
   "/editar-poco.html",
   "/historico-poco.html",
@@ -17,6 +22,7 @@ const FILES_TO_CACHE = [
 
   "/nova-medicao.html",
   "/editar-medicao.html",
+  "/duplicar-medicao.html",
   "/medicoes.html",
 
   "/mapa.html",
@@ -37,6 +43,11 @@ const FILES_TO_CACHE = [
   "/js/novo-projeto.js",
   "/js/projeto-detalhe.js",
 
+  "/js/campanhas.js",
+  "/js/nova-campanha.js",
+  "/js/campanha-detalhe.js",
+  "/js/editar-campanha.js",
+
   "/js/novo-poco.js",
   "/js/editar-poco.js",
   "/js/historico-poco.js",
@@ -44,6 +55,7 @@ const FILES_TO_CACHE = [
 
   "/js/nova-medicao.js",
   "/js/editar-medicao.js",
+  "/js/duplicar-medicao.js",
   "/js/medicoes.js",
 
   "/js/mapa.js",
@@ -52,17 +64,9 @@ const FILES_TO_CACHE = [
 
   "/js/pdf.js",
   "/js/excel.js",
-  "/duplicar-medicao.html",
-  "/js/duplicar-medicao.js",
   "/js/alertas.js",
-  "/campanhas.html",
-  "/nova-campanha.html",
-  "/campanha-detalhe.html",
-  "/js/campanhas.js",
-  "/js/nova-campanha.js",
-  "/js/campanha-detalhe.js",
 
-  "/manifest.json",
+  "/manifest.json"
 ];
 
 self.addEventListener("install", (event) => {
