@@ -33,6 +33,9 @@
       <option value="PM">PM - Poço de Monitoramento</option>
       <option value="PJ">PJ</option>
       <option value="POCO_PRODUCAO">Poço de Produção</option>
+      <option value="PIEZOMETRO">Piezômetro</option>
+      <option value="NASCENTE">Nascente</option>
+      <option value="OUTRO">Outro</option>
     </select>
 
     <label>Local / Propriedade</label>
@@ -101,6 +104,8 @@
       Abrir no Google Maps
     </button>
 
+    <h3>Dados Básicos do Poço</h3>
+
     <label>Profundidade total do poço (m)</label>
     <input type="number" step="0.01" id="profundidadeTotal">
 
@@ -110,6 +115,76 @@
       <option value="5">5 cm - Área 2.03</option>
       <option value="2.5">2,5 cm - Área 0.51</option>
     </select>
+
+    <h3>Perfil Construtivo do Poço</h3>
+
+    <div class="grid">
+      <div>
+        <label>Boca do tubo (m)</label>
+        <input type="number" step="0.01" id="bocaTubo">
+      </div>
+
+      <div>
+        <label>Cota do terreno (m)</label>
+        <input type="number" step="0.01" id="cotaTerreno">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Cota do tubo (m)</label>
+        <input type="number" step="0.01" id="cotaTubo">
+      </div>
+
+      <div>
+        <label>Nível estático (m)</label>
+        <input type="number" step="0.01" id="nivelEstatico">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Zona filtrante inicial (m)</label>
+        <input type="number" step="0.01" id="zonaFiltranteInicio">
+      </div>
+
+      <div>
+        <label>Zona filtrante final (m)</label>
+        <input type="number" step="0.01" id="zonaFiltranteFim">
+      </div>
+    </div>
+
+    <label>Seção filtrante</label>
+    <input id="secaoFiltrante" placeholder="Ex.: PVC ranhurado, tela inox">
+
+    <label>Pré-filtro</label>
+    <input id="preFiltro" placeholder="Ex.: areia selecionada">
+
+    <label>Revestimento</label>
+    <input id="revestimento" placeholder="Ex.: PVC geomecânico 2 pol">
+
+    <label>Tipo de tampa</label>
+    <select id="tipoTampa">
+      <option value="">Selecione</option>
+      <option value="Tampa metálica">Tampa metálica</option>
+      <option value="Tampa PVC">Tampa PVC</option>
+      <option value="Tampa com cadeado">Tampa com cadeado</option>
+      <option value="Sem tampa">Sem tampa</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <label>Condição do poço</label>
+    <select id="condicaoPoco">
+      <option value="">Selecione</option>
+      <option value="Bom">Bom</option>
+      <option value="Regular">Regular</option>
+      <option value="Danificado">Danificado</option>
+      <option value="Obstruído">Obstruído</option>
+      <option value="Sem identificação">Sem identificação</option>
+    </select>
+
+    <label>Observações construtivas</label>
+    <textarea id="observacoesConstrutivas"></textarea>
 
     <br><br>
 
@@ -124,9 +199,9 @@
 <nav class="bottom-nav">
   <a href="dashboard.html"><span>⌂</span>Poços</a>
   <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="campanhas.html"><span>📋</span>Campanhas</a>
   <a href="novo-poco.html"><span>＋</span>Adicionar</a>
   <a href="medicoes.html"><span>▣</span>Medições</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
 </nav>
 
 <script src="js/db-local.js"></script>

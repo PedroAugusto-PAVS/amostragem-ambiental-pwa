@@ -155,6 +155,45 @@ async function carregarProjetosNoSelect() {
   });
 }
 
+function obterPerfilConstrutivo() {
+  return {
+    boca_tubo: document.getElementById("bocaTubo").value,
+    cota_terreno: document.getElementById("cotaTerreno").value,
+    cota_tubo: document.getElementById("cotaTubo").value,
+    nivel_estatico: document.getElementById("nivelEstatico").value,
+    zona_filtrante_inicio: document.getElementById("zonaFiltranteInicio").value,
+    zona_filtrante_fim: document.getElementById("zonaFiltranteFim").value,
+    secao_filtrante: document.getElementById("secaoFiltrante").value,
+    pre_filtro: document.getElementById("preFiltro").value,
+    revestimento: document.getElementById("revestimento").value,
+    tipo_tampa: document.getElementById("tipoTampa").value,
+    condicao_poco: document.getElementById("condicaoPoco").value,
+    observacoes_construtivas: document.getElementById("observacoesConstrutivas").value
+  };
+}
+
+function preencherPerfilConstrutivo(perfil) {
+  document.getElementById("bocaTubo").value = perfil.boca_tubo || "";
+  document.getElementById("cotaTerreno").value = perfil.cota_terreno || "";
+  document.getElementById("cotaTubo").value = perfil.cota_tubo || "";
+  document.getElementById("nivelEstatico").value = perfil.nivel_estatico || "";
+
+  document.getElementById("zonaFiltranteInicio").value =
+    perfil.zona_filtrante_inicio || "";
+
+  document.getElementById("zonaFiltranteFim").value =
+    perfil.zona_filtrante_fim || "";
+
+  document.getElementById("secaoFiltrante").value = perfil.secao_filtrante || "";
+  document.getElementById("preFiltro").value = perfil.pre_filtro || "";
+  document.getElementById("revestimento").value = perfil.revestimento || "";
+  document.getElementById("tipoTampa").value = perfil.tipo_tampa || "";
+  document.getElementById("condicaoPoco").value = perfil.condicao_poco || "";
+
+  document.getElementById("observacoesConstrutivas").value =
+    perfil.observacoes_construtivas || "";
+}
+
 async function carregarPoco() {
   const pocos = await listarPocosLocais();
 
@@ -207,6 +246,8 @@ async function carregarPoco() {
 
   document.getElementById("profundidadeTotal").value = pocoAtual.profundidade_total || "";
   document.getElementById("diametro").value = pocoAtual.diametro || "";
+
+  preencherPerfilConstrutivo(pocoAtual.perfil_construtivo || {});
 }
 
 async function salvarEdicaoPoco() {
@@ -239,6 +280,8 @@ async function salvarEdicaoPoco() {
 
   pocoAtual.profundidade_total = Number(document.getElementById("profundidadeTotal").value);
   pocoAtual.diametro = document.getElementById("diametro").value;
+
+  pocoAtual.perfil_construtivo = obterPerfilConstrutivo();
 
   pocoAtual.sincronizado = false;
   pocoAtual.atualizado_em = new Date().toISOString();
