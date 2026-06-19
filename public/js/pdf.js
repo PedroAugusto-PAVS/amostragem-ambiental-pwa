@@ -98,7 +98,7 @@ txt("-", 145, y + 35);
   txt(`${texto(poco?.diametro)} cm`, 245, y + 10);
 
   txt("NÍVEL ESTÁTICO:", 220, y + 18, 7, true);
-  txt(`${texto(perfil.nivel_estatico || medicao.nivel_agua)} m`, 250, y + 18);
+  txt(`${texto(medicao.nivel_agua)} m`, 250, y + 18);
 
   txt("COLUNA D'ÁGUA:", 220, y + 26, 7, true);
   txt(`${texto(medicao.coluna_agua)} m`, 250, y + 26);
