@@ -81,8 +81,19 @@
     </nav>
 
     <script src="libs/jspdf.umd.min.js"></script>
-<script src="js/db-local.js"></script>
-<script src="js/pdf.js"></script>
-<script src="js/historico-poco.js"></script>
+
+    <script type="module">
+      import { Filesystem, Directory } from "@capacitor/filesystem";
+      import { Share } from "@capacitor/share";
+
+      window.Filesystem = Filesystem;
+      window.Directory = Directory;
+      window.Share = Share;
+    </script>
+
+    <script src="js/pdf.js"></script>
+    <script src="js/db-local.js"></script>
+
+    <script src="js/historico-poco.js"></script>
   </body>
 </html>
