@@ -125,9 +125,7 @@ async function carregarHistorico() {
             Editar
           </button>
 
-          <button class="btn-blue" onclick="abrirFichaImpressao('${
-            m.local_id
-          }')">
+<button class="btn-blue" onclick="window.imprimirFichaMedicao('${m.local_id}')">
   Imprimir ficha
 </button>
 
