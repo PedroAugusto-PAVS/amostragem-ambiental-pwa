@@ -328,3 +328,6 @@ async function sincronizarMedicoes() {
 window.addEventListener("online", () => {
   sincronizarDados();
 });
+
+window.sincronizarDados = sincronizarDados;
+window.baixarDadosSupabase = baixarDadosSupabase;
