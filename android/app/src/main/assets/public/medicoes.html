@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Medições</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="menu-btn" onclick="abrirMenu()">☰</button>
+  <span class="menu-title">Medições</span>
+</div>
+
+<div id="overlayMenu" class="overlay-menu" onclick="fecharMenu()"></div>
+
+<aside id="menuLateral" class="menu-lateral">
+  <h2>Menu</h2>
+  <p>Sistema de Amostragem Ambiental</p>
+
+  <div class="menu-section">Principal</div>
+  <a href="dashboard.html">🏠 Dashboard</a>
+  <a href="menu.html">☰ Menu Geral</a>
+
+  <div class="menu-section">Projetos</div>
+  <a href="projetos.html">▦ Projetos</a>
+  <a href="novo-projeto.html">＋ Novo Projeto</a>
+
+  <div class="menu-section">Campanhas</div>
+  <a href="campanhas.html">📋 Campanhas</a>
+  <a href="nova-campanha.html">＋ Nova Campanha</a>
+
+  <div class="menu-section">Poços / PMs</div>
+  <a href="novo-poco.html">＋ Novo PM / Poço</a>
+  <a href="medicoes.html">▣ Medições</a>
+  <a href="mapa.html">🗺 Mapa</a>
+
+  <div class="menu-section">Sistema</div>
+  <a href="configuracoes.html">⚙ Configurações</a>
+  <a href="admin.html">👤 Administração</a>
+
+  <button class="sair-btn" onclick="sairApp()">🚪 Sair</button>
+</aside>
+
+<main class="container">
+
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1>Medições</h1>
+    <p>Histórico das coletas</p>
+  </div>
+
+  <section class="card offline-card">
+    <div class="offline-icon">⌁</div>
+    <div>
+      <strong>Status</strong>
+      <p id="statusSync">Dados salvos localmente</p>
+    </div>
+  </section>
+
+  <h3 class="section-title">Fichas salvas</h3>
+
+  <section id="listaMedicoes"></section>
+
+  <button class="btn-blue" onclick="exportarPDFSelecionadas()">
+    Gerar PDF das selecionadas
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" onclick="exportarExcelSelecionadas()">
+    Gerar Excel das selecionadas
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" onclick="selecionarTodas()">
+    Selecionar todas
+  </button>
+
+  <br><br>
+
+  <button class="btn-blue" onclick="sincronizarDados()">
+    Sincronizar com Supabase
+  </button>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="menu.html"><span>☰</span>Menu</a>
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script src="libs/xlsx.full.min.js"></script>
+
+<script src="js/supabase.js"></script>
+<script src="js/db-local.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/medicoes.js"></script>
+<script src="js/menu-lateral.js"></script>
+
+</body>
+</html>

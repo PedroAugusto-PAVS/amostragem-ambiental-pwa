@@ -1,0 +1,52 @@
+function numero(valor) {
+  if (valor === null || valor === undefined || valor === "") return 0;
+  return Number(String(valor).replace(",", "."));
+}
+
+function calcularColunaAgua(profundidadeTotal, nivelAgua) {
+  const pt = numero(profundidadeTotal);
+  const na = numero(nivelAgua);
+
+  if (pt <= 0 || na < 0) return 0;
+
+  return Number((pt - na).toFixed(2));
+}
+
+function calcularAreaDiametro(diametro) {
+  const d = String(diametro).replace(",", ".");
+
+  if (d === "5") return 2.03;
+  if (d === "2.5") return 0.51;
+
+  return 0;
+}
+
+function calcularVolumeEstagnado(colunaAgua, diametro) {
+  const coluna = numero(colunaAgua);
+  const area = calcularAreaDiametro(diametro);
+
+  if (coluna <= 0 || area <= 0) return 0;
+
+  return Number((coluna * area).toFixed(2));
+}
+
+function calcularVolumePurga(profundidadeBomba) {
+  const profundidade = numero(profundidadeBomba);
+
+  if (profundidade <= 0) return 0;
+
+  const volumeMl =
+    profundidade * 14 +
+    400 +
+    180;
+
+  return Number((volumeMl / 1000).toFixed(2));
+}
+
+function calcularVolumeTotalEsgotado(volumeEstagnado) {
+  const volume = numero(volumeEstagnado);
+
+  if (volume <= 0) return 0;
+
+  return Number((volume * 3).toFixed(2));
+}

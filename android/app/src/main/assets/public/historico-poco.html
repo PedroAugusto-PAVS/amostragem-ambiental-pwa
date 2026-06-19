@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histórico do PM</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+      <div class="page-title">
+        <h1 id="tituloPoco">Histórico</h1>
+        <p>Dados mensais do ponto</p>
+      </div>
+
+      <section id="infoPoco"></section>
+
+      <button class="btn-blue" onclick="novaMedicao()">
+        Adicionar medição mensal
+      </button>
+
+      <br /><br />
+
+      <button class="btn-blue" onclick="duplicarMedicaoAnterior()">
+        Duplicar medição anterior
+      </button>
+
+      <button class="btn-blue" onclick="editarPoco()">Editar PM</button>
+
+      <br /><br />
+
+      <button class="btn-blue" onclick="verFotos()">Ver Fotos</button>
+
+      <br /><br />
+
+      <button
+        class="btn-blue"
+        id="btnStatusPoco"
+        onclick="alternarStatusPoco()"
+      >
+        Inativar PM
+      </button>
+
+      <br /><br />
+
+      <button
+        class="btn-blue"
+        style="background: #ef4444"
+        onclick="excluirPoco()"
+      >
+        Excluir PM
+      </button>
+
+      <br /><br />
+
+      <button class="btn-blue" onclick="abrirGoogleMaps()">
+        Abrir no Google Maps
+      </button>
+
+      <br /><br />
+
+      <button class="btn-blue" onclick="navegarAtePM()">
+        Navegar até o PM
+      </button>
+
+      <br /><br />
+
+      <h3 class="section-title">Histórico de medições</h3>
+
+      <section id="listaHistorico"></section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
+
+    <script src="libs/jspdf.umd.min.js"></script>
+
+    <script type="module">
+      import { Filesystem, Directory } from "@capacitor/filesystem";
+      import { Share } from "@capacitor/share";
+
+      window.Filesystem = Filesystem;
+      window.Directory = Directory;
+      window.Share = Share;
+    </script>
+
+    <script src="js/pdf.js"></script>
+    <script src="js/db-local.js"></script>
+
+    <script src="js/historico-poco.js"></script>
+  </body>
+</html>

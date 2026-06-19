@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo PM</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main class="container">
+
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+  <div class="page-title">
+    <h1>Novo PM</h1>
+    <p>Cadastro do ponto fixo</p>
+  </div>
+
+  <form class="form-card">
+
+    <label>Projeto</label>
+    <select id="projetoSelect">
+      <option value="">Sem projeto</option>
+    </select>
+
+    <label>Nome do poço *</label>
+    <input id="nomePoco" placeholder="Ex.: PM-01">
+
+    <label>Tipo do ponto *</label>
+    <select id="tipoPoco">
+      <option value="">Selecione</option>
+      <option value="PM">PM - Poço de Monitoramento</option>
+      <option value="PJ">PJ</option>
+      <option value="POCO_PRODUCAO">Poço de Produção</option>
+      <option value="PIEZOMETRO">Piezômetro</option>
+      <option value="NASCENTE">Nascente</option>
+      <option value="OUTRO">Outro</option>
+    </select>
+
+    <label>Local / Propriedade</label>
+    <input id="localPropriedade" placeholder="Ex.: Fazenda Boa Vista">
+
+    <h3>Localização</h3>
+
+    <div class="grid">
+      <div>
+        <label>UTM E</label>
+        <input id="utmE">
+      </div>
+
+      <div>
+        <label>UTM N</label>
+        <input id="utmN">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Zona UTM</label>
+        <input id="zonaUtm" readonly>
+      </div>
+
+      <div>
+        <label>Hemisfério</label>
+        <input id="hemisferioUtm" readonly>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Latitude</label>
+        <input id="latitudeGps" readonly>
+      </div>
+
+      <div>
+        <label>Longitude</label>
+        <input id="longitudeGps" readonly>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Precisão GPS</label>
+        <input id="precisaoGps" readonly>
+      </div>
+
+      <div>
+        <label>Altitude</label>
+        <input id="altitudeGps" readonly>
+      </div>
+    </div>
+
+    <label>Data/Hora da captura GPS</label>
+    <input id="dataHoraGps" readonly>
+
+    <button type="button" class="btn-primary" onclick="capturarGPS()">
+      Capturar GPS Profissional
+    </button>
+
+    <br><br>
+
+    <button type="button" class="btn-blue" onclick="abrirGoogleMaps()">
+      Abrir no Google Maps
+    </button>
+
+    <h3>Dados Básicos do Poço</h3>
+
+    <label>Profundidade total do poço (m)</label>
+    <input type="number" step="0.01" id="profundidadeTotal">
+
+    <label>Diâmetro do poço</label>
+    <select id="diametro">
+      <option value="">Selecione</option>
+      <option value="5">5 cm - Área 2.03</option>
+      <option value="2.5">2,5 cm - Área 0.51</option>
+    </select>
+
+    <h3>Perfil Construtivo do Poço</h3>
+
+    <div class="grid">
+      <div>
+        <label>Boca do tubo (m)</label>
+        <input type="number" step="0.01" id="bocaTubo">
+      </div>
+
+      <div>
+        <label>Cota do terreno (m)</label>
+        <input type="number" step="0.01" id="cotaTerreno">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Cota do tubo (m)</label>
+        <input type="number" step="0.01" id="cotaTubo">
+      </div>
+
+      <div>
+        <label>Nível estático (m)</label>
+        <input type="number" step="0.01" id="nivelEstatico">
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>Zona filtrante inicial (m)</label>
+        <input type="number" step="0.01" id="zonaFiltranteInicio">
+      </div>
+
+      <div>
+        <label>Zona filtrante final (m)</label>
+        <input type="number" step="0.01" id="zonaFiltranteFim">
+      </div>
+    </div>
+
+    <label>Seção filtrante</label>
+    <input id="secaoFiltrante" placeholder="Ex.: PVC ranhurado, tela inox">
+
+    <label>Pré-filtro</label>
+    <input id="preFiltro" placeholder="Ex.: areia selecionada">
+
+    <label>Revestimento</label>
+    <input id="revestimento" placeholder="Ex.: PVC geomecânico 2 pol">
+
+    <label>Tipo de tampa</label>
+    <select id="tipoTampa">
+      <option value="">Selecione</option>
+      <option value="Tampa metálica">Tampa metálica</option>
+      <option value="Tampa PVC">Tampa PVC</option>
+      <option value="Tampa com cadeado">Tampa com cadeado</option>
+      <option value="Sem tampa">Sem tampa</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <label>Condição do poço</label>
+    <select id="condicaoPoco">
+      <option value="">Selecione</option>
+      <option value="Bom">Bom</option>
+      <option value="Regular">Regular</option>
+      <option value="Danificado">Danificado</option>
+      <option value="Obstruído">Obstruído</option>
+      <option value="Sem identificação">Sem identificação</option>
+    </select>
+
+    <label>Observações construtivas</label>
+    <textarea id="observacoesConstrutivas" placeholder="Ex.: zona filtrante, revestimento, pré-filtro, condição física do poço..."></textarea>
+
+    <label>Fotos do PM</label>
+    <input 
+      type="file" 
+      id="fotosPoco" 
+      accept="image/*" 
+      capture="environment" 
+      multiple
+    >
+
+    <p style="font-size:13px; color:#64748b;">
+      Você pode tirar ou selecionar várias fotos do PM.
+    </p>
+
+    <br>
+
+    <button type="button" class="btn-blue" onclick="salvarPoco()">
+      Salvar PM
+    </button>
+
+  </form>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a class="active" href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="medicoes.html"><span>▣</span>Medições</a>
+</nav>
+
+<script src="js/db-local.js"></script>
+<script src="js/novo-poco.js"></script>
+
+</body>
+</html>

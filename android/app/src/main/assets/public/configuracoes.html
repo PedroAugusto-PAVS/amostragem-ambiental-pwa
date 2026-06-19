@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+
+
+<main class="container">
+  <button class="back-btn" onclick="history.back()">← Voltar</button>
+    <div class="page-title">
+        <h1>Configurações</h1>
+        <p>Sistema e sincronização</p>
+      </div>
+  <section class="card">
+    <strong>Usuário</strong>
+    <p id="usuarioLogado">Carregando...</p>
+  </section>
+
+  <section class="card">
+    <strong>Sincronização</strong>
+    <p>Envie as fichas salvas offline para o Supabase.</p>
+    <button class="btn-blue" onclick="sincronizarDados()">Sincronizar agora</button>
+  </section>
+
+  <section class="card">
+    <strong>Exportações</strong>
+    <p>Gere arquivos das fichas salvas.</p>
+    <button class="btn-blue" onclick="gerarPDF()">Gerar PDF</button>
+    <br><br>
+    <button class="btn-blue" onclick="exportarExcel()">Exportar Excel</button>
+  </section>
+
+  <section class="card">
+    <strong>Sistema</strong>
+    <p>Aplicativo de amostragem ambiental offline.</p>
+    <p>Versão 1.0.0</p>
+  </section>
+
+  <button class="btn-blue" style="background:#ef4444;" onclick="logout()">
+    Sair do aplicativo
+  </button>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="menu.html"><span>☰</span>Menu</a>
+  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="projetos.html"><span>▦</span>Projetos</a>
+  <a href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a href="configuracoes.html"><span>⚙</span>Config.</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script src="js/supabase.js"></script>
+<script src="js/db-local.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/configuracoes.js"></script>
+
+</body>
+</html>
