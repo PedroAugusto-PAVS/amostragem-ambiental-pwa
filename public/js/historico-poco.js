@@ -130,6 +130,10 @@ async function carregarHistorico() {
           }')">
   Imprimir ficha
 </button>
+
+<button class="btn-blue" style="background:#ef4444;" onclick="excluirMedicao('${m.local_id}')">
+  Excluir
+</button>
         </div>
       </div>
     `;
