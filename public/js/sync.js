@@ -16,31 +16,15 @@ async function sincronizarDados() {
     await sincronizarCampanhas();
     await sincronizarMedicoes();
 
+    await baixarDadosSupabase();
+
     if (statusSync) {
       statusSync.innerText = "Sincronização finalizada";
     }
 
     alert("Dados sincronizados com o Supabase.");
 
-    if (typeof carregarMedicoes === "function") {
-      carregarMedicoes();
-    }
-
-    if (typeof carregarDashboard === "function") {
-      carregarDashboard();
-    }
-
-    if (typeof carregarMapa === "function") {
-      carregarMapa();
-    }
-
-    if (typeof carregarCampanhas === "function") {
-      carregarCampanhas();
-    }
-
-    if (typeof carregarCampanha === "function") {
-      carregarCampanha();
-    }
+    atualizarTelasAposSync();
 
   } catch (error) {
     console.error(error);
@@ -50,6 +34,96 @@ async function sincronizarDados() {
     }
 
     alert("Erro ao sincronizar: " + error.message);
+  }
+}
+
+function atualizarTelasAposSync() {
+  if (typeof carregarMedicoes === "function") carregarMedicoes();
+  if (typeof carregarDashboard === "function") carregarDashboard();
+  if (typeof carregarMapa === "function") carregarMapa();
+  if (typeof carregarCampanhas === "function") carregarCampanhas();
+  if (typeof carregarCampanha === "function") carregarCampanha();
+  if (typeof carregarProjeto === "function") carregarProjeto();
+}
+
+/* BAIXAR DADOS DA NUVEM */
+
+async function baixarDadosSupabase() {
+  await baixarProjetosSupabase();
+  await baixarPocosSupabase();
+  await baixarCampanhasSupabase();
+  await baixarMedicoesSupabase();
+}
+
+async function baixarProjetosSupabase() {
+  const { data, error } = await supabaseClient
+    .from("projetos")
+    .select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar projetos: " + error.message);
+  }
+
+  for (const projeto of data || []) {
+    await salvarProjetoLocal({
+      ...projeto,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString()
+    });
+  }
+}
+
+async function baixarPocosSupabase() {
+  const { data, error } = await supabaseClient
+    .from("pocos")
+    .select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar PMs: " + error.message);
+  }
+
+  for (const poco of data || []) {
+    await salvarPocoLocal({
+      ...poco,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString()
+    });
+  }
+}
+
+async function baixarCampanhasSupabase() {
+  const { data, error } = await supabaseClient
+    .from("campanhas")
+    .select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar campanhas: " + error.message);
+  }
+
+  for (const campanha of data || []) {
+    await salvarCampanhaLocal({
+      ...campanha,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString()
+    });
+  }
+}
+
+async function baixarMedicoesSupabase() {
+  const { data, error } = await supabaseClient
+    .from("medicoes")
+    .select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar medições: " + error.message);
+  }
+
+  for (const medicao of data || []) {
+    await salvarMedicaoLocal({
+      ...medicao,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString()
+    });
   }
 }
 
@@ -68,6 +142,7 @@ async function sincronizarProjetos() {
 
         nome: projeto.nome,
         cliente: projeto.cliente,
+        processo_comercial: projeto.processo_comercial || null,
         local: projeto.local,
         descricao: projeto.descricao,
 
