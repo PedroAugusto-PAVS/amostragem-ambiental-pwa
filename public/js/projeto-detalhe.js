@@ -29,15 +29,23 @@ async function carregarProjeto() {
   document.getElementById("infoProjeto").innerHTML = `
     <div class="card">
       <strong>${projetoAtual.nome}</strong>
+
       <p>Cliente: ${projetoAtual.cliente || "-"}</p>
+      <p>Processo Comercial: ${projetoAtual.processo_comercial || "-"}</p>
       <p>Local: ${projetoAtual.local || "-"}</p>
       <p>${projetoAtual.descricao || ""}</p>
+
+      <br>
+
+      <button class="btn-blue" onclick="editarProjeto()">
+        Editar Projeto
+      </button>
     </div>
   `;
 
   const pocosDoProjeto = pocos.filter(
-  (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
-);
+    (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
+  );
 
   const lista = document.getElementById("listaPocosProjeto");
   lista.innerHTML = "";
@@ -55,7 +63,7 @@ async function carregarProjeto() {
   pocosDoProjeto.forEach((poco) => {
     lista.innerHTML += `
       <div class="poco-item" onclick="abrirHistorico('${poco.local_id}')">
-        <div class="avatar">${poco.nome.substring(0,2).toUpperCase()}</div>
+        <div class="avatar">${poco.nome.substring(0, 2).toUpperCase()}</div>
 
         <div class="poco-info">
           <strong>${poco.nome}</strong>
@@ -73,6 +81,11 @@ async function carregarProjeto() {
 function novoPocoProjeto() {
   localStorage.setItem("projeto_selecionado", projetoAtual.local_id);
   window.location.href = "novo-poco.html";
+}
+
+function editarProjeto() {
+  localStorage.setItem("projeto_selecionado", projetoAtual.local_id);
+  window.location.href = "editar-projeto.html";
 }
 
 function abrirHistorico(pocoLocalId) {
