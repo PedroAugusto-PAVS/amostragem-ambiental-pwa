@@ -59,7 +59,9 @@ async function carregarHistorico() {
       <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
 
       <strong>Dados do PM</strong>
-      <p>Profundidade total cadastrada: ${pocoAtual.profundidade_total || 0} m</p>
+      <p>Profundidade total cadastrada: ${
+        pocoAtual.profundidade_total || 0
+      } m</p>
       <p>Diâmetro: ${pocoAtual.diametro || "-"} cm</p>
       <p>Fotos do PM: ${(pocoAtual.fotos || []).length}</p>
       <p>Status: ${pocoAtual.ativo === false ? "Inativo" : "Ativo"}</p>
@@ -69,8 +71,10 @@ async function carregarHistorico() {
   const btnStatus = document.getElementById("btnStatusPoco");
 
   if (btnStatus) {
-    btnStatus.innerText = pocoAtual.ativo === false ? "Reativar PM" : "Inativar PM";
-    btnStatus.style.background = pocoAtual.ativo === false ? "#16a34a" : "#f59e0b";
+    btnStatus.innerText =
+      pocoAtual.ativo === false ? "Reativar PM" : "Inativar PM";
+    btnStatus.style.background =
+      pocoAtual.ativo === false ? "#16a34a" : "#f59e0b";
   }
 
   const historico = [...medicoesDoPoco].sort(
@@ -105,9 +109,7 @@ async function carregarHistorico() {
         <p>Fotos: ${(m.fotos || []).length}</p>
 
         <p>Estabilização: ${
-          m.estabilizacao?.estavel
-            ? "✅ Estável"
-            : "⚠ Não estabilizado"
+          m.estabilizacao?.estavel ? "✅ Estável" : "⚠ Não estabilizado"
         }</p>
 
         ${
@@ -123,7 +125,9 @@ async function carregarHistorico() {
             Editar
           </button>
 
-          <button class="btn-blue" onclick="imprimirFichaMedicao('${m.local_id}')">
+          <button class="btn-blue" onclick="window.imprimirFichaMedicao('${
+            m.local_id
+          }')">
             Imprimir ficha
           </button>
         </div>
@@ -215,7 +219,9 @@ async function alternarStatusPoco() {
 
   await atualizarPocoLocal(pocoAtual);
 
-  alert(estaInativo ? "PM reativado com sucesso." : "PM inativado com sucesso.");
+  alert(
+    estaInativo ? "PM reativado com sucesso." : "PM inativado com sucesso."
+  );
 
   carregarHistorico();
 }

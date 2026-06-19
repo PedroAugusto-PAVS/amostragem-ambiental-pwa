@@ -14,66 +14,81 @@
 
   <div class="page-title">
     <h1>Painel Admin</h1>
-    <p>Gestão de projetos, PMs, medições e coletores</p>
+    <p>Gerencie coletores e administradores</p>
   </div>
 
   <section class="card stats">
     <div>
-      <strong id="totalProjetos">0</strong>
-      <span>Projetos</span>
+      <strong id="totalUsuarios">0</strong>
+      <span>Usuários</span>
     </div>
 
-    <div>
-      <strong id="totalPocos">0</strong>
-      <span>PMs</span>
-    </div>
-
-    <div>
-      <strong id="totalMedicoes">0</strong>
-      <span>Medições</span>
-    </div>
-  </section>
-
-  <section class="card stats">
     <div>
       <strong id="totalColetores">0</strong>
       <span>Coletores</span>
     </div>
 
     <div>
-      <strong id="totalPendentes">0</strong>
-      <span>Pendentes</span>
-    </div>
-
-    <div>
-      <strong id="totalInativos">0</strong>
-      <span>PMs inativos</span>
+      <strong id="totalAdmins">0</strong>
+      <span>Admins</span>
     </div>
   </section>
 
-  <button class="btn-blue" onclick="carregarAdmin()">
-    Atualizar painel
-  </button>
+  <h3 class="section-title">Cadastrar / Editar Usuário</h3>
 
-  <h3 class="section-title">Coletores</h3>
-  <section id="listaColetores"></section>
+  <form class="form-card">
 
-  <h3 class="section-title">Últimas Medições</h3>
-  <section id="listaUltimasMedicoes"></section>
+    <input type="hidden" id="usuarioIdEdicao">
+
+    <label>Nome</label>
+    <input id="nomeUsuario" placeholder="Nome completo">
+
+    <label>Email</label>
+    <input id="emailUsuario" type="email" placeholder="email@empresa.com">
+
+    <label>Senha</label>
+    <input id="senhaUsuario" type="password" placeholder="Senha inicial">
+
+    <label>Tipo</label>
+    <select id="tipoUsuario">
+      <option value="coletor">Coletor</option>
+      <option value="admin">Administrador</option>
+    </select>
+
+    <label>Status</label>
+    <select id="statusUsuario">
+      <option value="true">Ativo</option>
+      <option value="false">Inativo</option>
+    </select>
+
+    <button type="button" class="btn-blue" onclick="salvarUsuarioAdmin()">
+      Salvar usuário
+    </button>
+
+    <br><br>
+
+    <button type="button" class="btn-primary" onclick="limparFormularioUsuario()">
+      Limpar formulário
+    </button>
+
+  </form>
+
+  <h3 class="section-title">Usuários cadastrados</h3>
+
+  <section id="listaUsuarios"></section>
 
 </main>
 
 <nav class="bottom-nav">
   <a href="dashboard.html"><span>⌂</span>Poços</a>
   <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="novo-poco.html"><span>＋</span>Adicionar</a>
+  <a href="campanhas.html"><span>📋</span>Campanhas</a>
   <a href="medicoes.html"><span>▣</span>Medições</a>
   <a class="active" href="admin.html"><span>⚙</span>Admin</a>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
-<script src="js/db-local.js"></script>
 <script src="js/admin.js"></script>
 
 </body>

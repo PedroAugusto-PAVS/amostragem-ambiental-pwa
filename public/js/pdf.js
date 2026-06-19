@@ -22,13 +22,18 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   const poco = pocos.find((p) => p.local_id === medicao.poco_local_id);
   const projeto = projetos.find((p) => p.local_id === poco?.projeto_local_id);
 
-  if (!window.jspdf) {
-    alert("Biblioteca PDF não carregada.");
-    return;
-  }
+  const jsPDF =
+  window.jspdf?.jsPDF ||
+  window.jsPDF ||
+  window.jspdf;
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4");
+if (!jsPDF) {
+  alert("Biblioteca PDF não carregada.");
+  return;
+}
+
+const doc = new jsPDF("p", "mm", "a4");
+
 
   let y = 12;
 
@@ -215,5 +220,16 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     .replaceAll("/", "-")
     .replaceAll(" ", "-");
 
-  doc.save(nomeArquivo);
-}
+    try {
+      doc.save(nomeArquivo);
+    } catch (erro) {
+      const pdfBlob = doc.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+  
+      window.open(url, "_blank");
+    }
+  }
+  
+  window.imprimirFichaMedicao = imprimirFichaMedicao;
+
+ 

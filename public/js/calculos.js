@@ -1,19 +1,18 @@
-function n(valor) {
+function numero(valor) {
   if (valor === null || valor === undefined || valor === "") return 0;
   return Number(String(valor).replace(",", "."));
 }
 
 function calcularColunaAgua(profundidadeTotal, nivelAgua) {
-  const total = n(profundidadeTotal);
-  const nivel = n(nivelAgua);
+  const pt = numero(profundidadeTotal);
+  const na = numero(nivelAgua);
 
-  if (total <= 0 || nivel <= 0) return 0;
+  if (pt <= 0 || na < 0) return 0;
 
-  const coluna = total - nivel;
-  return coluna > 0 ? Number(coluna.toFixed(2)) : 0;
+  return Number((pt - na).toFixed(2));
 }
 
-function obterAreaPorDiametro(diametro) {
+function calcularAreaDiametro(diametro) {
   const d = String(diametro).replace(",", ".");
 
   if (d === "5") return 2.03;
@@ -23,26 +22,29 @@ function obterAreaPorDiametro(diametro) {
 }
 
 function calcularVolumeEstagnado(colunaAgua, diametro) {
-  const coluna = n(colunaAgua);
-  const area = obterAreaPorDiametro(diametro);
+  const coluna = numero(colunaAgua);
+  const area = calcularAreaDiametro(diametro);
 
   if (coluna <= 0 || area <= 0) return 0;
 
-  return Number((area * coluna).toFixed(2));
+  return Number((coluna * area).toFixed(2));
 }
 
 function calcularVolumePurga(profundidadeBomba) {
-  const bomba = n(profundidadeBomba);
+  const profundidade = numero(profundidadeBomba);
 
-  if (bomba <= 0) return 0;
+  if (profundidade <= 0) return 0;
 
-  const areaBomba1Polegada = 0.51;
+  const volumeMl =
+    profundidade * 14 +
+    400 +
+    180;
 
-  return Number((bomba * areaBomba1Polegada).toFixed(2));
+  return Number((volumeMl / 1000).toFixed(2));
 }
 
 function calcularVolumeTotalEsgotado(volumeEstagnado) {
-  const volume = n(volumeEstagnado);
+  const volume = numero(volumeEstagnado);
 
   if (volume <= 0) return 0;
 

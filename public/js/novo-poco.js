@@ -91,6 +91,7 @@ function capturarGPS() {
 
       document.getElementById("latitudeGps").value = latitude;
       document.getElementById("longitudeGps").value = longitude;
+
       document.getElementById("precisaoGps").value = precisao
         ? `${precisao.toFixed(2)} m`
         : "";
@@ -173,6 +174,27 @@ async function carregarProjetosNoSelect() {
   }
 }
 
+function obterPerfilConstrutivo() {
+  return {
+    boca_tubo: document.getElementById("bocaTubo").value,
+    cota_terreno: document.getElementById("cotaTerreno").value,
+    cota_tubo: document.getElementById("cotaTubo").value,
+    nivel_estatico: document.getElementById("nivelEstatico").value,
+
+    zona_filtrante_inicio: document.getElementById("zonaFiltranteInicio").value,
+    zona_filtrante_fim: document.getElementById("zonaFiltranteFim").value,
+
+    secao_filtrante: document.getElementById("secaoFiltrante").value,
+    pre_filtro: document.getElementById("preFiltro").value,
+    revestimento: document.getElementById("revestimento").value,
+
+    tipo_tampa: document.getElementById("tipoTampa").value,
+    condicao_poco: document.getElementById("condicaoPoco").value,
+
+    observacoes_construtivas: document.getElementById("observacoesConstrutivas").value
+  };
+}
+
 async function salvarPoco() {
   const nome = document.getElementById("nomePoco").value.trim();
   const tipo = document.getElementById("tipoPoco").value;
@@ -211,6 +233,8 @@ async function salvarPoco() {
 
     profundidade_total: Number(document.getElementById("profundidadeTotal").value),
     diametro: document.getElementById("diametro").value,
+
+    perfil_construtivo: obterPerfilConstrutivo(),
 
     fotos: fotosBase64,
 
