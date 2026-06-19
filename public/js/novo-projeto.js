@@ -15,16 +15,27 @@ async function salvarProjeto() {
   const projeto = {
     local_id: crypto.randomUUID(),
     usuario_id: usuario.id,
+
     nome,
+
     cliente: document.getElementById("clienteProjeto").value,
+
+    processo_comercial:
+      document.getElementById("processoComercial").value,
+
     local: document.getElementById("localProjeto").value,
-    descricao: document.getElementById("descricaoProjeto").value,
+
+    descricao:
+      document.getElementById("descricaoProjeto").value,
+
     sincronizado: false,
+
     criado_em: new Date().toISOString()
   };
 
   await salvarProjetoLocal(projeto);
 
   alert("Projeto criado com sucesso.");
+
   window.location.href = "projetos.html";
 }
