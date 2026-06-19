@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha de Campo</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    body {
+      background: white;
+      color: #000;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .ficha {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1, h2 {
+      color: #000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 20px;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid #333;
+      padding: 6px;
+      text-align: left;
+    }
+
+    .linha {
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .assinaturas {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 60px;
+    }
+
+    .assinatura {
+      width: 45%;
+      text-align: center;
+      border-top: 1px solid #000;
+      padding-top: 8px;
+    }
+
+    .no-print {
+      margin-bottom: 20px;
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+
+      body {
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print">
+  <button onclick="window.print()">Imprimir / Salvar PDF</button>
+  <button onclick="history.back()">Voltar</button>
+</div>
+
+<div class="ficha" id="fichaContainer"></div>
+
+<script src="js/db-local.js"></script>
+<script src="js/ficha-impressao.js"></script>
+
+</body>
+</html>

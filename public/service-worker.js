@@ -67,8 +67,10 @@ const FILES_TO_CACHE = [
   "/js/alertas.js",
   "/libs/jspdf.umd.min.js",
   "/menu.html",
+  "/ficha-impressao.html",
+  "/js/ficha-impressao.js",
 
-  "/manifest.json"
+  "/manifest.json",
 ];
 
 self.addEventListener("install", (event) => {

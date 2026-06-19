@@ -125,11 +125,11 @@ async function carregarHistorico() {
             Editar
           </button>
 
-          <button class="btn-blue" onclick="window.imprimirFichaMedicao('${
+          <button class="btn-blue" onclick="abrirFichaImpressao('${
             m.local_id
           }')">
-            Imprimir ficha
-          </button>
+  Imprimir ficha
+</button>
         </div>
       </div>
     `;
@@ -248,6 +248,11 @@ async function excluirPoco() {
   alert("PM excluído com sucesso.");
 
   window.location.href = "dashboard.html";
+}
+
+function abrirFichaImpressao(medicaoId) {
+  localStorage.setItem("medicao_imprimir", medicaoId);
+  window.location.href = "ficha-impressao.html";
 }
 
 carregarHistorico();
