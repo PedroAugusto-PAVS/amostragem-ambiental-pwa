@@ -46,9 +46,21 @@ async function carregarEdicao() {
 
   document.getElementById("dataMedicao").value = medicaoAtual.data_medicao || "";
   document.getElementById("mesReferencia").value = medicaoAtual.mes_referencia || "";
-  document.getElementById("profundidadeTotalMes").value = medicaoAtual.profundidade_total_mes || "";
-  document.getElementById("nivelAgua").value = medicaoAtual.nivel_agua || "";
-  document.getElementById("profundidadeBomba").value = medicaoAtual.profundidade_bomba || "";
+
+  document.getElementById("codigoFrascaria").value =
+    medicaoAtual.codigo_frascaria || "";
+
+  document.getElementById("responsavelAls").value =
+    medicaoAtual.responsavel_als || medicaoAtual.coletor_nome || usuario.nome || "";
+
+  document.getElementById("profundidadeTotalMes").value =
+    medicaoAtual.profundidade_total_mes || "";
+
+  document.getElementById("nivelAgua").value =
+    medicaoAtual.nivel_agua || "";
+
+  document.getElementById("profundidadeBomba").value =
+    medicaoAtual.profundidade_bomba || "";
 
   const c = medicaoAtual.condicoes_ambientais || {};
 
@@ -234,20 +246,51 @@ function renderizarFotosExistentes() {
 async function salvarEdicaoMedicao() {
   atualizarCalculos();
 
+  const codigoFrascaria =
+    document.getElementById("codigoFrascaria").value.trim();
+
+  const responsavelAls =
+    document.getElementById("responsavelAls").value.trim();
+
+  if (!codigoFrascaria) {
+    alert("Informe o código da frascaria / Código ALS.");
+    return;
+  }
+
+  if (!responsavelAls) {
+    alert("Informe o responsável ALS.");
+    return;
+  }
+
   const novasFotosFiles = document.getElementById("fotosMedicao").files;
   const novasFotos = await converterFotosBase64(novasFotosFiles);
 
   medicaoAtual.data_medicao = document.getElementById("dataMedicao").value;
   medicaoAtual.mes_referencia = document.getElementById("mesReferencia").value;
 
-  medicaoAtual.profundidade_total_mes = Number(document.getElementById("profundidadeTotalMes").value);
-  medicaoAtual.nivel_agua = Number(document.getElementById("nivelAgua").value);
-  medicaoAtual.profundidade_bomba = Number(document.getElementById("profundidadeBomba").value);
+  medicaoAtual.codigo_frascaria = codigoFrascaria;
+  medicaoAtual.responsavel_als = responsavelAls;
 
-  medicaoAtual.coluna_agua = Number(document.getElementById("colunaAgua").innerText);
-  medicaoAtual.volume_estagnado = Number(document.getElementById("volumeEstagnado").innerText);
-  medicaoAtual.volume_purga = Number(document.getElementById("volumePurga").innerText);
-  medicaoAtual.volume_total_esgotado = Number(document.getElementById("volumeTotalEsgotado").innerText);
+  medicaoAtual.profundidade_total_mes =
+    Number(document.getElementById("profundidadeTotalMes").value);
+
+  medicaoAtual.nivel_agua =
+    Number(document.getElementById("nivelAgua").value);
+
+  medicaoAtual.profundidade_bomba =
+    Number(document.getElementById("profundidadeBomba").value);
+
+  medicaoAtual.coluna_agua =
+    Number(document.getElementById("colunaAgua").innerText);
+
+  medicaoAtual.volume_estagnado =
+    Number(document.getElementById("volumeEstagnado").innerText);
+
+  medicaoAtual.volume_purga =
+    Number(document.getElementById("volumePurga").innerText);
+
+  medicaoAtual.volume_total_esgotado =
+    Number(document.getElementById("volumeTotalEsgotado").innerText);
 
   medicaoAtual.leituras = obterLeituras();
 

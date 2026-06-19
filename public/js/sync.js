@@ -25,7 +25,6 @@ async function sincronizarDados() {
     alert("Dados sincronizados com o Supabase.");
 
     atualizarTelasAposSync();
-
   } catch (error) {
     console.error(error);
 
@@ -72,14 +71,13 @@ async function baixarDadosSupabase() {
 
     alert(
       "Dados restaurados com sucesso!\n\n" +
-      `Projetos: ${totalProjetos}\n` +
-      `PMs/Poços: ${totalPocos}\n` +
-      `Campanhas: ${totalCampanhas}\n` +
-      `Medições: ${totalMedicoes}`
+        `Projetos: ${totalProjetos}\n` +
+        `PMs/Poços: ${totalPocos}\n` +
+        `Campanhas: ${totalCampanhas}\n` +
+        `Medições: ${totalMedicoes}`
     );
 
     atualizarTelasAposSync();
-
   } catch (error) {
     console.error(error);
 
@@ -92,9 +90,7 @@ async function baixarDadosSupabase() {
 }
 
 async function baixarProjetosSupabase() {
-  const { data, error } = await supabaseClient
-    .from("projetos")
-    .select("*");
+  const { data, error } = await supabaseClient.from("projetos").select("*");
 
   if (error) {
     throw new Error("Erro ao baixar projetos: " + error.message);
@@ -104,16 +100,14 @@ async function baixarProjetosSupabase() {
     await salvarProjetoLocal({
       ...projeto,
       sincronizado: true,
-      sincronizado_em: new Date().toISOString()
+      sincronizado_em: new Date().toISOString(),
     });
   }
   return (data || []).length;
 }
 
 async function baixarPocosSupabase() {
-  const { data, error } = await supabaseClient
-    .from("pocos")
-    .select("*");
+  const { data, error } = await supabaseClient.from("pocos").select("*");
 
   if (error) {
     throw new Error("Erro ao baixar PMs: " + error.message);
@@ -123,16 +117,14 @@ async function baixarPocosSupabase() {
     await salvarPocoLocal({
       ...poco,
       sincronizado: true,
-      sincronizado_em: new Date().toISOString()
+      sincronizado_em: new Date().toISOString(),
     });
   }
   return (data || []).length;
 }
 
 async function baixarCampanhasSupabase() {
-  const { data, error } = await supabaseClient
-    .from("campanhas")
-    .select("*");
+  const { data, error } = await supabaseClient.from("campanhas").select("*");
 
   if (error) {
     throw new Error("Erro ao baixar campanhas: " + error.message);
@@ -142,16 +134,14 @@ async function baixarCampanhasSupabase() {
     await salvarCampanhaLocal({
       ...campanha,
       sincronizado: true,
-      sincronizado_em: new Date().toISOString()
+      sincronizado_em: new Date().toISOString(),
     });
   }
   return (data || []).length;
 }
 
 async function baixarMedicoesSupabase() {
-  const { data, error } = await supabaseClient
-    .from("medicoes")
-    .select("*");
+  const { data, error } = await supabaseClient.from("medicoes").select("*");
 
   if (error) {
     throw new Error("Erro ao baixar medições: " + error.message);
@@ -161,7 +151,7 @@ async function baixarMedicoesSupabase() {
     await salvarMedicaoLocal({
       ...medicao,
       sincronizado: true,
-      sincronizado_em: new Date().toISOString()
+      sincronizado_em: new Date().toISOString(),
     });
   }
   return (data || []).length;
@@ -174,9 +164,8 @@ async function sincronizarProjetos() {
   const pendentes = projetos.filter((p) => !p.sincronizado);
 
   for (const projeto of pendentes) {
-    const { error } = await supabaseClient
-      .from("projetos")
-      .upsert({
+    const { error } = await supabaseClient.from("projetos").upsert(
+      {
         local_id: projeto.local_id,
         usuario_id: projeto.usuario_id,
 
@@ -189,10 +178,12 @@ async function sincronizarProjetos() {
         ativo: projeto.ativo !== false,
 
         criado_em: projeto.criado_em,
-        atualizado_em: projeto.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: projeto.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -213,9 +204,8 @@ async function sincronizarPocos() {
   const pendentes = pocos.filter((p) => !p.sincronizado);
 
   for (const poco of pendentes) {
-    const { error } = await supabaseClient
-      .from("pocos")
-      .upsert({
+    const { error } = await supabaseClient.from("pocos").upsert(
+      {
         local_id: poco.local_id,
         usuario_id: poco.usuario_id,
 
@@ -246,10 +236,12 @@ async function sincronizarPocos() {
         ativo: poco.ativo !== false,
 
         criado_em: poco.criado_em,
-        atualizado_em: poco.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: poco.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -270,9 +262,8 @@ async function sincronizarCampanhas() {
   const pendentes = campanhas.filter((c) => !c.sincronizado);
 
   for (const campanha of pendentes) {
-    const { error } = await supabaseClient
-      .from("campanhas")
-      .upsert({
+    const { error } = await supabaseClient.from("campanhas").upsert(
+      {
         local_id: campanha.local_id,
 
         projeto_local_id: campanha.projeto_local_id,
@@ -289,10 +280,12 @@ async function sincronizarCampanhas() {
         ativo: campanha.ativo !== false,
 
         criado_em: campanha.criado_em,
-        atualizado_em: campanha.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: campanha.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -313,9 +306,8 @@ async function sincronizarMedicoes() {
   const pendentes = medicoes.filter((m) => !m.sincronizado);
 
   for (const medicao of pendentes) {
-    const { error } = await supabaseClient
-      .from("medicoes")
-      .upsert({
+    const { error } = await supabaseClient.from("medicoes").upsert(
+      {
         local_id: medicao.local_id,
 
         poco_local_id: medicao.poco_local_id,
@@ -325,6 +317,9 @@ async function sincronizarMedicoes() {
 
         usuario_id: medicao.usuario_id,
         coletor_nome: medicao.coletor_nome,
+
+        codigo_frascaria: medicao.codigo_frascaria || null,
+        responsavel_als: medicao.responsavel_als || null,
 
         data_medicao: medicao.data_medicao || null,
         mes_referencia: medicao.mes_referencia,
@@ -348,10 +343,12 @@ async function sincronizarMedicoes() {
 
         criado_em: medicao.criado_em,
         atualizado_em: medicao.atualizado_em || null,
-        duplicada_de: medicao.duplicada_de || null
-      }, {
-        onConflict: "local_id"
-      });
+        duplicada_de: medicao.duplicada_de || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);

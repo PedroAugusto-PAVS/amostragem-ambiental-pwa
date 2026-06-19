@@ -49,6 +49,9 @@ async function carregarPoco() {
   document.getElementById("profundidadeTotalMes").value =
     pocoAtual.profundidade_total || "";
 
+  document.getElementById("responsavelAls").value =
+    usuario.nome || "";
+
   atualizarCalculos();
 }
 
@@ -176,9 +179,21 @@ async function salvarMedicao() {
 
   const dataMedicao = document.getElementById("dataMedicao").value;
   const mesReferencia = document.getElementById("mesReferencia").value;
+  const codigoFrascaria = document.getElementById("codigoFrascaria").value.trim();
+  const responsavelAls = document.getElementById("responsavelAls").value.trim();
 
   if (!dataMedicao || !mesReferencia) {
     alert("Informe a data da medição e o mês de referência.");
+    return;
+  }
+
+  if (!codigoFrascaria) {
+    alert("Informe o código da frascaria / Código ALS.");
+    return;
+  }
+
+  if (!responsavelAls) {
+    alert("Informe o responsável ALS.");
     return;
   }
 
@@ -204,6 +219,9 @@ async function salvarMedicao() {
 
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
+
+    codigo_frascaria: codigoFrascaria,
+    responsavel_als: responsavelAls,
 
     data_medicao: dataMedicao,
     mes_referencia: mesReferencia,
