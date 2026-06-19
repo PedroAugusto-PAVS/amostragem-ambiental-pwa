@@ -69,6 +69,8 @@ const FILES_TO_CACHE = [
   "/menu.html",
   "/ficha-impressao.html",
   "/js/ficha-impressao.js",
+  "/editar-projeto.html",
+  "/js/editar-projeto.js",
 
   "/manifest.json",
 ];
