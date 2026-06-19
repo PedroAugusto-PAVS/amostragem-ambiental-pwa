@@ -72,20 +72,27 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   box(margem, y, 190, 40);
   box(198, y, 91, 40);
 
+  
+
+  
+
   txt("Cliente:", 10, y + 7, 7, true);
-  txt(texto(projeto?.cliente), 35, y + 7);
+txt(texto(projeto?.cliente), 35, y + 7);
 
-  txt("Local:", 10, y + 14, 7, true);
-  txt(texto(projeto?.local || poco?.local_propriedade), 35, y + 14);
+txt("Local:", 10, y + 14, 7, true);
+txt(texto(projeto?.local || poco?.local_propriedade), 35, y + 14);
 
-  txt("Projeto:", 10, y + 21, 7, true);
-  txt(texto(projeto?.nome), 35, y + 21);
+txt("Projeto:", 10, y + 21, 7, true);
+txt(texto(projeto?.nome), 35, y + 21);
 
-  txt("Responsável ALS:", 10, y + 28, 7, true);
-  txt(texto(medicao.coletor_nome), 42, y + 28);
+txt("Processo Comercial:", 10, y + 28, 7, true);
+txt(texto(projeto?.processo_comercial), 50, y + 28);
 
-  txt("Responsável Cliente:", 10, y + 35, 7, true);
-  txt("-", 48, y + 35);
+txt("Responsável ALS:", 10, y + 35, 7, true);
+txt(texto(medicao.coletor_nome), 42, y + 35);
+
+txt("Resp. Cliente:", 115, y + 35, 7, true);
+txt("-", 145, y + 35);
 
   txt("DIÂMETRO:", 220, y + 10, 7, true);
   txt(`${texto(poco?.diametro)} cm`, 245, y + 10);
