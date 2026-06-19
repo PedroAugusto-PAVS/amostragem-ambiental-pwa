@@ -49,10 +49,46 @@ function atualizarTelasAposSync() {
 /* BAIXAR DADOS DA NUVEM */
 
 async function baixarDadosSupabase() {
-  await baixarProjetosSupabase();
-  await baixarPocosSupabase();
-  await baixarCampanhasSupabase();
-  await baixarMedicoesSupabase();
+  if (!navigator.onLine) {
+    alert("Você está offline. Conecte-se à internet para restaurar os dados.");
+    return;
+  }
+
+  const statusSync = document.getElementById("statusSync");
+
+  if (statusSync) {
+    statusSync.innerText = "Baixando dados da nuvem...";
+  }
+
+  try {
+    const totalProjetos = await baixarProjetosSupabase();
+    const totalPocos = await baixarPocosSupabase();
+    const totalCampanhas = await baixarCampanhasSupabase();
+    const totalMedicoes = await baixarMedicoesSupabase();
+
+    if (statusSync) {
+      statusSync.innerText = "Dados restaurados com sucesso";
+    }
+
+    alert(
+      "Dados restaurados com sucesso!\n\n" +
+      `Projetos: ${totalProjetos}\n` +
+      `PMs/Poços: ${totalPocos}\n` +
+      `Campanhas: ${totalCampanhas}\n` +
+      `Medições: ${totalMedicoes}`
+    );
+
+    atualizarTelasAposSync();
+
+  } catch (error) {
+    console.error(error);
+
+    if (statusSync) {
+      statusSync.innerText = "Erro ao restaurar dados";
+    }
+
+    alert("Erro ao restaurar dados da nuvem: " + error.message);
+  }
 }
 
 async function baixarProjetosSupabase() {
@@ -71,6 +107,7 @@ async function baixarProjetosSupabase() {
       sincronizado_em: new Date().toISOString()
     });
   }
+  return (data || []).length;
 }
 
 async function baixarPocosSupabase() {
@@ -89,6 +126,7 @@ async function baixarPocosSupabase() {
       sincronizado_em: new Date().toISOString()
     });
   }
+  return (data || []).length;
 }
 
 async function baixarCampanhasSupabase() {
@@ -107,6 +145,7 @@ async function baixarCampanhasSupabase() {
       sincronizado_em: new Date().toISOString()
     });
   }
+  return (data || []).length;
 }
 
 async function baixarMedicoesSupabase() {
@@ -125,6 +164,7 @@ async function baixarMedicoesSupabase() {
       sincronizado_em: new Date().toISOString()
     });
   }
+  return (data || []).length;
 }
 
 /* PROJETOS */
