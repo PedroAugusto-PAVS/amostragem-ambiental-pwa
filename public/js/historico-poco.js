@@ -259,4 +259,16 @@ function abrirFichaImpressao(medicaoId) {
   window.location.href = "ficha-impressao.html";
 }
 
+async function excluirMedicao(localId) {
+  const confirmar = confirm("Tem certeza que deseja excluir esta medição?");
+
+  if (!confirmar) return;
+
+  await excluirMedicaoLocal(localId);
+
+  alert("Medição excluída com sucesso.");
+
+  carregarHistorico();
+}
+
 carregarHistorico();
