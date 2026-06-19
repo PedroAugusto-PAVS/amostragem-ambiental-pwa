@@ -158,14 +158,14 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     colunas.forEach(c => box(c.x, y, c.w, 8));
 
     txt(texto(l.horario), 10, y + 5);
-    txt(texto(medicao.nivel_agua), 35, y + 5);
-    txt(texto(l.condutividade), 57, y + 5);
-    txt(texto(l.od), 83, y + 5);
-    txt(texto(l.ph), 104, y + 5);
-    txt(texto(l.orp), 124, y + 5);
-    txt(texto(l.temperatura), 151, y + 5);
-    txt(texto(l.turbidez), 173, y + 5);
-    txt(texto(l.aspecto), 194, y + 5);
+txt(texto(medicao.nivel_agua), 35, y + 5);
+txt(texto(l.condutividade), 57, y + 5);
+txt(texto(l.od), 83, y + 5);
+txt(texto(l.ph), 104, y + 5);
+txt(texto(l.orp), 124, y + 5);
+txt(texto(l.temperatura), 151, y + 5);
+txt(texto(l.turbidez), 173, y + 5);
+txt(texto(l.aspecto), 194, y + 5);
 
     if (i === 0) {
       txt(`Poço com CAP? ${texto(cond.poco_com_cap || "-")}`, 219, y + 5);
