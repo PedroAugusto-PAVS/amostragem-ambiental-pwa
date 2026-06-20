@@ -161,10 +161,10 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   labelValor("Data da Amostragem:", medicao.data_medicao, 102, y + 7, 42);
   labelValor("Prof. Bomba:", `${texto(medicao.profundidade_bomba)} m`, 102, y + 18, 30);
 
-  labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} L`, 192, y + 7, 32);
+  labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} mL`, 192, y + 7, 32);
   labelValor("Vol. Esg. Mín:", volumePurgaMl(medicao.volume_purga), 192, y + 18, 30);
 
-  labelValor("Vol. Total:", `${texto(medicao.volume_total_esgotado)} L`, 242, y + 18, 25);
+  labelValor("Vol. Total:", `${texto(medicao.volume_total_esgotado)} mL`, 242, y + 18, 25);
 
   y += 22;
 
