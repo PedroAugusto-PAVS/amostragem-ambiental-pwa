@@ -391,37 +391,39 @@ line(238, y, 238, y + 22);
     .replaceAll(":", "-");
 
     try {
-  const pdfBase64 = doc.output("datauristring");
-  const base64Data = pdfBase64.split(",")[1];
+    const pdfBase64 = doc.output("datauristring");
+    const base64Data = pdfBase64.split(",")[1];
 
-  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-    const { Filesystem, Share } = window.Capacitor.Plugins;
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem, Share } = window.Capacitor.Plugins;
 
-    await Filesystem.writeFile({
-      path: `fichas/${nomeArquivo}`,
-      data: base64Data,
-      directory: "CACHE",
-      recursive: true
-    });
+      await Filesystem.writeFile({
+        path: `fichas/${nomeArquivo}`,
+        data: base64Data,
+        directory: "CACHE",
+        recursive: true
+      });
 
-    const arquivo = await Filesystem.getUri({
-      path: `fichas/${nomeArquivo}`,
-      directory: "CACHE"
-    });
+      const arquivo = await Filesystem.getUri({
+        path: `fichas/${nomeArquivo}`,
+        directory: "CACHE"
+      });
 
-    await Share.share({
-      title: "Ficha de Campo",
-      text: "Ficha de Campo Ambiental",
-      url: arquivo.uri,
-      dialogTitle: "Compartilhar ficha"
-    });
+      await Share.share({
+        title: "Ficha de Campo",
+        text: "Ficha de Campo Ambiental",
+        url: arquivo.uri,
+        dialogTitle: "Compartilhar ficha"
+      });
 
-  } else {
-    doc.save(nomeArquivo);
+    } else {
+      doc.save(nomeArquivo);
+    }
+
+  } catch (erro) {
+    console.error("Erro ao gerar PDF:", erro);
+    alert("Erro ao gerar PDF: " + erro.message);
   }
-
-} catch (erro) {
-  console.error("Erro ao gerar PDF:", erro);
-  alert("Erro ao gerar PDF: " + erro.message);
 }
+
 window.imprimirFichaMedicao = imprimirFichaMedicao;
