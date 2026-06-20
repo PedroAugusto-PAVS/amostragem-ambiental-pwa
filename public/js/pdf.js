@@ -431,7 +431,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
         const resultado = await Filesystem.writeFile({
           path: nomeArquivo,
           data: base64Data,
-          directory: "DATA"
+          directory: "Documents"
         });
     
         await window.Capacitor.Plugins.Share.share({
