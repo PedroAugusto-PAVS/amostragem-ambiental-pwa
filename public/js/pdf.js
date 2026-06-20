@@ -3,9 +3,49 @@ function texto(valor) {
   return String(valor);
 }
 
-function n(valor) {
+function num(valor) {
   if (valor === null || valor === undefined || valor === "") return 0;
   return Number(String(valor).replace(",", "."));
+}
+
+function fix(valor, casas = 2) {
+  const n = num(valor);
+  if (!Number.isFinite(n)) return "-";
+  return n.toFixed(casas);
+}
+
+function calcularFaixasAceitacao(leituras) {
+  if (!leituras || leituras.length === 0) return null;
+
+  const ref = leituras[0];
+
+  const ph = num(ref.ph);
+  const orp = num(ref.orp);
+  const cond = num(ref.condutividade);
+  const od = num(ref.od);
+  const temp = num(ref.temperatura);
+
+  return {
+    phMin: ph ? ph - 0.2 : null,
+    phMax: ph ? ph + 0.2 : null,
+
+    orpMin: orp ? orp - 20 : null,
+    orpMax: orp ? orp + 20 : null,
+
+    condMin: cond ? cond * 0.95 : null,
+    condMax: cond ? cond * 1.05 : null,
+
+    odMin: od ? od * 0.9 : null,
+    odMax: od ? od * 1.1 : null,
+
+    tempMin: temp ? temp - 0.5 : null,
+    tempMax: temp ? temp + 0.5 : null
+  };
+}
+
+function faixaTexto(min, max, unidade = "") {
+  if (min === null || max === null) return "-";
+  return `${min.toFixed(2)} a ${max.toFixed(2)}${unidade}`;
 }
 
 async function imprimirFichaMedicao(medicaoLocalId) {
@@ -22,9 +62,9 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   const poco = pocos.find((p) => p.local_id === medicao.poco_local_id);
   const projeto = projetos.find((p) => p.local_id === poco?.projeto_local_id);
-  const perfil = poco?.perfil_construtivo || {};
   const cond = medicao.condicoes_ambientais || {};
   const leituras = medicao.leituras || [];
+  const faixas = calcularFaixasAceitacao(leituras);
 
   const jsPDF =
     window.jspdf?.jsPDF ||
@@ -38,11 +78,12 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   const doc = new jsPDF("l", "mm", "a4");
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
-
   function box(x, y, w, h) {
     doc.rect(x, y, w, h);
+  }
+
+  function line(x1, y1, x2, y2) {
+    doc.line(x1, y1, x2, y2);
   }
 
   function txt(text, x, y, size = 7, bold = false) {
@@ -51,190 +92,208 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     doc.text(String(text || ""), x, y);
   }
 
-  function center(text, x, y, w, size = 9, bold = true) {
+  function center(text, x, y, w, size = 8, bold = true) {
     doc.setFont("helvetica", bold ? "bold" : "normal");
     doc.setFontSize(size);
     doc.text(String(text || ""), x + w / 2, y, { align: "center" });
+  }
+
+  function labelValor(label, valor, x, y, wLabel = 25, size = 7) {
+    txt(label, x, y, size, true);
+    txt(texto(valor), x + wLabel, y, size, false);
+  }
+
+  function volumePurgaMl(valorLitros) {
+    const litros = num(valorLitros);
+    if (!litros) return "-";
+    return `${Math.round(litros * 1000)} mL`;
   }
 
   const margem = 8;
   const largura = 281;
   let y = 8;
 
-  box(margem, y, largura, 20);
-  txt("ALS", 14, y + 12, 12, true);
-  center("FICHA DE CAMPO", 45, y + 12, 150, 14, true);
-  txt("REN-AMS-009", 220, y + 8, 8, true);
-  txt("Rev: 00 - REFERÊNCIA: POP 139", 220, y + 14, 7, false);
+  doc.setLineWidth(0.2);
 
-  y += 20;
-
-  box(margem, y, 190, 40);
-  box(198, y, 91, 40);
-
-  
-
-  
-
-  txt("Cliente:", 10, y + 7, 7, true);
-txt(texto(projeto?.cliente), 35, y + 7);
-
-txt("Local:", 10, y + 14, 7, true);
-txt(texto(projeto?.local || poco?.local_propriedade), 35, y + 14);
-
-txt("Projeto:", 10, y + 21, 7, true);
-txt(texto(projeto?.nome), 35, y + 21);
-
-txt("Processo Comercial:", 10, y + 28, 7, true);
-txt(texto(projeto?.processo_comercial), 50, y + 28);
-
-txt("Responsável ALS:", 10, y + 35, 7, true);
-txt(texto(medicao.coletor_nome), 42, y + 35);
-
-txt("Resp. Cliente:", 115, y + 35, 7, true);
-txt("-", 145, y + 35);
-
-  txt("DIÂMETRO:", 220, y + 10, 7, true);
-  txt(`${texto(poco?.diametro)} cm`, 245, y + 10);
-
-  txt("NÍVEL ESTÁTICO:", 220, y + 18, 7, true);
-  txt(`${texto(medicao.nivel_agua)} m`, 250, y + 18);
-
-  txt("COLUNA D'ÁGUA:", 220, y + 26, 7, true);
-  txt(`${texto(medicao.coluna_agua)} m`, 250, y + 26);
-
-  txt("PROFUNDIDADE:", 220, y + 34, 7, true);
-  txt(`${texto(poco?.profundidade_total || medicao.profundidade_total_mes)} m`, 250, y + 34);
-
-  y += 40;
-
+  /* CABEÇALHO */
   box(margem, y, largura, 18);
+  line(38, y, 38, y + 18);
+  line(205, y, 205, y + 18);
 
-  txt("Identificação do Cliente:", 10, y + 6, 8, true);
-  txt("Código ALS:", 10, y + 14, 7, true);
-  txt(texto(poco?.nome || medicao.poco_nome), 35, y + 14);
-
-  txt("Data da Amostragem:", 115, y + 8, 7, true);
-  txt(texto(medicao.data_medicao), 155, y + 8);
-
-  txt("Data do Esgotamento:", 115, y + 15, 7, true);
-  txt(texto(medicao.data_medicao), 155, y + 15);
-
-  txt("Vol. Estagnado:", 205, y + 8, 7, true);
-  txt(`${texto(medicao.volume_estagnado)} L`, 235, y + 8);
-
-  txt("Vol. Esgot. Mín:", 250, y + 8, 7, true);
-  txt(`${texto(medicao.volume_purga)} L`, 278, y + 8);
-
-  txt("Prof. da Amostragem:", 205, y + 15, 7, true);
-  txt(`${texto(medicao.profundidade_bomba)} m`, 240, y + 15);
-
-  txt("Vol. Total Esgotado:", 250, y + 15, 7, true);
-  txt(`${texto(medicao.volume_total_esgotado)} L`, 282, y + 15);
+  txt("ALS", 16, y + 11, 12, true);
+  center("FICHA DE CAMPO", 38, y + 11, 167, 14, true);
+  txt("REN-AMS-009", 212, y + 7, 8, true);
+  txt("Rev: 00", 212, y + 12, 7);
+  txt("REFERÊNCIA: POP 139", 245, y + 12, 7);
 
   y += 18;
 
-  box(margem, y, largura, 10);
-  center("Parâmetros de Estabilização de Coleta - Medidas de Campo", margem, y + 7, largura, 8, true);
+  /* DADOS DO PROJETO */
+  box(margem, y, 190, 38);
+  line(margem, y + 7, margem + 190, y + 7);
+  line(margem, y + 14, margem + 190, y + 14);
+  line(margem, y + 21, margem + 190, y + 21);
+  line(margem, y + 28, margem + 190, y + 28);
 
-  y += 10;
+  labelValor("Cliente:", projeto?.cliente, 10, y + 5);
+  labelValor("Local:", projeto?.local || poco?.local_propriedade, 10, y + 12);
+  labelValor("Projeto:", projeto?.nome, 10, y + 19);
+  labelValor("Processo Comercial:", projeto?.processo_comercial, 10, y + 26, 40);
+  labelValor("Responsável ALS:", medicao.responsavel_als || medicao.coletor_nome, 10, y + 33, 38);
+  labelValor("Resp. Cliente:", "-", 112, y + 33, 28);
 
-  const startY = y;
+  /* DADOS DO POÇO */
+  box(198, y, 91, 38);
+  line(198, y + 9.5, 289, y + 9.5);
+  line(198, y + 19, 289, y + 19);
+  line(198, y + 28.5, 289, y + 28.5);
+
+  labelValor("DIÂMETRO:", `${texto(poco?.diametro)} cm`, 202, y + 6, 28);
+  labelValor("NÍVEL ESTÁTICO:", `${texto(medicao.nivel_agua)} m`, 202, y + 16, 36);
+  labelValor("COLUNA D'ÁGUA:", `${texto(medicao.coluna_agua)} m`, 202, y + 25, 36);
+  labelValor("PROFUNDIDADE:", `${texto(poco?.profundidade_total || medicao.profundidade_total_mes)} m`, 202, y + 35, 34);
+
+  y += 38;
+
+  /* IDENTIFICAÇÃO */
+  box(margem, y, largura, 22);
+  line(margem, y + 11, margem + largura, y + 11);
+  line(100, y, 100, y + 22);
+  line(190, y, 190, y + 22);
+  line(240, y, 240, y + 22);
+
+  labelValor("Identificação do PM:", poco?.nome || medicao.poco_nome, 10, y + 7, 38);
+  labelValor("Código ALS:", medicao.codigo_frascaria, 10, y + 18, 28);
+
+  labelValor("Data da Amostragem:", medicao.data_medicao, 105, y + 7, 42);
+  labelValor("Prof. da Amostragem:", `${texto(medicao.profundidade_bomba)} m`, 105, y + 18, 43);
+
+  labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} L`, 195, y + 7, 32);
+  labelValor("Vol. Total Esgotado:", `${texto(medicao.volume_total_esgotado)} L`, 195, y + 18, 42);
+
+  labelValor("Vol. Esg. Mín:", volumePurgaMl(medicao.volume_purga), 243, y + 7, 30);
+
+  y += 22;
+
+  /* TÍTULO TABELA */
+  box(margem, y, largura, 8);
+  center("Parâmetros de Estabilização de Coleta - Medidas de Campo", margem, y + 5.5, largura, 8, true);
+
+  y += 8;
+
+  /* TABELA DE LEITURAS */
   const colunas = [
-    { t: "Hora", x: 8, w: 24 },
-    { t: "Nível\nEstático\n(m)", x: 32, w: 22 },
-    { t: "Condut.\n(µS/cm)", x: 54, w: 25 },
-    { t: "OD\n(mg/L)", x: 79, w: 22 },
-    { t: "pH", x: 101, w: 18 },
-    { t: "Potencial\nRedox\n(mV)", x: 119, w: 28 },
-    { t: "Temp.\n(°C)", x: 147, w: 22 },
-    { t: "Turbidez\n(NTU)", x: 169, w: 22 },
-    { t: "Aspecto\n(L/T)", x: 191, w: 25 },
-    { t: "Características", x: 216, w: 73 }
+    { t: "Hora", x: 8, w: 22 },
+    { t: "Nível\nEstático\n(m)", x: 30, w: 23 },
+    { t: "Condut.\n(µS/cm)", x: 53, w: 25 },
+    { t: "OD\n(mg/L)", x: 78, w: 22 },
+    { t: "pH", x: 100, w: 18 },
+    { t: "Redox\n(mV)", x: 118, w: 25 },
+    { t: "Temp.\n(°C)", x: 143, w: 22 },
+    { t: "Turb.\n(NTU)", x: 165, w: 22 },
+    { t: "Aspecto\n(L/T)", x: 187, w: 25 },
+    { t: "Características", x: 212, w: 77 }
   ];
 
+  const headerY = y;
   colunas.forEach(c => {
-    box(c.x, y, c.w, 14);
-    center(c.t, c.x, y + 5, c.w, 6, true);
+    box(c.x, headerY, c.w, 13);
+    center(c.t, c.x, headerY + 5, c.w, 6, true);
   });
 
-  y += 14;
+  y += 13;
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 4; i++) {
     const l = leituras[i] || {};
     colunas.forEach(c => box(c.x, y, c.w, 8));
 
-    txt(texto(l.horario), 10, y + 5);
-txt(texto(medicao.nivel_agua), 35, y + 5);
-txt(texto(l.condutividade), 57, y + 5);
-txt(texto(l.od), 83, y + 5);
-txt(texto(l.ph), 104, y + 5);
-txt(texto(l.orp), 124, y + 5);
-txt(texto(l.temperatura), 151, y + 5);
-txt(texto(l.turbidez), 173, y + 5);
-txt(texto(l.aspecto), 194, y + 5);
+    txt(texto(l.horario), 10, y + 5, 6);
+    txt(texto(medicao.nivel_agua), 33, y + 5, 6);
+    txt(texto(l.condutividade), 56, y + 5, 6);
+    txt(texto(l.od), 82, y + 5, 6);
+    txt(texto(l.ph), 104, y + 5, 6);
+    txt(texto(l.orp), 122, y + 5, 6);
+    txt(texto(l.temperatura), 147, y + 5, 6);
+    txt(texto(l.turbidez), 169, y + 5, 6);
+    txt(texto(l.aspecto), 190, y + 5, 6);
 
-    if (i === 0) {
-      txt(`Poço com CAP? ${texto(cond.poco_com_cap || "-")}`, 219, y + 5);
-    }
+    const caracteristicas = [
+      `Poço com CAP? ${texto(cond.poco_com_cap || "-")}`,
+      `Odor: ${texto(cond.odor_agua)}`,
+      `Óleo: ${texto(cond.oleo_agua)}`,
+      `Espuma: ${texto(cond.espuma_agua)}`,
+      `Cor: ${texto(cond.cor_agua)}`,
+      `Chuva 24h: ${texto(cond.chuva_24h)}`,
+      `Material flutuante: ${texto(cond.material_flutuante)}`
+    ];
 
-    if (i === 1) {
-      txt(`Odor: ${texto(cond.odor_agua)}`, 219, y + 5);
-    }
-
-    if (i === 2) {
-      txt(`Óleo: ${texto(cond.oleo_agua)}`, 219, y + 5);
-    }
-
-    if (i === 3) {
-      txt(`Espuma: ${texto(cond.espuma_agua)}`, 219, y + 5);
-    }
-
-    if (i === 4) {
-      txt(`Cor: ${texto(cond.cor_agua)}`, 219, y + 5);
-    }
-
-    if (i === 5) {
-      txt(`Chuva 24h: ${texto(cond.chuva_24h)}`, 219, y + 5);
-    }
+    txt(caracteristicas[i] || "-", 215, y + 5, 6);
 
     y += 8;
   }
 
-  y += 3;
+  y += 2;
 
-  box(margem, y, largura, 12);
-  txt("Parâmetro de Estabilização:", 10, y + 5, 6, true);
-  txt("pH +/- 0,2 unidades", 60, y + 5, 6);
-  txt("ORP (Redox) +/- 20 mV", 100, y + 5, 6);
-  txt("Condutividade +/- 5% do valor medido", 145, y + 5, 6);
-  txt("OD +/- 10% do valor medido", 210, y + 5, 6);
-  txt("Temperatura 0,5 °C", 255, y + 5, 6);
+  /* FAIXAS DE ACEITAÇÃO */
+  box(margem, y, largura, 28);
+  line(margem, y + 8, margem + largura, y + 8);
+  line(margem, y + 18, margem + largura, y + 18);
 
-  txt(`Diâmetro ${texto(poco?.diametro)} cm`, 10, y + 10, 6);
-  txt(`Coluna d'água = ${texto(medicao.coluna_agua)} m`, 60, y + 10, 6);
-  txt(`Volume estagnado = ${texto(medicao.volume_estagnado)} L`, 115, y + 10, 6);
-  txt(`Volume a ser esgotado = ${texto(medicao.volume_total_esgotado)} L`, 190, y + 10, 6);
+  center("Faixas de Aceitação da Estabilização calculadas pela 1ª leitura", margem, y + 5.5, largura, 7, true);
 
-  y += 18;
+  txt("pH:", 10, y + 14, 6, true);
+  txt(faixas ? faixaTexto(faixas.phMin, faixas.phMax) : "-", 20, y + 14, 6);
 
-  txt("Hora Inicial da Purga:", 10, y, 7, true);
-  txt(texto(leituras[0]?.horario), 50, y);
+  txt("ORP:", 62, y + 14, 6, true);
+  txt(faixas ? faixaTexto(faixas.orpMin, faixas.orpMax, " mV") : "-", 75, y + 14, 6);
 
-  txt("Hora Final da Amostragem:", 10, y + 7, 7, true);
-  txt(texto(leituras[leituras.length - 1]?.horario), 60, y + 7);
+  txt("Cond.:", 120, y + 14, 6, true);
+  txt(faixas ? faixaTexto(faixas.condMin, faixas.condMax) : "-", 138, y + 14, 6);
 
-  txt("Observação do Poço:", 10, y + 14, 7, true);
-  const obs = doc.splitTextToSize(texto(cond.observacoes_gerais || perfil.observacoes_construtivas), 180);
-  doc.text(obs, 50, y + 14);
+  txt("OD:", 190, y + 14, 6, true);
+  txt(faixas ? faixaTexto(faixas.odMin, faixas.odMax) : "-", 202, y + 14, 6);
+
+  txt("Temp.:", 238, y + 14, 6, true);
+  txt(faixas ? faixaTexto(faixas.tempMin, faixas.tempMax, " °C") : "-", 255, y + 14, 6);
+
+  txt("Critérios:", 10, y + 24, 6, true);
+  txt("pH ±0,2 | ORP ±20 mV | Condutividade ±5% | OD ±10% | Temperatura ±0,5 °C", 32, y + 24, 6);
+
+  y += 31;
+
+  /* RESUMO E OBSERVAÇÕES */
+  box(margem, y, largura, 24);
+  line(margem, y + 8, margem + largura, y + 8);
+  line(margem, y + 16, margem + largura, y + 16);
+  line(98, y, 98, y + 16);
+  line(198, y, 198, y + 16);
+
+  labelValor("Hora Inicial da Purga:", leituras[0]?.horario, 10, y + 5, 42);
+  labelValor("Hora Final da Amostragem:", leituras[leituras.length - 1]?.horario, 105, y + 5, 50);
+  labelValor("Diâmetro:", `${texto(poco?.diametro)} cm`, 205, y + 5, 22);
+
+  labelValor("Coluna d'água:", `${texto(medicao.coluna_agua)} m`, 10, y + 13, 34);
+  labelValor("Volume estagnado:", `${texto(medicao.volume_estagnado)} L`, 105, y + 13, 38);
+  labelValor("Volume total esgotado:", `${texto(medicao.volume_total_esgotado)} L`, 205, y + 13, 45);
+
+  txt("Observações:", 10, y + 21, 6, true);
+  const obs = doc.splitTextToSize(texto(cond.observacoes_gerais), 245);
+  doc.text(obs, 35, y + 21);
 
   y += 28;
 
-  txt("Responsável ALS:", 10, y, 8, true);
-  doc.line(45, y, 125, y);
+  /* ASSINATURAS */
+  box(margem, y, largura, 26);
+  line(margem, y + 8, margem + largura, y + 8);
+  center("Assinaturas", margem, y + 5.5, largura, 7, true);
 
-  txt("Responsável Cliente:", 145, y, 8, true);
-  doc.line(185, y, 280, y);
+  txt("Responsável ALS:", 14, y + 16, 7, true);
+  line(50, y + 16, 135, y + 16);
+  txt(texto(medicao.responsavel_als || medicao.coletor_nome), 52, y + 21, 6);
+
+  txt("Responsável Cliente:", 150, y + 16, 7, true);
+  line(190, y + 16, 280, y + 16);
+  txt("Nome/Assinatura", 210, y + 21, 6);
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")
