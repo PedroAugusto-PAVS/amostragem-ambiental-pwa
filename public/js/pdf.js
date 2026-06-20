@@ -185,9 +185,9 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   /* IDENTIFICAÇÃO */
   box(margem, y, largura, 22);
   line(margem, y + 11, margem + largura, y + 11);
-  line(100, y, 100, y + 22);
-  line(190, y, 190, y + 22);
-  line(240, y, 240, y + 22);
+  line(98, y, 98, y + 22);
+line(188, y, 188, y + 22);
+line(238, y, 238, y + 22);
 
   labelValor(
     "Identificação do PM:",
@@ -210,25 +210,19 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   labelValor(
     "Vol. Estagnado:",
     `${texto(medicao.volume_estagnado)} L`,
-    195,
+    192,
     y + 7,
     32
   );
   labelValor(
     "Vol. Total Esgotado:",
     `${texto(medicao.volume_total_esgotado)} L`,
-    195,
+    242,
     y + 18,
-    42
+    25
   );
 
-  labelValor(
-    "Vol. Esg. Mín:",
-    volumePurgaMl(medicao.volume_purga),
-    243,
-    y + 7,
-    30
-  );
+  labelValor("Vol. Esg. Mín:", volumePurgaMl(medicao.volume_purga), 192, y + 18, 30);
 
   y += 22;
 
@@ -368,28 +362,6 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     50
   );
   labelValor("Diâmetro:", `${texto(poco?.diametro)} cm`, 205, y + 5, 22);
-
-  labelValor(
-    "Coluna d'água:",
-    `${texto(medicao.coluna_agua)} m`,
-    10,
-    y + 13,
-    34
-  );
-  labelValor(
-    "Volume estagnado:",
-    `${texto(medicao.volume_estagnado)} L`,
-    105,
-    y + 13,
-    38
-  );
-  labelValor(
-    "Volume total esgotado:",
-    `${texto(medicao.volume_total_esgotado)} L`,
-    205,
-    y + 13,
-    45
-  );
 
   txt("Observações:", 10, y + 21, 6, true);
   const obs = doc.splitTextToSize(texto(cond.observacoes_gerais), 245);
