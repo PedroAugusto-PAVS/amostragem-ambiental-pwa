@@ -39,7 +39,7 @@ function calcularFaixasAceitacao(leituras) {
     odMax: od ? od * 1.1 : null,
 
     tempMin: temp ? temp - 0.5 : null,
-    tempMax: temp ? temp + 0.5 : null
+    tempMax: temp ? temp + 0.5 : null,
   };
 }
 
@@ -66,10 +66,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   const leituras = medicao.leituras || [];
   const faixas = calcularFaixasAceitacao(leituras);
 
-  const jsPDF =
-    window.jspdf?.jsPDF ||
-    window.jsPDF ||
-    window.jspdf;
+  const jsPDF = window.jspdf?.jsPDF || window.jsPDF || window.jspdf;
 
   if (!jsPDF) {
     alert("Biblioteca PDF não carregada.");
@@ -138,8 +135,20 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   labelValor("Cliente:", projeto?.cliente, 10, y + 5);
   labelValor("Local:", projeto?.local || poco?.local_propriedade, 10, y + 12);
   labelValor("Projeto:", projeto?.nome, 10, y + 19);
-  labelValor("Processo Comercial:", projeto?.processo_comercial, 10, y + 26, 40);
-  labelValor("Responsável ALS:", medicao.responsavel_als || medicao.coletor_nome, 10, y + 33, 38);
+  labelValor(
+    "Processo Comercial:",
+    projeto?.processo_comercial,
+    10,
+    y + 26,
+    40
+  );
+  labelValor(
+    "Responsável ALS:",
+    medicao.responsavel_als || medicao.coletor_nome,
+    10,
+    y + 33,
+    38
+  );
   labelValor("Resp. Cliente:", "-", 112, y + 33, 28);
 
   /* DADOS DO POÇO */
@@ -149,9 +158,27 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(198, y + 28.5, 289, y + 28.5);
 
   labelValor("DIÂMETRO:", `${texto(poco?.diametro)} cm`, 202, y + 6, 28);
-  labelValor("NÍVEL ESTÁTICO:", `${texto(medicao.nivel_agua)} m`, 202, y + 16, 36);
-  labelValor("COLUNA D'ÁGUA:", `${texto(medicao.coluna_agua)} m`, 202, y + 25, 36);
-  labelValor("PROFUNDIDADE:", `${texto(poco?.profundidade_total || medicao.profundidade_total_mes)} m`, 202, y + 35, 34);
+  labelValor(
+    "NÍVEL ESTÁTICO:",
+    `${texto(medicao.nivel_agua)} m`,
+    202,
+    y + 16,
+    36
+  );
+  labelValor(
+    "COLUNA D'ÁGUA:",
+    `${texto(medicao.coluna_agua)} m`,
+    202,
+    y + 25,
+    36
+  );
+  labelValor(
+    "PROFUNDIDADE:",
+    `${texto(poco?.profundidade_total || medicao.profundidade_total_mes)} m`,
+    202,
+    y + 35,
+    34
+  );
 
   y += 38;
 
@@ -162,22 +189,59 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(190, y, 190, y + 22);
   line(240, y, 240, y + 22);
 
-  labelValor("Identificação do PM:", poco?.nome || medicao.poco_nome, 10, y + 7, 38);
+  labelValor(
+    "Identificação do PM:",
+    poco?.nome || medicao.poco_nome,
+    10,
+    y + 7,
+    38
+  );
   labelValor("Código ALS:", medicao.codigo_frascaria, 10, y + 18, 28);
 
   labelValor("Data da Amostragem:", medicao.data_medicao, 105, y + 7, 42);
-  labelValor("Prof. da Amostragem:", `${texto(medicao.profundidade_bomba)} m`, 105, y + 18, 43);
+  labelValor(
+    "Prof. da Amostragem:",
+    `${texto(medicao.profundidade_bomba)} m`,
+    105,
+    y + 18,
+    43
+  );
 
-  labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} L`, 195, y + 7, 32);
-  labelValor("Vol. Total Esgotado:", `${texto(medicao.volume_total_esgotado)} L`, 195, y + 18, 42);
+  labelValor(
+    "Vol. Estagnado:",
+    `${texto(medicao.volume_estagnado)} L`,
+    195,
+    y + 7,
+    32
+  );
+  labelValor(
+    "Vol. Total Esgotado:",
+    `${texto(medicao.volume_total_esgotado)} L`,
+    195,
+    y + 18,
+    42
+  );
 
-  labelValor("Vol. Esg. Mín:", volumePurgaMl(medicao.volume_purga), 243, y + 7, 30);
+  labelValor(
+    "Vol. Esg. Mín:",
+    volumePurgaMl(medicao.volume_purga),
+    243,
+    y + 7,
+    30
+  );
 
   y += 22;
 
   /* TÍTULO TABELA */
   box(margem, y, largura, 8);
-  center("Parâmetros de Estabilização de Coleta - Medidas de Campo", margem, y + 5.5, largura, 8, true);
+  center(
+    "Parâmetros de Estabilização de Coleta - Medidas de Campo",
+    margem,
+    y + 5.5,
+    largura,
+    8,
+    true
+  );
 
   y += 8;
 
@@ -192,11 +256,11 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     { t: "Temp.\n(°C)", x: 143, w: 22 },
     { t: "Turb.\n(NTU)", x: 165, w: 22 },
     { t: "Aspecto\n(L/T)", x: 187, w: 25 },
-    { t: "Características", x: 212, w: 77 }
+    { t: "Características", x: 212, w: 77 },
   ];
 
   const headerY = y;
-  colunas.forEach(c => {
+  colunas.forEach((c) => {
     box(c.x, headerY, c.w, 13);
     center(c.t, c.x, headerY + 5, c.w, 6, true);
   });
@@ -205,7 +269,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   for (let i = 0; i < 4; i++) {
     const l = leituras[i] || {};
-    colunas.forEach(c => box(c.x, y, c.w, 8));
+    colunas.forEach((c) => box(c.x, y, c.w, 8));
 
     txt(texto(l.horario), 10, y + 5, 6);
     txt(texto(medicao.nivel_agua), 33, y + 5, 6);
@@ -224,7 +288,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
       `Espuma: ${texto(cond.espuma_agua)}`,
       `Cor: ${texto(cond.cor_agua)}`,
       `Chuva 24h: ${texto(cond.chuva_24h)}`,
-      `Material flutuante: ${texto(cond.material_flutuante)}`
+      `Material flutuante: ${texto(cond.material_flutuante)}`,
     ];
 
     txt(caracteristicas[i] || "-", 215, y + 5, 6);
@@ -239,25 +303,52 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(margem, y + 8, margem + largura, y + 8);
   line(margem, y + 18, margem + largura, y + 18);
 
-  center("Faixas de Aceitação da Estabilização calculadas pela 1ª leitura", margem, y + 5.5, largura, 7, true);
+  center(
+    "Faixas de Aceitação da Estabilização calculadas pela 1ª leitura",
+    margem,
+    y + 5.5,
+    largura,
+    7,
+    true
+  );
 
   txt("pH:", 10, y + 14, 6, true);
   txt(faixas ? faixaTexto(faixas.phMin, faixas.phMax) : "-", 20, y + 14, 6);
 
   txt("ORP:", 62, y + 14, 6, true);
-  txt(faixas ? faixaTexto(faixas.orpMin, faixas.orpMax, " mV") : "-", 75, y + 14, 6);
+  txt(
+    faixas ? faixaTexto(faixas.orpMin, faixas.orpMax, " mV") : "-",
+    75,
+    y + 14,
+    6
+  );
 
   txt("Cond.:", 120, y + 14, 6, true);
-  txt(faixas ? faixaTexto(faixas.condMin, faixas.condMax) : "-", 138, y + 14, 6);
+  txt(
+    faixas ? faixaTexto(faixas.condMin, faixas.condMax) : "-",
+    138,
+    y + 14,
+    6
+  );
 
   txt("OD:", 190, y + 14, 6, true);
   txt(faixas ? faixaTexto(faixas.odMin, faixas.odMax) : "-", 202, y + 14, 6);
 
   txt("Temp.:", 238, y + 14, 6, true);
-  txt(faixas ? faixaTexto(faixas.tempMin, faixas.tempMax, " °C") : "-", 255, y + 14, 6);
+  txt(
+    faixas ? faixaTexto(faixas.tempMin, faixas.tempMax, " °C") : "-",
+    255,
+    y + 14,
+    6
+  );
 
   txt("Critérios:", 10, y + 24, 6, true);
-  txt("pH ±0,2 | ORP ±20 mV | Condutividade ±5% | OD ±10% | Temperatura ±0,5 °C", 32, y + 24, 6);
+  txt(
+    "pH ±0,2 | ORP ±20 mV | Condutividade ±5% | OD ±10% | Temperatura ±0,5 °C",
+    32,
+    y + 24,
+    6
+  );
 
   y += 31;
 
@@ -269,12 +360,36 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(198, y, 198, y + 16);
 
   labelValor("Hora Inicial da Purga:", leituras[0]?.horario, 10, y + 5, 42);
-  labelValor("Hora Final da Amostragem:", leituras[leituras.length - 1]?.horario, 105, y + 5, 50);
+  labelValor(
+    "Hora Final da Amostragem:",
+    leituras[leituras.length - 1]?.horario,
+    105,
+    y + 5,
+    50
+  );
   labelValor("Diâmetro:", `${texto(poco?.diametro)} cm`, 205, y + 5, 22);
 
-  labelValor("Coluna d'água:", `${texto(medicao.coluna_agua)} m`, 10, y + 13, 34);
-  labelValor("Volume estagnado:", `${texto(medicao.volume_estagnado)} L`, 105, y + 13, 38);
-  labelValor("Volume total esgotado:", `${texto(medicao.volume_total_esgotado)} L`, 205, y + 13, 45);
+  labelValor(
+    "Coluna d'água:",
+    `${texto(medicao.coluna_agua)} m`,
+    10,
+    y + 13,
+    34
+  );
+  labelValor(
+    "Volume estagnado:",
+    `${texto(medicao.volume_estagnado)} L`,
+    105,
+    y + 13,
+    38
+  );
+  labelValor(
+    "Volume total esgotado:",
+    `${texto(medicao.volume_total_esgotado)} L`,
+    205,
+    y + 13,
+    45
+  );
 
   txt("Observações:", 10, y + 21, 6, true);
   const obs = doc.splitTextToSize(texto(cond.observacoes_gerais), 245);
@@ -295,34 +410,42 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(190, y + 16, 280, y + 16);
   txt("Nome/Assinatura", 210, y + 21, 6);
 
-  const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
+  const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${
+    medicao.mes_referencia || "medicao"
+  }.pdf`
     .replaceAll(" ", "-")
     .replaceAll("/", "-")
     .replaceAll("\\", "-")
     .replaceAll(":", "-");
 
-  try {
-    const pdfBase64 = doc.output("datauristring");
-    const base64Data = pdfBase64.split(",")[1];
-
-    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-      const resultado = await window.Capacitor.Plugins.Filesystem.writeFile({
-        path: nomeArquivo,
-        data: base64Data,
-        directory: "DOCUMENTS"
-      });
-
-      await window.Capacitor.Plugins.Share.share({
-        title: "Ficha de Campo",
-        text: "Ficha de Campo Ambiental",
-        url: resultado.uri,
-        dialogTitle: "Compartilhar ficha"
-      });
-    } else {
-      doc.save(nomeArquivo);
-    }
-
-  } catch (erro) {
+    try {
+      const pdfBase64 = doc.output("datauristring");
+      const base64Data = pdfBase64.split(",")[1];
+    
+      if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    
+        const { Filesystem } = window.Capacitor.Plugins;
+    
+        await Filesystem.requestPermissions();
+    
+        const resultado = await Filesystem.writeFile({
+          path: nomeArquivo,
+          data: base64Data,
+          directory: "DATA"
+        });
+    
+        await window.Capacitor.Plugins.Share.share({
+          title: "Ficha de Campo",
+          text: "Ficha de Campo Ambiental",
+          url: resultado.uri,
+          dialogTitle: "Compartilhar ficha"
+        });
+    
+      } else {
+        doc.save(nomeArquivo);
+      }
+    
+    } catch (erro) {
     console.error("Erro ao gerar PDF:", erro);
     alert("Erro ao gerar PDF: " + erro.message);
   }
