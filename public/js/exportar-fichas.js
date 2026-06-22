@@ -66,22 +66,49 @@ function carregarCampanhasSelect() {
 
 function carregarPocosSelect() {
   const projetoId = document.getElementById("filtroProjeto").value;
-  const select = document.getElementById("filtroPoco");
-
-  select.innerHTML = `<option value="">Todos os PMs</option>`;
+  const container = document.getElementById("listaPocosFiltro");
 
   const pocosFiltrados = pocosExportacao.filter((poco) => {
     if (!projetoId) return true;
     return poco.projeto_local_id === projetoId;
   });
 
-  pocosFiltrados.forEach((poco) => {
-    select.innerHTML += `
-      <option value="${poco.local_id}">
-        ${poco.nome || "PM sem nome"}
-      </option>
+  if (pocosFiltrados.length === 0) {
+    container.innerHTML = `<p>Nenhum PM encontrado.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+      <label style="display:flex;gap:10px;align-items:center;">
+        <input type="checkbox" id="todosPocos" onchange="alternarTodosPocos()">
+        <strong>Selecionar todos os PMs</strong>
+      </label>
+      <hr>
     `;
+
+  pocosFiltrados.forEach((poco) => {
+    container.innerHTML += `
+        <label style="display:flex;gap:10px;align-items:center;margin:8px 0;">
+          <input 
+            type="checkbox" 
+            class="checkPocoFiltro" 
+            value="${poco.local_id}"
+            onchange="renderizarMedicoesExportacao()"
+          >
+          ${poco.nome || "PM sem nome"}
+        </label>
+      `;
   });
+}
+
+function alternarTodosPocos() {
+  const marcado = document.getElementById("todosPocos").checked;
+
+  document.querySelectorAll(".checkPocoFiltro").forEach((check) => {
+    check.checked = marcado;
+  });
+
+  renderizarMedicoesExportacao();
 }
 
 function atualizarFiltros() {
@@ -93,14 +120,22 @@ function atualizarFiltros() {
 function obterMedicoesFiltradas() {
   const projetoId = document.getElementById("filtroProjeto").value;
   const campanhaId = document.getElementById("filtroCampanha").value;
-  const pocoId = document.getElementById("filtroPoco").value;
+  const pocosSelecionados = Array.from(
+    document.querySelectorAll(".checkPocoFiltro:checked")
+  ).map((check) => check.value);
 
   return medicoesExportacao.filter((medicao) => {
-    const poco = pocosExportacao.find((p) => p.local_id === medicao.poco_local_id);
+    const poco = pocosExportacao.find(
+      (p) => p.local_id === medicao.poco_local_id
+    );
 
     if (projetoId && poco?.projeto_local_id !== projetoId) return false;
     if (campanhaId && medicao.campanha_local_id !== campanhaId) return false;
-    if (pocoId && medicao.poco_local_id !== pocoId) return false;
+    if (
+      pocosSelecionados.length > 0 &&
+      !pocosSelecionados.includes(medicao.poco_local_id)
+    )
+      return false;
 
     return true;
   });
@@ -125,9 +160,15 @@ function renderizarMedicoesExportacao() {
   medicoes
     .sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em))
     .forEach((medicao) => {
-      const poco = pocosExportacao.find((p) => p.local_id === medicao.poco_local_id);
-      const projeto = projetosExportacao.find((p) => p.local_id === poco?.projeto_local_id);
-      const campanha = campanhasExportacao.find((c) => c.local_id === medicao.campanha_local_id);
+      const poco = pocosExportacao.find(
+        (p) => p.local_id === medicao.poco_local_id
+      );
+      const projeto = projetosExportacao.find(
+        (p) => p.local_id === poco?.projeto_local_id
+      );
+      const campanha = campanhasExportacao.find(
+        (c) => c.local_id === medicao.campanha_local_id
+      );
 
       lista.innerHTML += `
         <div class="card">
@@ -166,8 +207,9 @@ function limparSelecaoExportacao() {
 }
 
 function obterMedicoesSelecionadasExportacao() {
-  const ids = Array.from(document.querySelectorAll(".checkMedicaoExportacao:checked"))
-    .map((check) => check.value);
+  const ids = Array.from(
+    document.querySelectorAll(".checkMedicaoExportacao:checked")
+  ).map((check) => check.value);
 
   if (ids.length === 0) {
     alert("Selecione pelo menos uma medição.");
@@ -186,7 +228,7 @@ async function executarExportacao() {
     await exportarExcelMedicoes(selecionadas, {
       projetos: projetosExportacao,
       pocos: pocosExportacao,
-      campanhas: campanhasExportacao
+      campanhas: campanhasExportacao,
     });
   } else {
     for (const medicao of selecionadas) {

@@ -1,80 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exportar Fichas</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exportar Fichas</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-<main class="container">
+      <div class="page-title">
+        <h1>Exportar Fichas</h1>
+        <p id="tipoExportacaoTexto">Selecione as fichas</p>
+      </div>
 
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+      <section class="form-card">
+        <label>Projeto</label>
+        <select id="filtroProjeto" onchange="atualizarFiltros()">
+          <option value="">Todos os projetos</option>
+        </select>
 
-  <div class="page-title">
-    <h1>Exportar Fichas</h1>
-    <p id="tipoExportacaoTexto">Selecione as fichas</p>
-  </div>
+        <label>Campanha</label>
+        <select id="filtroCampanha" onchange="atualizarFiltros()">
+          <option value="">Todas as campanhas</option>
+        </select>
 
-  <section class="form-card">
+        <label>PMs / Poços</label>
 
-    <label>Projeto</label>
-    <select id="filtroProjeto" onchange="atualizarFiltros()">
-      <option value="">Todos os projetos</option>
-    </select>
+        <div
+          id="listaPocosFiltro"
+          class="card"
+          style="max-height: 220px; overflow: auto"
+        >
+          <p>Carregando PMs...</p>
+        </div>
 
-    <label>Campanha</label>
-    <select id="filtroCampanha" onchange="atualizarFiltros()">
-      <option value="">Todas as campanhas</option>
-    </select>
+        <br />
 
-    <label>PM / Poço</label>
-    <select id="filtroPoco" onchange="renderizarMedicoesExportacao()">
-      <option value="">Todos os PMs</option>
-    </select>
+        <button
+          type="button"
+          class="btn-blue"
+          onclick="selecionarTodasExportacao()"
+        >
+          Selecionar todas
+        </button>
 
-    <br>
+        <br /><br />
 
-    <button type="button" class="btn-blue" onclick="selecionarTodasExportacao()">
-      Selecionar todas
-    </button>
+        <button
+          type="button"
+          class="btn-blue"
+          onclick="limparSelecaoExportacao()"
+        >
+          Limpar seleção
+        </button>
+      </section>
 
-    <br><br>
+      <h3 class="section-title">Medições encontradas</h3>
 
-    <button type="button" class="btn-blue" onclick="limparSelecaoExportacao()">
-      Limpar seleção
-    </button>
+      <section id="listaMedicoesExportacao"></section>
 
-  </section>
+      <br />
 
-  <h3 class="section-title">Medições encontradas</h3>
+      <button class="btn-blue" onclick="executarExportacao()">
+        Exportar selecionadas
+      </button>
+    </main>
 
-  <section id="listaMedicoesExportacao"></section>
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
 
-  <br>
+    <script src="libs/jspdf.umd.min.js"></script>
+    <script src="libs/xlsx.full.min.js"></script>
 
-  <button class="btn-blue" onclick="executarExportacao()">
-    Exportar selecionadas
-  </button>
-
-</main>
-
-<nav class="bottom-nav">
-  <a href="menu.html"><span>☰</span>Menu</a>
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
-</nav>
-
-<script src="libs/jspdf.umd.min.js"></script>
-<script src="libs/xlsx.full.min.js"></script>
-
-<script src="js/db-local.js"></script>
-<script src="js/pdf.js"></script>
-<script src="js/excel.js"></script>
-<script src="js/exportar-fichas.js"></script>
-
-</body>
+    <script src="js/db-local.js"></script>
+    <script src="js/pdf.js"></script>
+    <script src="js/excel.js"></script>
+    <script src="js/exportar-fichas.js"></script>
+  </body>
 </html>
