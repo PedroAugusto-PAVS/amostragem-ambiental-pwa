@@ -264,17 +264,24 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   y += 20;
 
-  box(margem, y, largura, 26);
-  line(margem, y + 8, margem + largura, y + 8);
+  box(margem, y, largura, 18);
+  line(margem, y + 6, margem + largura, y + 6);
   center("Assinaturas", margem, y + 5.5, largura, 7, true);
 
-  txt("Responsável ALS:", 14, y + 16, 7, true);
-  line(50, y + 16, 135, y + 16);
-  txt(texto(medicao.responsavel_als || medicao.coletor_nome), 52, y + 21, 6);
+  txt("Responsável ALS:", 14, y + 12, 7, true);
+line(50, y + 12, 135, y + 12);
 
-  txt("Responsável Cliente:", 150, y + 16, 7, true);
-  line(190, y + 16, 280, y + 16);
-  txt("Nome/Assinatura", 210, y + 21, 6);
+txt("Responsável Cliente:", 150, y + 12, 7, true);
+line(190, y + 12, 280, y + 12);
+
+txt(
+  texto(medicao.responsavel_als || medicao.coletor_nome),
+  55,
+  y + 16,
+  6
+);
+
+txt("Nome/Assinatura", 220, y + 16, 6);
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")
