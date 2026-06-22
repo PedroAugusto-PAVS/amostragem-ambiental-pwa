@@ -71,6 +71,9 @@ const FILES_TO_CACHE = [
   "/js/ficha-impressao.js",
   "/editar-projeto.html",
   "/js/editar-projeto.js",
+  "/exportar-fichas.html",
+  "/js/exportar-fichas.js",
+  "/libs/xlsx.full.min.js",
 
   "/manifest.json",
 ];
