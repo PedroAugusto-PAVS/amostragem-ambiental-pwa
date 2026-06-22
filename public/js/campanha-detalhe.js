@@ -163,28 +163,24 @@ async function alternarStatusCampanha() {
   carregarCampanha();
 }
 
-async function excluirCampanha() {
-  if (!campanhaAtual) return;
+async function excluirCampanha(localId) {
+  const campanhas = await listarCampanhasLocais();
+  const campanha = campanhas.find(c => c.local_id === localId);
 
-  if (medicoesCampanha.length > 0) {
-    const confirmarComMedicoes = confirm(
-      `Esta campanha possui ${medicoesCampanha.length} medição(ões). O recomendado é inativar. Deseja excluir mesmo assim?`
-    );
-
-    if (!confirmarComMedicoes) return;
+  if (!campanha) {
+    alert("Campanha não encontrada.");
+    return;
   }
 
-  const confirmar = confirm(
-    `Tem certeza que deseja excluir a campanha "${campanhaAtual.nome}"?`
-  );
+  if (!confirm("Deseja excluir esta campanha?")) return;
 
-  if (!confirmar) return;
+  campanha.ativo = false;
+  campanha.sincronizado = false;
+  campanha.atualizado_em = new Date().toISOString();
 
-  await excluirCampanhaLocal(campanhaAtual.local_id);
+  await atualizarCampanhaLocal(campanha);
 
-  alert("Campanha excluída com sucesso.");
-
-  window.location.href = "campanhas.html";
+  alert("Campanha excluída. Sincronize para remover da nuvem.");
+  carregarCampanhas();
 }
-
 carregarCampanha();
