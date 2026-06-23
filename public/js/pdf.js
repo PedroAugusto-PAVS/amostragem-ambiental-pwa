@@ -210,7 +210,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     colunas.forEach((c) => box(c.x, y, c.w, 10));
 
     txt(texto(l.horario), 10, y + 6, 5.2);
-    txt(texto(l.nivel_agua) : "", 28, y + 6, 5.2);
+    txt(texto(l.nivel_agua || medicao.nivel_agua), 28, y + 6, 5.2);
     txt(texto(l.condutividade), 50, y + 6, 5.2);
     txt(texto(l.od), 72, y + 6, 5.2);
     txt(texto(l.ph), 91, y + 6, 5.2);
