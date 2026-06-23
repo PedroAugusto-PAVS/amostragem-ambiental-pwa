@@ -94,11 +94,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     txt(texto(valor), x + wLabel, y, size, false);
   }
 
-  function volumePurgaMl(valorLitros) {
-    const litros = num(valorLitros);
-    if (!litros) return "-";
-    return `${Math.round(litros * 1000)} mL`;
-  }
+  
 
   const margem = 8;
   const largura = 194;
@@ -165,7 +161,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   labelValor("Prof. Bomba:", `${texto(medicao.profundidade_bomba)} m`, 78, y + 20, 28, 6);
 
   labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} L`, 138, y + 7, 32, 5.6);
-  labelValor("Vol. Esg. Mín:", volumePurgaMl(medicao.volume_purga), 138, y + 15, 30, 5.6);
+  labelValor("Vol. Esg. Mín:", `${texto(medicao.volume_purga)} L`, 138, y + 15, 30, 5.6);
   labelValor("Vol. Total:", `${texto(medicao.volume_total_esgotado)} L`, 138, y + 22, 25, 5.6);
 
   y += 24;
@@ -198,7 +194,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   y += 15;
 
   const caracteristicas = [
-    `CAP? ${texto(cond.poco_com_cap || "-")}`,
+    `CAP? ${texto(poco?.poco_com_cap || "-")}`,
     `Odor: ${texto(cond.odor_agua)}`,
     `Óleo: ${texto(cond.oleo_agua)}`,
     `Espuma: ${texto(cond.espuma_agua)}`
