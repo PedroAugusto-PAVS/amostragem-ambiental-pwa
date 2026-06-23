@@ -159,6 +159,7 @@ function gerarHorarios() {
 
     leituras.push({
       horario: horaFormatada,
+      Na: "",
       ph: "",
       condutividade: "",
       temperatura: "",
@@ -181,15 +182,16 @@ function obterLeituras() {
     const select = linha.querySelector("select");
 
     leituras.push({
-      horario: inputs[0].value,
-      ph: inputs[1].value,
-      condutividade: inputs[2].value,
-      temperatura: inputs[3].value,
-      od: inputs[4].value,
-      orp: inputs[5].value,
-      turbidez: inputs[6].value,
-      aspecto: select.value
-    });
+  horario: inputs[0].value,
+  nivel_agua: inputs[1].value,
+  ph: inputs[2].value,
+  condutividade: inputs[3].value,
+  temperatura: inputs[4].value,
+  od: inputs[5].value,
+  orp: inputs[6].value,
+  turbidez: inputs[7].value,
+  aspecto: select.value
+});
   });
 
   return leituras;
