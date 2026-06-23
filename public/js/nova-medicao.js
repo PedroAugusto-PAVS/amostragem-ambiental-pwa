@@ -104,14 +104,13 @@ function gerarHorarios() {
     tbody.innerHTML += `
       <tr>
         <td><input value="${horaFormatada}"></td>
-<td><input type="number" step="0.01"></td>
-<td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
         <td>
           <select>
             <option value="Limpa">Limpa</option>
@@ -134,20 +133,20 @@ function obterLeituras() {
     const select = linha.querySelector("select");
 
     leituras.push({
-  horario: inputs[0].value,
-  nivel_agua: inputs[1].value,
-  ph: inputs[2].value,
-  condutividade: inputs[3].value,
-  temperatura: inputs[4].value,
-  od: inputs[5].value,
-  orp: inputs[6].value,
-  turbidez: inputs[7].value,
-  aspecto: select.value
-});
+      horario: inputs[0]?.value || "",
+      nivel_agua: inputs[1]?.value || "",
+      ph: inputs[2]?.value || "",
+      condutividade: inputs[3]?.value || "",
+      temperatura: inputs[4]?.value || "",
+      od: inputs[5]?.value || "",
+      orp: inputs[6]?.value || "",
+      turbidez: inputs[7]?.value || "",
+      aspecto: select?.value || ""
+    });
+  });
 
   return leituras;
 }
-
 function avaliarEstabilizacaoTela() {
   const leituras = obterLeituras();
   const estabilizacao = calcularEstabilizacao(leituras);
