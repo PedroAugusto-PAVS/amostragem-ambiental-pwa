@@ -110,6 +110,9 @@ function renderizarLeituras(leituras) {
     tbody.innerHTML += `
       <tr>
         <td><input value="${l.horario || ""}"></td>
+
+        <td><input type="number" step="0.01" value="${l.nivel_agua || ""}"></td>
+
         <td><input type="number" step="0.01" value="${l.ph || ""}"></td>
         <td><input type="number" step="0.01" value="${l.condutividade || ""}"></td>
         <td><input type="number" step="0.01" value="${l.temperatura || ""}"></td>
