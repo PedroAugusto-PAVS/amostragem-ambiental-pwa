@@ -229,6 +229,7 @@ async function sincronizarPocos() {
 
         profundidade_total: poco.profundidade_total || null,
         diametro: poco.diametro,
+        poco_com_cap: poco.poco_com_cap || null,
         perfil_construtivo: poco.perfil_construtivo || null,
 
         fotos: poco.fotos || [],
