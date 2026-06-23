@@ -243,6 +243,13 @@ function renderizarFotosExistentes() {
   });
 }
 
+function avaliarEstabilizacaoTela() {
+  const leituras = obterLeituras();
+  const estabilizacao = calcularEstabilizacao(leituras);
+
+  renderizarEstabilizacao("resultadoEstabilizacao", estabilizacao);
+}
+
 async function salvarEdicaoMedicao() {
   atualizarCalculos();
 
@@ -293,6 +300,8 @@ async function salvarEdicaoMedicao() {
     Number(document.getElementById("volumeTotalEsgotado").innerText);
 
   medicaoAtual.leituras = obterLeituras();
+medicaoAtual.estabilizacao = calcularEstabilizacao(medicaoAtual.leituras);
+medicaoAtual.alertas = gerarAlertasAmbientais(medicaoAtual.leituras);
 
   medicaoAtual.condicoes_ambientais = {
     cor_agua: document.getElementById("corAgua").value,
