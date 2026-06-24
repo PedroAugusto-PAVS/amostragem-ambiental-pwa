@@ -42,7 +42,7 @@ function faixaTexto(min, max, unidade = "") {
   return `${min.toFixed(2)} a ${max.toFixed(2)}${unidade}`;
 }
 
-async function imprimirFichaMedicao(medicaoLocalId) {
+async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
@@ -331,4 +331,4 @@ try {
   }
 }
 
-window.imprimirFichaMedicao = imprimirFichaMedicao;
+window.imprimirFichaMedicaoFiscal = imprimirFichaMedicaoFiscal;
