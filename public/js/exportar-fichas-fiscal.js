@@ -219,7 +219,7 @@ function obterMedicoesSelecionadasExportacao() {
   return medicoesExportacao.filter((medicao) => ids.includes(medicao.local_id));
 }
 
-async function executarExportacao() {
+async function executarExportacaoFiscal() {
   const selecionadas = obterMedicoesSelecionadasExportacao();
 
   if (selecionadas.length === 0) return;
