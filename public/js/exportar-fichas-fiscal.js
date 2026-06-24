@@ -12,7 +12,7 @@ let campanhasExportacao = [];
 let pocosExportacao = [];
 let medicoesExportacao = [];
 
-async function carregarExportacao() {
+async function carregarExportacaoFiscal() {
   projetosExportacao = await listarProjetosLocais();
   campanhasExportacao = await listarCampanhasLocais();
   pocosExportacao = await listarPocosLocais();
@@ -237,4 +237,4 @@ async function executarExportacao() {
   }
 }
 
-carregarExportacao();
+carregarExportacaoFiscal();
