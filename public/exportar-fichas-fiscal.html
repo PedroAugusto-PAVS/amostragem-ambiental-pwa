@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exportar Fichas</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
+
+      <div class="page-title">
+        <h1>Exportar Fichas</h1>
+        <p id="tipoExportacaoTexto">Selecione as fichas</p>
+      </div>
+
+      <section class="form-card">
+        <label>Projeto</label>
+        <select id="filtroProjeto" onchange="atualizarFiltros()">
+          <option value="">Todos os projetos</option>
+        </select>
+
+        <label>Campanha</label>
+        <select id="filtroCampanha" onchange="atualizarFiltros()">
+          <option value="">Todas as campanhas</option>
+        </select>
+
+        <label>PMs / Poços</label>
+
+        <div
+          id="listaPocosFiltro"
+          class="card"
+          style="max-height: 220px; overflow: auto"
+        >
+          <p>Carregando PMs...</p>
+        </div>
+
+        <br />
+
+        <button
+          type="button"
+          class="btn-blue"
+          onclick="selecionarTodasExportacao()"
+        >
+          Selecionar todas
+        </button>
+
+        <br /><br />
+
+        <button
+          type="button"
+          class="btn-blue"
+          onclick="limparSelecaoExportacao()"
+        >
+          Limpar seleção
+        </button>
+      </section>
+
+      <h3 class="section-title">Medições encontradas</h3>
+
+      <section id="listaMedicoesExportacao"></section>
+
+      <br />
+
+      <button class="btn-blue" onclick="executarExportacaoFiscal()">
+        Exportar selecionadas
+      </button>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
+
+    <script src="libs/jspdf.umd.min.js"></script>
+    <script src="libs/xlsx.full.min.js"></script>
+
+    <script src="js/db-local.js"></script>
+    <script src="js/pdf-fiscal.js"></script>
+    <script src="js/excel.js"></script>
+    <script src="js/exportar-fichas-fiscal.js"></script>
+  </body>
+</html>
