@@ -120,6 +120,7 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
 // } catch (e) {
  //  console.log(e);
 // }
+  txt("HT", 17, y + 12, 11, true);
   center("FICHA DE FISCALIZAÇÃO", 35, y + 12, 115, 13, true);
   txt("HYDROTRACK", 154, y + 7, 7, true);
 txt("Rev: 01", 154, y + 12, 6);
