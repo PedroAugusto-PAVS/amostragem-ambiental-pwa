@@ -1,11 +1,6 @@
 {
-  "name": "Poços Subterrâneos",
-  "short_name": "Poços",
-  "start_url": "/index.html",
-  "display": "standalone",
-  "background_color": "#f4f7fb",
-  "theme_color": "#00505c",
-  "orientation": "portrait",
+  "name": "HydroTrack",
+  "short_name": "HydroTrack",
   "icons": [
     {
       "src": "icons/icon-192.png",
