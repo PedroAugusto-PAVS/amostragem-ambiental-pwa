@@ -144,7 +144,7 @@ txt("Ficha Fiscal", 170, y + 12, 5.5);
   labelValor("Local:", projeto?.local || poco?.local_propriedade, 10, y + 12, 25);
   labelValor("Projeto:", projeto?.nome, 10, y + 19, 25);
   labelValor("Proc. Comercial:", projeto?.processo_comercial, 10, y + 26, 35);
-  labelValor("Responsável Pela Coleta:"," " 10, y + 33, 38);
+  labelValor("Responsável Pela Coleta:"," ", 10, y + 33, 38);
   labelValor("Fiscal Responsável:", " ", 85, y + 33, 30);
 
   labelValor("DIÂMETRO:", `${texto(poco?.diametro)} cm`, 148, y + 6, 26, 5.8);
