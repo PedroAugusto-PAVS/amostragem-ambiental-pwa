@@ -121,9 +121,9 @@ try {
   console.log(e);
 }
   center("FICHA DE FISCALIZAÇÃO", 35, y + 12, 115, 13, true);
-  txt("REN-AMS-009", 154, y + 7, 7, true);
-  txt("Rev: 00", 154, y + 12, 6);
-  txt("REFERÊNCIA: POP 139", 174, y + 12, 5.5);
+  txt("HYDROTRACK", 154, y + 7, 7, true);
+txt("Rev: 01", 154, y + 12, 6);
+txt("Ficha Fiscal", 170, y + 12, 5.5);
 
   y += 20;
 
