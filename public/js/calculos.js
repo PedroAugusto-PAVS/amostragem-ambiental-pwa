@@ -38,7 +38,7 @@ function calcularVolumePurga(profundidadeBomba) {
   const volumeMl =
     profundidade * 14 +
     400 +
-    180;
+    150;
 
   return Number((volumeMl / 1000).toFixed(2));
 }
