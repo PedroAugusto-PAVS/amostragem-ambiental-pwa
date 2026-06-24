@@ -102,24 +102,24 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
 
   doc.setLineWidth(0.2);
 
-const logoHydroTrack = "icons/hydrotrack-logo.png";
+//const logoHydroTrack = "icons/hydrotrack-logo.png";
 
   /* CABEÇALHO */
   box(margem, y, largura, 20);
   line(35, y, 35, y + 20);
   line(150, y, 150, y + 20);
-try {
-  doc.addImage(
-    logoHydroTrack,
-    "PNG",
-    75, // posição X
-    5,  // posição Y
-    60, // largura
-    25  // altura
-  );
-} catch (e) {
-  console.log(e);
-}
+//try {
+//  doc.addImage(
+))   logoHydroTrack,
+   // "PNG",
+ //   75, // posição X
+  //  5,  // posição Y
+ // 60, // largura
+    // 25  // altura
+ // );
+// } catch (e) {
+ //  console.log(e);
+// }
   center("FICHA DE FISCALIZAÇÃO", 35, y + 12, 115, 13, true);
   txt("HYDROTRACK", 154, y + 7, 7, true);
 txt("Rev: 01", 154, y + 12, 6);
