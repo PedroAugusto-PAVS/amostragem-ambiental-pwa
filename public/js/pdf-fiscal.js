@@ -110,7 +110,7 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   line(150, y, 150, y + 20);
 //try {
 //  doc.addImage(
-))   logoHydroTrack,
+// ))   logoHydroTrack,
    // "PNG",
  //   75, // posição X
   //  5,  // posição Y
