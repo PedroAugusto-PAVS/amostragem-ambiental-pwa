@@ -46,9 +46,21 @@ async function carregarEdicao() {
 
   document.getElementById("dataMedicao").value = medicaoAtual.data_medicao || "";
   document.getElementById("mesReferencia").value = medicaoAtual.mes_referencia || "";
-  document.getElementById("profundidadeTotalMes").value = medicaoAtual.profundidade_total_mes || "";
-  document.getElementById("nivelAgua").value = medicaoAtual.nivel_agua || "";
-  document.getElementById("profundidadeBomba").value = medicaoAtual.profundidade_bomba || "";
+
+  document.getElementById("codigoFrascaria").value =
+    medicaoAtual.codigo_frascaria || "";
+
+  document.getElementById("responsavelAls").value =
+    medicaoAtual.responsavel_als || medicaoAtual.coletor_nome || usuario.nome || "";
+
+  document.getElementById("profundidadeTotalMes").value =
+    medicaoAtual.profundidade_total_mes || "";
+
+  document.getElementById("nivelAgua").value =
+    medicaoAtual.nivel_agua || "";
+
+  document.getElementById("profundidadeBomba").value =
+    medicaoAtual.profundidade_bomba || "";
 
   const c = medicaoAtual.condicoes_ambientais || {};
 
@@ -98,6 +110,9 @@ function renderizarLeituras(leituras) {
     tbody.innerHTML += `
       <tr>
         <td><input value="${l.horario || ""}"></td>
+
+        <td><input type="number" step="0.01" value="${l.nivel_agua || ""}"></td>
+
         <td><input type="number" step="0.01" value="${l.ph || ""}"></td>
         <td><input type="number" step="0.01" value="${l.condutividade || ""}"></td>
         <td><input type="number" step="0.01" value="${l.temperatura || ""}"></td>
@@ -144,6 +159,7 @@ function gerarHorarios() {
 
     leituras.push({
       horario: horaFormatada,
+      Na: "",
       ph: "",
       condutividade: "",
       temperatura: "",
@@ -166,15 +182,16 @@ function obterLeituras() {
     const select = linha.querySelector("select");
 
     leituras.push({
-      horario: inputs[0].value,
-      ph: inputs[1].value,
-      condutividade: inputs[2].value,
-      temperatura: inputs[3].value,
-      od: inputs[4].value,
-      orp: inputs[5].value,
-      turbidez: inputs[6].value,
-      aspecto: select.value
-    });
+  horario: inputs[0].value,
+  nivel_agua: inputs[1].value,
+  ph: inputs[2].value,
+  condutividade: inputs[3].value,
+  temperatura: inputs[4].value,
+  od: inputs[5].value,
+  orp: inputs[6].value,
+  turbidez: inputs[7].value,
+  aspecto: select.value
+});
   });
 
   return leituras;
@@ -231,8 +248,31 @@ function renderizarFotosExistentes() {
   });
 }
 
+function avaliarEstabilizacaoTela() {
+  const leituras = obterLeituras();
+  const estabilizacao = calcularEstabilizacao(leituras);
+
+  renderizarEstabilizacao("resultadoEstabilizacao", estabilizacao);
+}
+
 async function salvarEdicaoMedicao() {
   atualizarCalculos();
+
+  const codigoFrascaria =
+    document.getElementById("codigoFrascaria").value.trim();
+
+  const responsavelAls =
+    document.getElementById("responsavelAls").value.trim();
+
+  if (!codigoFrascaria) {
+    alert("Informe o código da frascaria / Código ALS.");
+    return;
+  }
+
+  if (!responsavelAls) {
+    alert("Informe o responsável ALS.");
+    return;
+  }
 
   const novasFotosFiles = document.getElementById("fotosMedicao").files;
   const novasFotos = await converterFotosBase64(novasFotosFiles);
@@ -240,16 +280,33 @@ async function salvarEdicaoMedicao() {
   medicaoAtual.data_medicao = document.getElementById("dataMedicao").value;
   medicaoAtual.mes_referencia = document.getElementById("mesReferencia").value;
 
-  medicaoAtual.profundidade_total_mes = Number(document.getElementById("profundidadeTotalMes").value);
-  medicaoAtual.nivel_agua = Number(document.getElementById("nivelAgua").value);
-  medicaoAtual.profundidade_bomba = Number(document.getElementById("profundidadeBomba").value);
+  medicaoAtual.codigo_frascaria = codigoFrascaria;
+  medicaoAtual.responsavel_als = responsavelAls;
 
-  medicaoAtual.coluna_agua = Number(document.getElementById("colunaAgua").innerText);
-  medicaoAtual.volume_estagnado = Number(document.getElementById("volumeEstagnado").innerText);
-  medicaoAtual.volume_purga = Number(document.getElementById("volumePurga").innerText);
-  medicaoAtual.volume_total_esgotado = Number(document.getElementById("volumeTotalEsgotado").innerText);
+  medicaoAtual.profundidade_total_mes =
+    Number(document.getElementById("profundidadeTotalMes").value);
+
+  medicaoAtual.nivel_agua =
+    Number(document.getElementById("nivelAgua").value);
+
+  medicaoAtual.profundidade_bomba =
+    Number(document.getElementById("profundidadeBomba").value);
+
+  medicaoAtual.coluna_agua =
+    Number(document.getElementById("colunaAgua").innerText);
+
+  medicaoAtual.volume_estagnado =
+    Number(document.getElementById("volumeEstagnado").innerText);
+
+  medicaoAtual.volume_purga =
+    Number(document.getElementById("volumePurga").innerText);
+
+  medicaoAtual.volume_total_esgotado =
+    Number(document.getElementById("volumeTotalEsgotado").innerText);
 
   medicaoAtual.leituras = obterLeituras();
+medicaoAtual.estabilizacao = calcularEstabilizacao(medicaoAtual.leituras);
+medicaoAtual.alertas = gerarAlertasAmbientais(medicaoAtual.leituras);
 
   medicaoAtual.condicoes_ambientais = {
     cor_agua: document.getElementById("corAgua").value,

@@ -22,23 +22,44 @@
   </section>
 
   <section class="card">
-    <strong>Sincronização</strong>
+    <strong>Backup e Sincronização</strong>
+
+<br><br>
+
     <p>Envie as fichas salvas offline para o Supabase.</p>
-    <button class="btn-blue" onclick="sincronizarDados()">Sincronizar agora</button>
+
+<br><br>
+
+    <button class="btn-blue" onclick="window.sincronizarDados()">
+  Sincronizar agora
+</button>
+
+<br><br>
+
+<p>Baixe as fichas salvas offline para o Supabase.</p>
+
+<br><br>
+
+<button class="btn-blue" onclick="window.baixarDadosSupabase()">
+  Restaurar dados da nuvem
+</button>
+
   </section>
 
   <section class="card">
     <strong>Exportações</strong>
     <p>Gere arquivos das fichas salvas.</p>
-    <button class="btn-blue" onclick="gerarPDF()">Gerar PDF</button>
+    <button class="btn-blue"  onclick="window.location.href='exportar-fichas.html?tipo=pdf'">Gerar PDF</button>
     <br><br>
-    <button class="btn-blue" onclick="exportarExcel()">Exportar Excel</button>
+<button class="btn-blue"  onclick="window.location.href='exportar-fichas-fiscal.html?tipo=pdf'">Gerar PDF Fiscal</button>
+    <br><br>
+    <button class="btn-blue"  onclick="window.location.href='exportar-fichas.html?tipo=excel'">Exportar Excel</button>
   </section>
 
   <section class="card">
     <strong>Sistema</strong>
     <p>Aplicativo de amostragem ambiental offline.</p>
-    <p>Versão 1.0.0</p>
+    <p>Versão 1.1.0</p>
   </section>
 
   <button class="btn-blue" style="background:#ef4444;" onclick="logout()">
@@ -56,13 +77,14 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script src="libs/xlsx.full.min.js"></script>
 
 <script src="js/supabase.js"></script>
 <script src="js/db-local.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/pdf.js"></script>
+<script src="js/pdf-fiscal.js"></script>
 <script src="js/excel.js"></script>
 <script src="js/configuracoes.js"></script>
 

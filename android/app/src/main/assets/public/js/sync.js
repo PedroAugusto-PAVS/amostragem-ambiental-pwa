@@ -16,32 +16,15 @@ async function sincronizarDados() {
     await sincronizarCampanhas();
     await sincronizarMedicoes();
 
+    await baixarDadosSupabase();
+
     if (statusSync) {
       statusSync.innerText = "Sincronização finalizada";
     }
 
     alert("Dados sincronizados com o Supabase.");
 
-    if (typeof carregarMedicoes === "function") {
-      carregarMedicoes();
-    }
-
-    if (typeof carregarDashboard === "function") {
-      carregarDashboard();
-    }
-
-    if (typeof carregarMapa === "function") {
-      carregarMapa();
-    }
-
-    if (typeof carregarCampanhas === "function") {
-      carregarCampanhas();
-    }
-
-    if (typeof carregarCampanha === "function") {
-      carregarCampanha();
-    }
-
+    atualizarTelasAposSync();
   } catch (error) {
     console.error(error);
 
@@ -53,6 +36,127 @@ async function sincronizarDados() {
   }
 }
 
+function atualizarTelasAposSync() {
+  if (typeof carregarMedicoes === "function") carregarMedicoes();
+  if (typeof carregarDashboard === "function") carregarDashboard();
+  if (typeof carregarMapa === "function") carregarMapa();
+  if (typeof carregarCampanhas === "function") carregarCampanhas();
+  if (typeof carregarCampanha === "function") carregarCampanha();
+  if (typeof carregarProjeto === "function") carregarProjeto();
+}
+
+/* BAIXAR DADOS DA NUVEM */
+
+async function baixarDadosSupabase() {
+  if (!navigator.onLine) {
+    alert("Você está offline. Conecte-se à internet para restaurar os dados.");
+    return;
+  }
+
+  const statusSync = document.getElementById("statusSync");
+
+  if (statusSync) {
+    statusSync.innerText = "Baixando dados da nuvem...";
+  }
+
+  try {
+    const totalProjetos = await baixarProjetosSupabase();
+    const totalPocos = await baixarPocosSupabase();
+    const totalCampanhas = await baixarCampanhasSupabase();
+    const totalMedicoes = await baixarMedicoesSupabase();
+
+    if (statusSync) {
+      statusSync.innerText = "Dados restaurados com sucesso";
+    }
+
+    alert(
+      "Dados restaurados com sucesso!\n\n" +
+        `Projetos: ${totalProjetos}\n` +
+        `PMs/Poços: ${totalPocos}\n` +
+        `Campanhas: ${totalCampanhas}\n` +
+        `Medições: ${totalMedicoes}`
+    );
+
+    atualizarTelasAposSync();
+  } catch (error) {
+    console.error(error);
+
+    if (statusSync) {
+      statusSync.innerText = "Erro ao restaurar dados";
+    }
+
+    alert("Erro ao restaurar dados da nuvem: " + error.message);
+  }
+}
+
+async function baixarProjetosSupabase() {
+  const { data, error } = await supabaseClient.from("projetos").select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar projetos: " + error.message);
+  }
+
+  for (const projeto of data || []) {
+    await salvarProjetoLocal({
+      ...projeto,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString(),
+    });
+  }
+  return (data || []).length;
+}
+
+async function baixarPocosSupabase() {
+  const { data, error } = await supabaseClient.from("pocos").select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar PMs: " + error.message);
+  }
+
+  for (const poco of data || []) {
+    await salvarPocoLocal({
+      ...poco,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString(),
+    });
+  }
+  return (data || []).length;
+}
+
+async function baixarCampanhasSupabase() {
+  const { data, error } = await supabaseClient.from("campanhas").select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar campanhas: " + error.message);
+  }
+
+  for (const campanha of data || []) {
+    await salvarCampanhaLocal({
+      ...campanha,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString(),
+    });
+  }
+  return (data || []).length;
+}
+
+async function baixarMedicoesSupabase() {
+  const { data, error } = await supabaseClient.from("medicoes").select("*");
+
+  if (error) {
+    throw new Error("Erro ao baixar medições: " + error.message);
+  }
+
+  for (const medicao of data || []) {
+    await salvarMedicaoLocal({
+      ...medicao,
+      sincronizado: true,
+      sincronizado_em: new Date().toISOString(),
+    });
+  }
+  return (data || []).length;
+}
+
 /* PROJETOS */
 
 async function sincronizarProjetos() {
@@ -60,24 +164,26 @@ async function sincronizarProjetos() {
   const pendentes = projetos.filter((p) => !p.sincronizado);
 
   for (const projeto of pendentes) {
-    const { error } = await supabaseClient
-      .from("projetos")
-      .upsert({
+    const { error } = await supabaseClient.from("projetos").upsert(
+      {
         local_id: projeto.local_id,
         usuario_id: projeto.usuario_id,
 
         nome: projeto.nome,
         cliente: projeto.cliente,
+        processo_comercial: projeto.processo_comercial || null,
         local: projeto.local,
         descricao: projeto.descricao,
 
         ativo: projeto.ativo !== false,
 
         criado_em: projeto.criado_em,
-        atualizado_em: projeto.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: projeto.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -98,9 +204,8 @@ async function sincronizarPocos() {
   const pendentes = pocos.filter((p) => !p.sincronizado);
 
   for (const poco of pendentes) {
-    const { error } = await supabaseClient
-      .from("pocos")
-      .upsert({
+    const { error } = await supabaseClient.from("pocos").upsert(
+      {
         local_id: poco.local_id,
         usuario_id: poco.usuario_id,
 
@@ -124,6 +229,7 @@ async function sincronizarPocos() {
 
         profundidade_total: poco.profundidade_total || null,
         diametro: poco.diametro,
+        poco_com_cap: poco.poco_com_cap || null,
         perfil_construtivo: poco.perfil_construtivo || null,
 
         fotos: poco.fotos || [],
@@ -131,10 +237,12 @@ async function sincronizarPocos() {
         ativo: poco.ativo !== false,
 
         criado_em: poco.criado_em,
-        atualizado_em: poco.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: poco.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -155,9 +263,8 @@ async function sincronizarCampanhas() {
   const pendentes = campanhas.filter((c) => !c.sincronizado);
 
   for (const campanha of pendentes) {
-    const { error } = await supabaseClient
-      .from("campanhas")
-      .upsert({
+    const { error } = await supabaseClient.from("campanhas").upsert(
+      {
         local_id: campanha.local_id,
 
         projeto_local_id: campanha.projeto_local_id,
@@ -174,10 +281,12 @@ async function sincronizarCampanhas() {
         ativo: campanha.ativo !== false,
 
         criado_em: campanha.criado_em,
-        atualizado_em: campanha.atualizado_em || null
-      }, {
-        onConflict: "local_id"
-      });
+        atualizado_em: campanha.atualizado_em || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -198,9 +307,8 @@ async function sincronizarMedicoes() {
   const pendentes = medicoes.filter((m) => !m.sincronizado);
 
   for (const medicao of pendentes) {
-    const { error } = await supabaseClient
-      .from("medicoes")
-      .upsert({
+    const { error } = await supabaseClient.from("medicoes").upsert(
+      {
         local_id: medicao.local_id,
 
         poco_local_id: medicao.poco_local_id,
@@ -210,6 +318,9 @@ async function sincronizarMedicoes() {
 
         usuario_id: medicao.usuario_id,
         coletor_nome: medicao.coletor_nome,
+
+        codigo_frascaria: medicao.codigo_frascaria || null,
+        responsavel_als: medicao.responsavel_als || null,
 
         data_medicao: medicao.data_medicao || null,
         mes_referencia: medicao.mes_referencia,
@@ -233,10 +344,12 @@ async function sincronizarMedicoes() {
 
         criado_em: medicao.criado_em,
         atualizado_em: medicao.atualizado_em || null,
-        duplicada_de: medicao.duplicada_de || null
-      }, {
-        onConflict: "local_id"
-      });
+        duplicada_de: medicao.duplicada_de || null,
+      },
+      {
+        onConflict: "local_id",
+      }
+    );
 
     if (error) {
       console.error(error);
@@ -253,3 +366,6 @@ async function sincronizarMedicoes() {
 window.addEventListener("online", () => {
   sincronizarDados();
 });
+
+window.sincronizarDados = sincronizarDados;
+window.baixarDadosSupabase = baixarDadosSupabase;

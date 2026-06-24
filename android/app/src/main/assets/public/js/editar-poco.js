@@ -247,6 +247,7 @@ async function carregarPoco() {
   document.getElementById("profundidadeTotal").value = pocoAtual.profundidade_total || "";
   document.getElementById("diametro").value = pocoAtual.diametro || "";
 
+document.getElementById("pocoComCap").value = pocoAtual.poco_com_cap || "";
   preencherPerfilConstrutivo(pocoAtual.perfil_construtivo || {});
 }
 
@@ -280,6 +281,8 @@ async function salvarEdicaoPoco() {
 
   pocoAtual.profundidade_total = Number(document.getElementById("profundidadeTotal").value);
   pocoAtual.diametro = document.getElementById("diametro").value;
+
+ pocoAtual.poco_com_cap = document.getElementById("pocoComCap").value;
 
   pocoAtual.perfil_construtivo = obterPerfilConstrutivo();
 

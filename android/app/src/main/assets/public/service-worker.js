@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v20";
+const CACHE_NAME = "pocos-cache-v38";
 
 const FILES_TO_CACHE = [
   "/",
@@ -71,6 +71,9 @@ const FILES_TO_CACHE = [
   "/js/ficha-impressao.js",
   "/editar-projeto.html",
   "/js/editar-projeto.js",
+  "/exportar-fichas.html",
+  "/js/exportar-fichas.js",
+  "/libs/xlsx.full.min.js",
 
   "/manifest.json",
 ];

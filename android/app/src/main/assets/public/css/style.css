@@ -25,7 +25,11 @@ body {
 }
 
 /* LOGIN */
-
+.logo-login{
+  width: 180px;
+  display:block;
+  margin:auto;
+}
 .login-page {
   min-height: 100vh;
   background: linear-gradient(180deg, #00606b, #002b33);

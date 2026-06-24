@@ -49,6 +49,9 @@ async function carregarPoco() {
   document.getElementById("profundidadeTotalMes").value =
     pocoAtual.profundidade_total || "";
 
+  document.getElementById("responsavelAls").value =
+    usuario.nome || "";
+
   atualizarCalculos();
 }
 
@@ -76,7 +79,7 @@ function gerarHorarios() {
   tbody.innerHTML = "";
 
   const horarioInicial = document.getElementById("horarioInicial").value;
-  const quantidade = Number(document.getElementById("quantidadeLeituras").value) || 6;
+  const quantidade = Number(document.getElementById("quantidadeLeituras").value) || 4;
 
   if (!horarioInicial) {
     alert("Informe o horário inicial.");
@@ -101,12 +104,13 @@ function gerarHorarios() {
     tbody.innerHTML += `
       <tr>
         <td><input value="${horaFormatada}"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
-        <td><input type="number" step="0.01"></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
+        <td><input type="number" step="0.01" ></td>
         <td>
           <select>
             <option value="Limpa">Limpa</option>
@@ -129,20 +133,20 @@ function obterLeituras() {
     const select = linha.querySelector("select");
 
     leituras.push({
-      horario: inputs[0].value,
-      ph: inputs[1].value,
-      condutividade: inputs[2].value,
-      temperatura: inputs[3].value,
-      od: inputs[4].value,
-      orp: inputs[5].value,
-      turbidez: inputs[6].value,
-      aspecto: select.value
+      horario: inputs[0]?.value || "",
+      nivel_agua: inputs[1]?.value || "",
+      ph: inputs[2]?.value || "",
+      condutividade: inputs[3]?.value || "",
+      temperatura: inputs[4]?.value || "",
+      od: inputs[5]?.value || "",
+      orp: inputs[6]?.value || "",
+      turbidez: inputs[7]?.value || "",
+      aspecto: select?.value || ""
     });
   });
 
   return leituras;
 }
-
 function avaliarEstabilizacaoTela() {
   const leituras = obterLeituras();
   const estabilizacao = calcularEstabilizacao(leituras);
@@ -176,9 +180,21 @@ async function salvarMedicao() {
 
   const dataMedicao = document.getElementById("dataMedicao").value;
   const mesReferencia = document.getElementById("mesReferencia").value;
+  const codigoFrascaria = document.getElementById("codigoFrascaria").value.trim();
+  const responsavelAls = document.getElementById("responsavelAls").value.trim();
 
   if (!dataMedicao || !mesReferencia) {
     alert("Informe a data da medição e o mês de referência.");
+    return;
+  }
+
+  if (!codigoFrascaria) {
+    alert("Informe o código da frascaria / Código ALS.");
+    return;
+  }
+
+  if (!responsavelAls) {
+    alert("Informe o responsável ALS.");
     return;
   }
 
@@ -204,6 +220,9 @@ async function salvarMedicao() {
 
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
+
+    codigo_frascaria: codigoFrascaria,
+    responsavel_als: responsavelAls,
 
     data_medicao: dataMedicao,
     mes_referencia: mesReferencia,

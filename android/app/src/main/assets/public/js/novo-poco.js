@@ -234,6 +234,8 @@ async function salvarPoco() {
     profundidade_total: Number(document.getElementById("profundidadeTotal").value),
     diametro: document.getElementById("diametro").value,
 
+poco_com_cap: document.getElementById("pocoComCap").value,
+
     perfil_construtivo: obterPerfilConstrutivo(),
 
     fotos: fotosBase64,

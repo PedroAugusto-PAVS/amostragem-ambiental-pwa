@@ -31,10 +31,16 @@
       </div>
     </div>
 
+    <label>Código da frascaria / Código ALS</label>
+    <input id="codigoFrascaria" placeholder="Ex.: ALS-000123">
+
+    <label>Responsável ALS</label>
+    <input id="responsavelAls" placeholder="Ex.: Pedro Augusto">
+
     <label>Profundidade Total Medida (m)</label>
     <input type="number" step="0.01" id="profundidadeTotalMes">
 
-    <label>Nível d'água (m)</label>
+    <label>Nível d'água / NA (m)</label>
     <input type="number" step="0.01" id="nivelAgua">
 
     <label>Profundidade da bomba (m)</label>
@@ -74,6 +80,7 @@
         <thead>
           <tr>
             <th>Hora</th>
+            <th>NA</th>
             <th>pH</th>
             <th>Cond.</th>
             <th>Temp.</th>
@@ -86,6 +93,14 @@
         <tbody id="leiturasBody"></tbody>
       </table>
     </div>
+
+<h3>Estabilização do Poço</h3>
+
+<button type="button" class="btn-blue" onclick="avaliarEstabilizacaoTela()">
+  Verificar estabilização
+</button>
+
+<section id="resultadoEstabilizacao"></section>
 
     <h3>Condições da Água</h3>
 
@@ -176,6 +191,7 @@
 
 <script src="js/db-local.js"></script>
 <script src="js/calculos.js"></script>
+<script src="js/alertas.js"></script>
 <script src="js/editar-medicao.js"></script>
 
 </body>
