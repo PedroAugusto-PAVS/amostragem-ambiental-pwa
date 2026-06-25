@@ -1,3 +1,14 @@
+function carregarImagem(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+
+    img.src = src;
+  });
+}
+
 function texto(valor) {
   if (valor === null || valor === undefined || valor === "") return "-";
   return String(valor);
@@ -43,6 +54,7 @@ function faixaTexto(min, max, unidade = "") {
 }
 
 async function imprimirFichaMedicao(medicaoLocalId) {
+  const logo = await carregarImagem("icons/als_logo.png");
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
@@ -107,7 +119,20 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(35, y, 35, y + 20);
   line(150, y, 150, y + 20);
 
-  txt("ALS", 17, y + 12, 11, true);
+  try {
+  doc.addImage(
+    logo,
+    "PNG",
+    10,
+    y + 2,
+    22,
+    14
+  );
+} catch (e) {
+  console.error("Erro ao inserir logo:", e);
+}
+
+ // txt("ALS", 17, y + 12, 11, true);
   center("FICHA DE CAMPO", 35, y + 12, 115, 13, true);
   txt("REN-AMS-009", 154, y + 7, 7, true);
   txt("Rev: 00", 154, y + 12, 6);
