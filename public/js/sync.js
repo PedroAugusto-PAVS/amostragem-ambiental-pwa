@@ -16,7 +16,6 @@ async function sincronizarDados() {
     await sincronizarCampanhas();
     await sincronizarMedicoes();
 
-    await baixarDadosSupabase();
 
     if (statusSync) {
       statusSync.innerText = "Sincronização finalizada";
