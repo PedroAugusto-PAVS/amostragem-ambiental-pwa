@@ -1,3 +1,14 @@
+function carregarImagem(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+
+    img.src = src;
+  });
+}
+
 function texto(valor) {
   if (valor === null || valor === undefined || valor === "") return "-";
   return String(valor);
@@ -43,6 +54,7 @@ function faixaTexto(min, max, unidade = "") {
 }
 
 async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
+  const logo = await carregarImagem("icons/hydrotrack_logo.png");
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
@@ -102,35 +114,24 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
 
   doc.setLineWidth(0.2);
 
-const img = new Image();
-img.src = "icons/hydrotrack_logo.png";
 
-img.onload = () => {
-  doc.addImage(
-    img,
-    "PNG",
-    10,
-    y + 2,
-    22,
-    14
-  );
 
-  doc.save("ficha.pdf");
-};
   /* CABEÇALHO */
   box(margem, y, largura, 20);
   line(35, y, 35, y + 20);
   line(150, y, 150, y + 20);
 try {
   doc.addImage(
-    logoHydroTrack,
+    logo,
     "PNG",
     10,
     y + 2,
     22,
     14
   );
-} catch {}
+} catch (e) {
+  console.error("Erro ao inserir logo:", e);
+}
   // txt("HT", 17, y + 12, 11, true);
   center("FICHA DE FISCALIZAÇÃO", 35, y + 12, 115, 13, true);
   txt("HYDROTRACK", 154, y + 7, 7, true);
