@@ -297,11 +297,11 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   txt("Responsável ALS:", 12, y + 22, 6, true);
   line(48, y + 22, 95, y + 22);
-  txt(texto(medicao.responsavel_als || medicao.coletor_nome), 50, y + 27, 5.4);
+  txt("Assinatura"), 50, y + 27, 5.4);
 
   txt("Responsável Cliente:", 110, y + 22, 6, true);
   line(152, y + 22, 195, y + 22);
-  txt("Nome/Assinatura", 158, y + 27, 5.4);
+  txt("Assinatura", 158, y + 27, 5.4);
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")
