@@ -1,3 +1,14 @@
+function carregarImagem(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+
+    img.src = src;
+  });
+}
+
 function texto(valor) {
   if (valor === null || valor === undefined || valor === "") return "-";
   return String(valor);
@@ -43,6 +54,7 @@ function faixaTexto(min, max, unidade = "") {
 }
 
 async function imprimirFichaMedicao(medicaoLocalId) {
+  const logo = await carregarImagem("icons/als_logo.png");
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
@@ -107,7 +119,20 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(35, y, 35, y + 20);
   line(150, y, 150, y + 20);
 
-  txt("ALS", 17, y + 12, 11, true);
+  try {
+  doc.addImage(
+    logo,
+    "PNG",
+    10,
+    y + 2,
+    22,
+    14
+  );
+} catch (e) {
+  console.error("Erro ao inserir logo:", e);
+}
+
+ // txt("ALS", 17, y + 12, 11, true);
   center("FICHA DE CAMPO", 35, y + 12, 115, 13, true);
   txt("REN-AMS-009", 154, y + 7, 7, true);
   txt("Rev: 00", 154, y + 12, 6);
@@ -272,11 +297,11 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   txt("Responsável ALS:", 12, y + 22, 6, true);
   line(48, y + 22, 95, y + 22);
-  txt(texto(medicao.responsavel_als || medicao.coletor_nome), 50, y + 27, 5.4);
+  txt("Assinatura", 50, y + 27, 5.4);
 
   txt("Responsável Cliente:", 110, y + 22, 6, true);
   line(152, y + 22, 195, y + 22);
-  txt("Nome/Assinatura", 158, y + 27, 5.4);
+  txt("Assinatura", 158, y + 27, 5.4);
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")
@@ -319,4 +344,20 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   }
 }
 
+async function exportarPDFSelecionadas() {
+  if (typeof obterFichasSelecionadas !== "function") {
+    alert("Abra a tela de exportação para selecionar as fichas.");
+    return;
+  }
+
+  const fichas = obterFichasSelecionadas();
+
+  if (fichas.length === 0) return;
+
+  for (const ficha of fichas) {
+    await imprimirFichaMedicao(ficha.local_id);
+  }
+}
+
 window.imprimirFichaMedicao = imprimirFichaMedicao;
+window.exportarPDFSelecionadas = exportarPDFSelecionadas;

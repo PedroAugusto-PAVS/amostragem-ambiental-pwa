@@ -3,59 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meus Poços</title>
+  <title>Meus PMs</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
 </head>
-<body>
-
-
+<body class="page-dashboard">
 
 <main class="container">
-  <div class="page-title">
-    <h1>Meus Poços</h1>
-    <p>Pesquise e veja o histórico de cada poço</p>
-  </div>
-  
-  <section class="card">
-    <input 
-      type="text" 
-      id="pesquisaPoco" 
-      placeholder="Pesquisar pelo nome do poço..."
-      oninput="filtrarPocos()"
-    >
+  <section class="dashboard-hero">
+    <div>
+      <span class="dashboard-kicker">Monitoramento</span>
+      <h1>Meus PMs</h1>
+      <p>Resumo das coletas e acesso rapido ao historico de cada ponto.</p>
+    </div>
+
+    <button class="dashboard-add-btn" onclick="window.location.href='novo-poco.html'">
+      + Novo PM
+    </button>
   </section>
-  
-  <section class="card stats">
-    <div>
+
+  <section class="dashboard-stats">
+    <div class="dashboard-stat-card">
       <strong id="totalPocos">0</strong>
-      <span>poços</span>
+      <span>PMs ativos</span>
     </div>
-  
-    <div>
+
+    <div class="dashboard-stat-card">
       <strong id="totalMedicoes">0</strong>
-      <span>medições</span>
+      <span>medicoes</span>
     </div>
-  
-    <div>
+
+    <div class="dashboard-stat-card">
       <strong id="totalPendentes">0</strong>
       <span>pendentes</span>
     </div>
   </section>
-  
-  <h3 class="section-title">Lista de Poços</h3>
-  
-  <section id="listaPocos"></section>
 
+  <section class="dashboard-list-panel">
+    <div class="dashboard-list-header">
+      <div>
+        <h2>PMs cadastrados</h2>
+        <p id="resumoListaPocos">Carregando lista...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-search">
+      <input
+        type="text"
+        id="pesquisaPoco"
+        placeholder="Pesquisar por nome, local ou tipo..."
+        oninput="filtrarPocos()"
+      >
+    </div>
+
+    <section id="listaPocos" class="pms-list"></section>
+  </section>
 </main>
-
-<button class="float-btn" onclick="window.location.href='novo-poco.html'">+</button>
 
 <nav class="bottom-nav">
   <a href="menu.html"><span>☰</span>Menu</a>
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
+  <a href="dashboard.html" class="active"><span>⌂</span>PMs</a>
   <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
+  <a href="campanhas.html"><span>▣</span>Campanhas</a>
   <a href="configuracoes.html"><span>⚙</span>Config.</a>
 </nav>
 

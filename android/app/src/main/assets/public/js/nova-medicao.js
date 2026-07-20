@@ -13,6 +13,7 @@ if (!pocoLocalId) {
 }
 
 let pocoAtual = null;
+let campanhasDisponiveis = [];
 
 const profundidadeTotalMesInput = document.getElementById("profundidadeTotalMes");
 const nivelAguaInput = document.getElementById("nivelAgua");
@@ -24,6 +25,7 @@ profundidadeBombaInput.addEventListener("input", atualizarCalculos);
 
 async function carregarPoco() {
   const pocos = await listarPocosLocais();
+  campanhasDisponiveis = await listarCampanhasLocais();
 
   pocoAtual = pocos.find((p) => p.local_id === pocoLocalId);
 
@@ -62,6 +64,7 @@ function atualizarCalculos() {
   const nivelAgua = document.getElementById("nivelAgua").value;
   const profundidadeBomba = document.getElementById("profundidadeBomba").value;
   const diametroPoco = pocoAtual.diametro;
+  const avisoCalculoVolume = document.getElementById("avisoCalculoVolume");
 
   const coluna = calcularColunaAgua(profundidadeTotal, nivelAgua);
   const volumeEstagnado = calcularVolumeEstagnado(coluna, diametroPoco);
@@ -72,6 +75,15 @@ function atualizarCalculos() {
   document.getElementById("volumeEstagnado").innerText = volumeEstagnado;
   document.getElementById("volumePurga").innerText = volumePurga;
   document.getElementById("volumeTotalEsgotado").innerText = volumeTotalEsgotado;
+
+  if (avisoCalculoVolume) {
+    if (coluna > 0 && calcularAreaDiametro(diametroPoco) <= 0) {
+      avisoCalculoVolume.innerText =
+        "A profundidade medida do mês já está sendo usada. Para calcular o volume estagnado e o total esgotado, cadastre o diâmetro do PM em \"Editar PM\".";
+    } else {
+      avisoCalculoVolume.innerText = "";
+    }
+  }
 }
 
 function gerarHorarios() {
@@ -257,13 +269,15 @@ async function salvarMedicao() {
     criado_em: new Date().toISOString()
   };
 
+  await sincronizarVinculoCampanhaMedicao(medicao, pocoAtual, campanhasDisponiveis);
+
   await salvarMedicaoLocal(medicao);
 
   alert("Medição salva com sucesso.");
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
 
-  if (campanhaLocalId) {
+  if (campanhaLocalId && medicao.campanha_local_id) {
     window.location.href = "campanha-detalhe.html";
   } else {
     window.location.href = "historico-poco.html";

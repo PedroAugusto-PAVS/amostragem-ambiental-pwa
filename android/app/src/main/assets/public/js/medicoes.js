@@ -7,7 +7,7 @@ if (!usuario) {
 let fichasCarregadas = [];
 
 async function carregarMedicoes() {
-  fichasCarregadas = await listarFichasLocais();
+  fichasCarregadas = await listarMedicoesLocais();
 
   const lista = document.getElementById("listaMedicoes");
   lista.innerHTML = "";
@@ -23,7 +23,10 @@ async function carregarMedicoes() {
   }
 
   [...fichasCarregadas].reverse().forEach((ficha) => {
-    const data = new Date(ficha.criado_em).toLocaleDateString("pt-BR");
+    const dataBase = ficha.data_medicao || ficha.criado_em;
+    const data = dataBase
+      ? new Date(dataBase).toLocaleDateString("pt-BR")
+      : "-";
 
     lista.innerHTML += `
       <div class="card">
@@ -35,12 +38,12 @@ async function carregarMedicoes() {
             style="width:20px; height:20px;"
           >
 
-          <strong>${ficha.nome_poco || "Sem nome"}</strong>
+          <strong>${ficha.poco_nome || "Sem nome"}</strong>
         </label>
 
         <p>Data: ${data}</p>
-        <p>Local: ${ficha.local_propriedade || "-"}</p>
-        <p>Tipo: ${ficha.tipo_poco || "-"}</p>
+        <p>Mês referência: ${ficha.mes_referencia || "-"}</p>
+        <p>Código ALS: ${ficha.codigo_frascaria || "-"}</p>
         <p>Status: ${ficha.sincronizado ? "Sincronizado" : "Pendente"}</p>
         <p>Volume estagnado: ${ficha.volume_estagnado || 0} L</p>
       </div>

@@ -13,10 +13,18 @@ function calcularColunaAgua(profundidadeTotal, nivelAgua) {
 }
 
 function calcularAreaDiametro(diametro) {
-  const d = String(diametro).replace(",", ".");
+  const d = String(diametro || "")
+    .trim()
+    .toLowerCase()
+    .replace(",", ".");
 
-  if (d === "5") return 2.03;
-  if (d === "2.5") return 0.51;
+  if (!d) return 0;
+
+  if (["5", "5.0", "5cm", "5 cm", "50mm", "50 mm"].includes(d)) return 2.03;
+  if (
+    ["2.5", "2.50", "2.5cm", "2.5 cm", "25mm", "25 mm"].includes(d)
+  )
+    return 0.51;
 
   return 0;
 }

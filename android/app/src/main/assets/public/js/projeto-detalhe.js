@@ -12,6 +12,20 @@ if (!projetoLocalId) {
 
 let projetoAtual = null;
 
+function obterStatusAmostragemPoco(poco) {
+  const status = poco?.perfil_construtivo?.status_amostragem || "";
+
+  if (status === "SECO") {
+    return { texto: "Poco seco", classe: "status-dry" };
+  }
+
+  if (status === "SEM_ALIQUOTA") {
+    return { texto: "Sem aliquota suficiente", classe: "status-low-sample" };
+  }
+
+  return null;
+}
+
 async function carregarProjeto() {
   const projetos = await listarProjetosLocais();
   const pocos = await listarPocosLocais();
@@ -61,13 +75,22 @@ async function carregarProjeto() {
   }
 
   pocosDoProjeto.forEach((poco) => {
+    const statusAmostragem = obterStatusAmostragemPoco(poco);
+
     lista.innerHTML += `
       <div class="poco-item" onclick="abrirHistorico('${poco.local_id}')">
         <div class="avatar">${poco.nome.substring(0, 2).toUpperCase()}</div>
 
         <div class="poco-info">
           <strong>${poco.nome}</strong>
-          <span>Tipo: ${poco.tipo || "-"}</span>
+          <div class="pm-meta">
+            <small>${poco.tipo || "Tipo nao informado"}</small>
+            ${
+              statusAmostragem
+                ? `<small class="${statusAmostragem.classe}">${statusAmostragem.texto}</small>`
+                : ""
+            }
+          </div>
           <span>UTM E: ${poco.utm_e || "-"}</span>
           <span>UTM N: ${poco.utm_n || "-"}</span>
         </div>
@@ -91,6 +114,35 @@ function editarProjeto() {
 function abrirHistorico(pocoLocalId) {
   localStorage.setItem("poco_selecionado", pocoLocalId);
   window.location.href = "historico-poco.html";
+}
+
+async function excluirProjeto() {
+  if (!projetoAtual) {
+    alert("Projeto não encontrado.");
+    return;
+  }
+
+  const confirmar = confirm(
+    `Tem certeza que deseja excluir o projeto "${projetoAtual.nome}"?`
+  );
+
+  if (!confirmar) return;
+
+  projetoAtual.excluido = true;
+  projetoAtual.sincronizado = false;
+  projetoAtual.atualizado_em = new Date().toISOString();
+
+  await atualizarProjetoLocal(projetoAtual);
+
+  await sincronizarDados();
+
+  alert("Projeto excluído com sucesso.");
+
+  if (window.history.length > 1) {
+    history.back();
+  } else {
+    window.location.href = "projetos.html";
+  }
 }
 
 carregarProjeto();

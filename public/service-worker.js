@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v38";
+const CACHE_NAME = "pocos-cache-v49";
 
 const FILES_TO_CACHE = [
   "/",
@@ -18,7 +18,7 @@ const FILES_TO_CACHE = [
   "/novo-poco.html",
   "/editar-poco.html",
   "/historico-poco.html",
-  "/fotos-poco.html",
+  "/foto-poco.html",
 
   "/nova-medicao.html",
   "/editar-medicao.html",
@@ -51,7 +51,7 @@ const FILES_TO_CACHE = [
   "/js/novo-poco.js",
   "/js/editar-poco.js",
   "/js/historico-poco.js",
-  "/js/fotos-poco.js",
+  "/js/foto-poco.js",
 
   "/js/nova-medicao.js",
   "/js/editar-medicao.js",
@@ -63,7 +63,7 @@ const FILES_TO_CACHE = [
   "/js/admin.js",
 
   "/js/pdf.js",
-  "/js/excel.js",
+  "/js/pdf-fiscal.js",
   "/js/alertas.js",
   "/libs/jspdf.umd.min.js",
   "/menu.html",
@@ -72,8 +72,9 @@ const FILES_TO_CACHE = [
   "/editar-projeto.html",
   "/js/editar-projeto.js",
   "/exportar-fichas.html",
+  "/exportar-fichas-fiscal.html",
   "/js/exportar-fichas.js",
-  "/libs/xlsx.full.min.js",
+  "/js/exportar-fichas-fiscal.js",
 
   "/manifest.json",
 ];

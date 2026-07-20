@@ -344,4 +344,20 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   }
 }
 
+async function exportarPDFSelecionadas() {
+  if (typeof obterFichasSelecionadas !== "function") {
+    alert("Abra a tela de exportação para selecionar as fichas.");
+    return;
+  }
+
+  const fichas = obterFichasSelecionadas();
+
+  if (fichas.length === 0) return;
+
+  for (const ficha of fichas) {
+    await imprimirFichaMedicao(ficha.local_id);
+  }
+}
+
 window.imprimirFichaMedicao = imprimirFichaMedicao;
+window.exportarPDFSelecionadas = exportarPDFSelecionadas;

@@ -91,6 +91,8 @@ async function duplicarMedicao() {
     duplicada_de: origem.local_id
   };
 
+  await sincronizarVinculoCampanhaMedicao(novaMedicao, pocoAtual);
+
   await salvarMedicaoLocal(novaMedicao);
 
   alert("Medição duplicada com sucesso.");

@@ -86,6 +86,7 @@ function atualizarCalculos() {
   const nivelAgua = document.getElementById("nivelAgua").value;
   const profundidadeBomba = document.getElementById("profundidadeBomba").value;
   const diametroPoco = pocoAtual.diametro;
+  const avisoCalculoVolume = document.getElementById("avisoCalculoVolume");
 
   const coluna = calcularColunaAgua(profundidadeTotal, nivelAgua);
   const volumeEstagnado = calcularVolumeEstagnado(coluna, diametroPoco);
@@ -96,6 +97,15 @@ function atualizarCalculos() {
   document.getElementById("volumeEstagnado").innerText = volumeEstagnado;
   document.getElementById("volumePurga").innerText = volumePurga;
   document.getElementById("volumeTotalEsgotado").innerText = volumeTotalEsgotado;
+
+  if (avisoCalculoVolume) {
+    if (coluna > 0 && calcularAreaDiametro(diametroPoco) <= 0) {
+      avisoCalculoVolume.innerText =
+        "A profundidade medida do mês já está sendo usada. Para calcular o volume estagnado e o total esgotado, cadastre o diâmetro do PM em \"Editar PM\".";
+    } else {
+      avisoCalculoVolume.innerText = "";
+    }
+  }
 }
 
 function renderizarLeituras(leituras) {
@@ -323,6 +333,8 @@ medicaoAtual.alertas = gerarAlertasAmbientais(medicaoAtual.leituras);
     ...(medicaoAtual.fotos || []),
     ...novasFotos
   ];
+
+  await sincronizarVinculoCampanhaMedicao(medicaoAtual, pocoAtual);
 
   medicaoAtual.sincronizado = false;
   medicaoAtual.atualizado_em = new Date().toISOString();

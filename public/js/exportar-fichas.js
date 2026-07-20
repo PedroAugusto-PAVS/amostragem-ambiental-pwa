@@ -4,9 +4,6 @@ if (!usuario) {
   window.location.href = "index.html";
 }
 
-const params = new URLSearchParams(window.location.search);
-const tipoExportacao = params.get("tipo") || "pdf";
-
 let projetosExportacao = [];
 let campanhasExportacao = [];
 let pocosExportacao = [];
@@ -19,9 +16,7 @@ async function carregarExportacao() {
   medicoesExportacao = await listarMedicoesLocais();
 
   document.getElementById("tipoExportacaoTexto").innerText =
-    tipoExportacao === "excel"
-      ? "Selecione as fichas para gerar Excel"
-      : "Selecione as fichas para gerar PDF";
+    "Selecione as fichas para gerar PDF";
 
   carregarProjetosSelect();
   carregarCampanhasSelect();
@@ -224,16 +219,8 @@ async function executarExportacao() {
 
   if (selecionadas.length === 0) return;
 
-  if (tipoExportacao === "excel") {
-    await exportarExcelMedicoes(selecionadas, {
-      projetos: projetosExportacao,
-      pocos: pocosExportacao,
-      campanhas: campanhasExportacao,
-    });
-  } else {
-    for (const medicao of selecionadas) {
-      await imprimirFichaMedicao(medicao.local_id);
-    }
+  for (const medicao of selecionadas) {
+    await imprimirFichaMedicao(medicao.local_id);
   }
 }
 

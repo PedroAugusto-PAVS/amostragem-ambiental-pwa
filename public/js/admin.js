@@ -18,7 +18,7 @@ async function carregarAdmin() {
     .order("nome", { ascending: true });
 
   if (error) {
-    alert("Erro ao carregar usuários: " + error.message);
+    alert("Erro ao carregar usuarios: " + error.message);
     return;
   }
 
@@ -42,7 +42,7 @@ function renderizarUsuarios() {
   if (usuariosCarregados.length === 0) {
     lista.innerHTML = `
       <div class="card">
-        <strong>Nenhum usuário cadastrado</strong>
+        <strong>Nenhum usuario cadastrado</strong>
       </div>
     `;
     return;
@@ -61,12 +61,16 @@ function renderizarUsuarios() {
             Editar
           </button>
 
-          <button 
-            class="btn-blue" 
+          <button
+            class="btn-blue"
             style="background:${u.ativo === false ? "#16a34a" : "#f59e0b"}"
             onclick="alternarStatusUsuario('${u.id}')"
           >
             ${u.ativo === false ? "Ativar" : "Desativar"}
+          </button>
+
+          <button class="btn-danger" onclick="excluirUsuario('${u.id}')">
+            Excluir
           </button>
         </div>
       </div>
@@ -90,7 +94,7 @@ function editarUsuario(id) {
   const usuario = usuariosCarregados.find((u) => u.id === id);
 
   if (!usuario) {
-    alert("Usuário não encontrado.");
+    alert("Usuario nao encontrado.");
     return;
   }
 
@@ -151,68 +155,49 @@ async function salvarUsuarioAdmin() {
 }
 
 async function criarUsuarioAuth({ nome, email, senha, tipo, ativo }) {
-  const sessaoAdmin = await supabaseClient.auth.getSession();
+  const { data: sessaoAdmin, error: erroSessao } =
+    await supabaseClient.auth.getSession();
+  const accessToken = sessaoAdmin?.session?.access_token;
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password: senha,
-    options: {
-      data: {
-        nome,
-        tipo
-      }
-    }
-  });
-
-  if (error) {
-    alert("Erro ao criar login: " + error.message);
+  if (erroSessao || !accessToken) {
+    alert("Sessao do administrador expirada. Entre novamente para criar usuarios.");
     return;
   }
 
-  if (
-    sessaoAdmin.data.session &&
-    sessaoAdmin.data.session.access_token &&
-    sessaoAdmin.data.session.refresh_token
-  ) {
-    await supabaseClient.auth.setSession({
-      access_token: sessaoAdmin.data.session.access_token,
-      refresh_token: sessaoAdmin.data.session.refresh_token
-    });
-  }
-
-  const novoId = data.user?.id;
-
-  if (!novoId) {
-    alert("Usuário criado no Auth, mas ID não retornou.");
-    return;
-  }
-
-  const { error: erroInsert } = await supabaseClient
-    .from("usuarios")
-    .upsert({
-      id: novoId,
+  const resposta = await fetch("/api/admin/usuarios", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
       nome,
       email,
+      senha,
       tipo,
-      ativo,
-      criado_em: new Date().toISOString()
-    }, {
-      onConflict: "id"
-    });
+      ativo
+    })
+  });
 
-  if (erroInsert) {
-    alert("Login criado, mas erro ao salvar perfil: " + erroInsert.message);
+  const resultado = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    alert("Erro ao criar login: " + (resultado.error || "erro desconhecido."));
     return;
   }
 
-  alert("Usuário criado com sucesso.");
+  alert(
+    resultado.recuperado
+      ? "Usuario existente atualizado. Email confirmado e senha redefinida com sucesso."
+      : "Usuario criado com sucesso. O email ja esta confirmado para login."
+  );
 
   limparFormularioUsuario();
   carregarAdmin();
 }
 
 async function atualizarUsuario(id, dados) {
-  const confirmar = confirm("Deseja salvar as alterações deste usuário?");
+  const confirmar = confirm("Deseja salvar as alteracoes deste usuario?");
 
   if (!confirmar) return;
 
@@ -222,11 +207,11 @@ async function atualizarUsuario(id, dados) {
     .eq("id", id);
 
   if (error) {
-    alert("Erro ao atualizar usuário: " + error.message);
+    alert("Erro ao atualizar usuario: " + error.message);
     return;
   }
 
-  alert("Usuário atualizado com sucesso.");
+  alert("Usuario atualizado com sucesso.");
 
   limparFormularioUsuario();
   carregarAdmin();
@@ -236,12 +221,12 @@ async function alternarStatusUsuario(id) {
   const usuario = usuariosCarregados.find((u) => u.id === id);
 
   if (!usuario) {
-    alert("Usuário não encontrado.");
+    alert("Usuario nao encontrado.");
     return;
   }
 
   if (usuario.id === usuarioLogado.id) {
-    alert("Você não pode desativar seu próprio usuário.");
+    alert("Voce nao pode desativar seu proprio usuario.");
     return;
   }
 
@@ -269,6 +254,53 @@ async function alternarStatusUsuario(id) {
   }
 
   alert("Status atualizado com sucesso.");
+  carregarAdmin();
+}
+
+async function excluirUsuario(id) {
+  const usuario = usuariosCarregados.find((u) => u.id === id);
+
+  if (!usuario) {
+    alert("Usuario nao encontrado.");
+    return;
+  }
+
+  if (usuario.id === usuarioLogado.id) {
+    alert("Voce nao pode excluir seu proprio usuario.");
+    return;
+  }
+
+  const confirmar = confirm(
+    `Excluir permanentemente o usuario ${usuario.nome || usuario.email}? Esta acao nao pode ser desfeita.`
+  );
+
+  if (!confirmar) return;
+
+  const { data: sessaoAdmin, error: erroSessao } =
+    await supabaseClient.auth.getSession();
+  const accessToken = sessaoAdmin?.session?.access_token;
+
+  if (erroSessao || !accessToken) {
+    alert("Sessao do administrador expirada. Entre novamente para excluir usuarios.");
+    return;
+  }
+
+  const resposta = await fetch(`/api/admin/usuarios/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+
+  const resultado = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    alert("Erro ao excluir usuario: " + (resultado.error || "erro desconhecido."));
+    return;
+  }
+
+  alert("Usuario excluido com sucesso.");
+  limparFormularioUsuario();
   carregarAdmin();
 }
 

@@ -129,7 +129,9 @@ async function carregarHistorico() {
   Imprimir ficha
 </button>
 
-<button class="btn-blue" style="background:#ef4444;" onclick="excluirMedicao('${m.local_id}')">
+<button class="btn-blue" style="background:#ef4444;" onclick="excluirMedicao('${
+      m.local_id
+    }')">
   Excluir
 </button>
         </div>
@@ -145,6 +147,7 @@ function novaMedicao() {
   }
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  localStorage.removeItem("campanha_selecionada");
   window.location.href = "nova-medicao.html";
 }
 
@@ -160,6 +163,7 @@ function duplicarMedicaoAnterior() {
   }
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
+  localStorage.removeItem("campanha_selecionada");
   window.location.href = "duplicar-medicao.html";
 }
 
@@ -170,7 +174,7 @@ function editarPoco() {
 
 function verFotos() {
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
-  window.location.href = "fotos-poco.html";
+  window.location.href = "foto-poco.html";
 }
 
 function editarMedicao(localId) {
@@ -245,7 +249,15 @@ async function excluirPoco() {
 
   if (!confirmar) return;
 
-  await excluirPocoLocal(pocoAtual.local_id);
+  // Marca para exclusão
+  pocoAtual.excluido = true;
+  pocoAtual.sincronizado = false;
+  pocoAtual.atualizado_em = new Date().toISOString();
+
+  await atualizarPocoLocal(pocoAtual);
+
+  // sincroniza imediatamente se houver internet
+  await sincronizarDados();
 
   alert("PM excluído com sucesso.");
 
@@ -262,7 +274,20 @@ async function excluirMedicao(localId) {
 
   if (!confirmar) return;
 
-  await excluirMedicaoLocal(localId);
+  const medicao = medicoesDoPoco.find((m) => m.local_id === localId);
+
+  if (!medicao) {
+    alert("Medição não encontrada.");
+    return;
+  }
+
+  medicao.excluido = true;
+  medicao.sincronizado = false;
+  medicao.atualizado_em = new Date().toISOString();
+
+  await atualizarMedicaoLocal(medicao);
+
+  await sincronizarDados();
 
   alert("Medição excluída com sucesso.");
 

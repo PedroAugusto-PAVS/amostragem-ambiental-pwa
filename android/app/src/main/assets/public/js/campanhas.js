@@ -30,13 +30,32 @@ async function carregarCampanhas() {
       p => p.projeto_local_id === campanha.projeto_local_id && p.ativo !== false
     );
 
-    const medicoesDaCampanha = medicoes.filter(
-      m => m.campanha_local_id === campanha.local_id
+    const idsPmsDoProjeto = new Set(
+      pocosDoProjeto.map((poco) => poco.local_id)
     );
 
+    const medicoesDaCampanha = medicoes.filter((medicao) => {
+      const poco = pocosDoProjeto.find(
+        (pm) => pm.local_id === medicao.poco_local_id
+      );
+
+      if (!poco || !idsPmsDoProjeto.has(medicao.poco_local_id)) {
+        return false;
+      }
+
+      return medicaoEhCompativelComCampanha(
+        campanha,
+        medicao,
+        poco,
+        campanhas
+      );
+    });
+
     const total = pocosDoProjeto.length;
-    const coletados = medicoesDaCampanha.length;
-    const pendentes = total - coletados;
+    const coletados = new Set(
+      medicoesDaCampanha.map((medicao) => medicao.poco_local_id)
+    ).size;
+    const pendentes = Math.max(total - coletados, 0);
     const progresso = total > 0 ? Math.round((coletados / total) * 100) : 0;
 
     lista.innerHTML += `

@@ -168,6 +168,7 @@ function obterPerfilConstrutivo() {
     revestimento: document.getElementById("revestimento").value,
     tipo_tampa: document.getElementById("tipoTampa").value,
     condicao_poco: document.getElementById("condicaoPoco").value,
+    status_amostragem: document.getElementById("statusAmostragem")?.value || "",
     observacoes_construtivas: document.getElementById("observacoesConstrutivas").value
   };
 }
@@ -189,6 +190,11 @@ function preencherPerfilConstrutivo(perfil) {
   document.getElementById("revestimento").value = perfil.revestimento || "";
   document.getElementById("tipoTampa").value = perfil.tipo_tampa || "";
   document.getElementById("condicaoPoco").value = perfil.condicao_poco || "";
+  const statusAmostragem = document.getElementById("statusAmostragem");
+
+  if (statusAmostragem) {
+    statusAmostragem.value = perfil.status_amostragem || "";
+  }
 
   document.getElementById("observacoesConstrutivas").value =
     perfil.observacoes_construtivas || "";

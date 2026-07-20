@@ -190,6 +190,7 @@ function obterPerfilConstrutivo() {
 
     tipo_tampa: document.getElementById("tipoTampa").value,
     condicao_poco: document.getElementById("condicaoPoco").value,
+    status_amostragem: document.getElementById("statusAmostragem")?.value || "",
 
     observacoes_construtivas: document.getElementById("observacoesConstrutivas").value
   };
