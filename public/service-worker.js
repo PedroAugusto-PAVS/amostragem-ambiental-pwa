@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v49";
+const CACHE_NAME = "pocos-cache-v50";
 
 const FILES_TO_CACHE = [
   "/",
@@ -106,9 +106,34 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+
+  const requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin !== self.location.origin) return;
+
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (!response || !response.ok) {
+          return caches.match(event.request).then((cached) => cached || response);
+        }
+
+        return response;
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+
+        if (cached) return cached;
+
+        if (event.request.mode === "navigate") {
+          return caches.match("/index.html");
+        }
+
+        return new Response("Recurso indisponível offline.", {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
+      })
   );
 });

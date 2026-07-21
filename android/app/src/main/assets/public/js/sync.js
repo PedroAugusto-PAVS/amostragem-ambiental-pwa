@@ -1,8 +1,16 @@
+let sincronizacaoEmAndamento = false;
+
 async function sincronizarDados() {
   if (!navigator.onLine) {
     alert("Você está offline. Os dados continuarão salvos no aparelho.");
     return;
   }
+
+  if (sincronizacaoEmAndamento) {
+    return;
+  }
+
+  sincronizacaoEmAndamento = true;
 
   const statusSync = document.getElementById("statusSync");
 
@@ -11,10 +19,16 @@ async function sincronizarDados() {
   }
 
   try {
+    await sincronizarMedicoes(true);
+    await sincronizarCampanhas(true);
+    await sincronizarPocos(true);
+    await sincronizarProjetos(true);
+
     await sincronizarProjetos();
     await sincronizarPocos();
     await sincronizarCampanhas();
     await sincronizarMedicoes();
+    await reconciliarDadosSupabase();
 
     if (statusSync) {
       statusSync.innerText = "Sincronização finalizada";
@@ -31,6 +45,8 @@ async function sincronizarDados() {
     }
 
     alert("Erro ao sincronizar: " + error.message);
+  } finally {
+    sincronizacaoEmAndamento = false;
   }
 }
 
@@ -55,6 +71,13 @@ async function baixarDadosSupabase() {
     return;
   }
 
+  if (sincronizacaoEmAndamento) {
+    alert("Já existe uma sincronização em andamento.");
+    return;
+  }
+
+  sincronizacaoEmAndamento = true;
+
   const statusSync = document.getElementById("statusSync");
 
   if (statusSync) {
@@ -62,10 +85,7 @@ async function baixarDadosSupabase() {
   }
 
   try {
-    const totalProjetos = await baixarProjetosSupabase();
-    const totalPocos = await baixarPocosSupabase();
-    const totalCampanhas = await baixarCampanhasSupabase();
-    const totalMedicoes = await baixarMedicoesSupabase();
+    const totais = await reconciliarDadosSupabase();
 
     if (statusSync) {
       statusSync.innerText = "Dados restaurados com sucesso";
@@ -73,10 +93,10 @@ async function baixarDadosSupabase() {
 
     alert(
       "Dados restaurados com sucesso!\n\n" +
-        `Projetos: ${totalProjetos}\n` +
-        `PMs/Poços: ${totalPocos}\n` +
-        `Campanhas: ${totalCampanhas}\n` +
-        `Medições: ${totalMedicoes}`
+        `Projetos: ${totais.projetos}\n` +
+        `PMs/Poços: ${totais.pocos}\n` +
+        `Campanhas: ${totais.campanhas}\n` +
+        `Medições: ${totais.medicoes}`
     );
 
     atualizarTelasAposSync();
@@ -88,6 +108,8 @@ async function baixarDadosSupabase() {
     }
 
     alert("Erro ao restaurar dados da nuvem: " + error.message);
+  } finally {
+    sincronizacaoEmAndamento = false;
   }
 }
 
@@ -101,31 +123,7 @@ async function baixarProjetosSupabase() {
     throw new Error("Erro ao baixar projetos: " + error.message);
   }
 
-  await abrirBancoLocal();
-
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(["projetos"], "readwrite");
-    const store = tx.objectStore("projetos");
-
-    store.clear();
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject();
-  });
-
-  for (const projeto of data || []) {
-    if (projeto.excluido) {
-      continue;
-    }
-
-    await salvarProjetoLocal({
-      ...projeto,
-      sincronizado: true,
-      sincronizado_em: new Date().toISOString(),
-    });
-  }
-
-  return (data || []).length;
+  return data || [];
 }
 
 async function baixarPocosSupabase() {
@@ -138,31 +136,7 @@ async function baixarPocosSupabase() {
     throw new Error("Erro ao baixar PMs: " + error.message);
   }
 
-  await abrirBancoLocal();
-
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(["pocos"], "readwrite");
-    const store = tx.objectStore("pocos");
-
-    store.clear();
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject();
-  });
-
-  for (const poco of data || []) {
-    if (poco.excluido) {
-      continue;
-    }
-
-    await salvarPocoLocal({
-      ...poco,
-      sincronizado: true,
-      sincronizado_em: new Date().toISOString(),
-    });
-  }
-
-  return (data || []).length;
+  return data || [];
 }
 
 async function baixarCampanhasSupabase() {
@@ -175,31 +149,7 @@ async function baixarCampanhasSupabase() {
     throw new Error("Erro ao baixar campanhas: " + error.message);
   }
 
-  await abrirBancoLocal();
-
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(["campanhas"], "readwrite");
-    const store = tx.objectStore("campanhas");
-
-    store.clear();
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject();
-  });
-
-  for (const campanha of data || []) {
-    if (campanha.excluido) {
-      continue;
-    }
-
-    await salvarCampanhaLocal({
-      ...campanha,
-      sincronizado: true,
-      sincronizado_em: new Date().toISOString(),
-    });
-  }
-
-  return (data || []).length;
+  return data || [];
 }
 
 async function baixarMedicoesSupabase() {
@@ -212,36 +162,169 @@ async function baixarMedicoesSupabase() {
     throw new Error("Erro ao baixar medições: " + error.message);
   }
 
-  await abrirBancoLocal();
+  return data || [];
+}
 
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(["medicoes"], "readwrite");
-    const store = tx.objectStore("medicoes");
+function validarDadosBaixados(nomeStore, registros) {
+  if (!Array.isArray(registros)) {
+    throw new Error(`Resposta inválida ao baixar ${nomeStore}.`);
+  }
 
-    store.clear();
+  const ids = new Set();
 
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject();
-  });
-
-  for (const medicao of data || []) {
-    if (medicao.excluido) {
-      continue;
+  for (const registro of registros) {
+    if (!registro || !registro.local_id) {
+      throw new Error(`Registro de ${nomeStore} sem local_id.`);
     }
 
-    await salvarMedicaoLocal({
-      ...medicao,
+    if (ids.has(registro.local_id)) {
+      throw new Error(
+        `Resposta de ${nomeStore} contém local_id duplicado: ${registro.local_id}.`
+      );
+    }
+
+    ids.add(registro.local_id);
+  }
+}
+
+function mesclarDadosRemotosComPendencias(remotos, locais, sincronizadoEm) {
+  const registrosPorId = new Map();
+
+  for (const remoto of remotos) {
+    registrosPorId.set(remoto.local_id, {
+      ...remoto,
       sincronizado: true,
-      sincronizado_em: new Date().toISOString(),
+      sincronizado_em: sincronizadoEm,
     });
   }
 
-  return (data || []).length;
+  for (const local of locais) {
+    if (local.sincronizado !== true || local.excluido === true) {
+      registrosPorId.set(local.local_id, local);
+    }
+  }
+
+  return Array.from(registrosPorId.values());
+}
+
+async function lerTodosRegistrosDaStore(nomeStore) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction([nomeStore], "readonly");
+    const request = tx.objectStore(nomeStore).getAll();
+
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(
+      request.error || new Error(`Erro ao ler dados locais de ${nomeStore}.`)
+    );
+  });
+}
+
+async function substituirStoresComMerge(dadosRemotos) {
+  await abrirBancoLocal();
+
+  const stores = ["projetos", "pocos", "campanhas", "medicoes"];
+  const dadosLocais = {};
+
+  for (const nomeStore of stores) {
+    dadosLocais[nomeStore] = await lerTodosRegistrosDaStore(nomeStore);
+  }
+
+  const sincronizadoEm = new Date().toISOString();
+  const dadosFinais = {};
+
+  for (const nomeStore of stores) {
+    dadosFinais[nomeStore] = mesclarDadosRemotosComPendencias(
+      dadosRemotos[nomeStore],
+      dadosLocais[nomeStore],
+      sincronizadoEm
+    );
+  }
+
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(stores, "readwrite");
+
+    for (const nomeStore of stores) {
+      const store = tx.objectStore(nomeStore);
+      store.clear();
+
+      for (const registro of dadosFinais[nomeStore]) {
+        store.put(registro);
+      }
+    }
+
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(
+      tx.error || new Error("A substituição segura dos dados locais foi cancelada.")
+    );
+    tx.onerror = () => {
+      // O evento abort rejeitará a Promise com o erro da transação.
+    };
+  });
+}
+
+async function reconciliarDadosSupabase() {
+  const [projetos, pocos, campanhas, medicoes] = await Promise.all([
+    baixarProjetosSupabase(),
+    baixarPocosSupabase(),
+    baixarCampanhasSupabase(),
+    baixarMedicoesSupabase(),
+  ]);
+
+  const dadosRemotos = { projetos, pocos, campanhas, medicoes };
+
+  for (const [nomeStore, registros] of Object.entries(dadosRemotos)) {
+    validarDadosBaixados(nomeStore, registros);
+  }
+
+  await substituirStoresComMerge(dadosRemotos);
+
+  return {
+    projetos: projetos.length,
+    pocos: pocos.length,
+    campanhas: campanhas.length,
+    medicoes: medicoes.length,
+  };
 }
 
 /* PROJETOS */
 
-async function sincronizarProjetos() {
+function exclusaoRemotaConfirmada(registros, localId) {
+  return Array.isArray(registros) && registros.some(
+    (registro) => registro.local_id === localId
+  );
+}
+
+async function verificarConflitoRemoto(tabela, registro) {
+  if (!registro.sincronizado_em) return;
+
+  const { data, error } = await supabaseClient
+    .from(tabela)
+    .select("local_id, atualizado_em")
+    .eq("local_id", registro.local_id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Erro ao verificar conflito em ${tabela}: ${error.message}`);
+  }
+
+  if (!data?.atualizado_em) return;
+
+  const atualizadoRemoto = Date.parse(data.atualizado_em);
+  const ultimaSincronizacao = Date.parse(registro.sincronizado_em);
+
+  if (
+    Number.isFinite(atualizadoRemoto) &&
+    Number.isFinite(ultimaSincronizacao) &&
+    atualizadoRemoto > ultimaSincronizacao
+  ) {
+    throw new Error(
+      `Conflito detectado em ${tabela} (${registro.local_id}). ` +
+      "O registro foi alterado em outro dispositivo e a versão local foi preservada como pendente."
+    );
+  }
+}
+
+async function sincronizarProjetos(somenteExclusoes = false) {
   const projetos = await listarProjetosParaSync();
 
   for (const projeto of projetos) {
@@ -250,14 +333,21 @@ async function sincronizarProjetos() {
     ===========================*/
 
     if (projeto.excluido === true) {
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from("projetos")
         .delete()
-        .eq("local_id", projeto.local_id);
+        .eq("local_id", projeto.local_id)
+        .select("local_id");
 
       if (error) {
         console.error(error);
         throw new Error("Erro ao excluir projeto: " + error.message);
+      }
+
+      if (!exclusaoRemotaConfirmada(data, projeto.local_id)) {
+        throw new Error(
+          "A exclusão do projeto não foi confirmada pelo Supabase. O registro local foi preservado."
+        );
       }
 
       await abrirBancoLocal();
@@ -275,11 +365,15 @@ async function sincronizarProjetos() {
       continue;
     }
 
+    if (somenteExclusoes) continue;
+
     /* ==========================
        UPSERT
     ===========================*/
 
     if (!projeto.sincronizado) {
+      await verificarConflitoRemoto("projetos", projeto);
+
       const { error } = await supabaseClient.from("projetos").upsert(
         {
           local_id: projeto.local_id,
@@ -287,7 +381,7 @@ async function sincronizarProjetos() {
 
           nome: projeto.nome,
           cliente: projeto.cliente,
-          processo_comercial: projeto.processo_comercial || null,
+          processo_comercial: projeto.processo_comercial ?? null,
           local: projeto.local,
           descricao: projeto.descricao,
 
@@ -319,7 +413,7 @@ async function sincronizarProjetos() {
 
 /* PMS / POÇOS */
 
-async function sincronizarPocos() {
+async function sincronizarPocos(somenteExclusoes = false) {
   const pocos = await listarPocosParaSync();
 
   for (const poco of pocos) {
@@ -328,14 +422,21 @@ async function sincronizarPocos() {
     =========================== */
 
     if (poco.excluido === true) {
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from("pocos")
         .delete()
-        .eq("local_id", poco.local_id);
+        .eq("local_id", poco.local_id)
+        .select("local_id");
 
       if (error) {
         console.error(error);
         throw new Error("Erro ao excluir PM: " + error.message);
+      }
+
+      if (!exclusaoRemotaConfirmada(data, poco.local_id)) {
+        throw new Error(
+          "A exclusão do PM não foi confirmada pelo Supabase. O registro local foi preservado."
+        );
       }
 
       await abrirBancoLocal();
@@ -353,17 +454,21 @@ async function sincronizarPocos() {
       continue;
     }
 
+    if (somenteExclusoes) continue;
+
     /* ==========================
        UPSERT
     =========================== */
 
     if (!poco.sincronizado) {
+      await verificarConflitoRemoto("pocos", poco);
+
       const { error } = await supabaseClient.from("pocos").upsert(
         {
           local_id: poco.local_id,
           usuario_id: poco.usuario_id,
 
-          projeto_local_id: poco.projeto_local_id || null,
+          projeto_local_id: poco.projeto_local_id ?? null,
 
           nome: poco.nome,
           tipo: poco.tipo,
@@ -371,20 +476,20 @@ async function sincronizarPocos() {
 
           utm_e: poco.utm_e,
           utm_n: poco.utm_n,
-          zona_utm: poco.zona_utm || null,
-          hemisferio_utm: poco.hemisferio_utm || null,
+          zona_utm: poco.zona_utm ?? null,
+          hemisferio_utm: poco.hemisferio_utm ?? null,
 
-          latitude: poco.latitude || null,
-          longitude: poco.longitude || null,
-          precisao_gps: poco.precisao_gps || null,
-          altitude_gps: poco.altitude_gps || null,
-          gps_capturado_em: poco.gps_capturado_em || null,
-          gps: poco.gps || null,
+          latitude: poco.latitude ?? null,
+          longitude: poco.longitude ?? null,
+          precisao_gps: poco.precisao_gps ?? null,
+          altitude_gps: poco.altitude_gps ?? null,
+          gps_capturado_em: poco.gps_capturado_em ?? null,
+          gps: poco.gps ?? null,
 
-          profundidade_total: poco.profundidade_total || null,
+          profundidade_total: poco.profundidade_total ?? null,
           diametro: poco.diametro,
-          poco_com_cap: poco.poco_com_cap || null,
-          perfil_construtivo: poco.perfil_construtivo || null,
+          poco_com_cap: poco.poco_com_cap ?? null,
+          perfil_construtivo: poco.perfil_construtivo ?? null,
 
           fotos: poco.fotos || [],
 
@@ -416,7 +521,7 @@ async function sincronizarPocos() {
 
 /* CAMPANHAS */
 
-async function sincronizarCampanhas() {
+async function sincronizarCampanhas(somenteExclusoes = false) {
   const campanhas = await listarCampanhasParaSync();
   console.log("Campanhas para sincronizar:", campanhas);
 
@@ -444,6 +549,12 @@ async function sincronizarCampanhas() {
         throw new Error("Erro ao excluir campanha: " + error.message);
       }
 
+      if (!exclusaoRemotaConfirmada(data, campanha.local_id)) {
+        throw new Error(
+          "A exclusão da campanha não foi confirmada pelo Supabase. O registro local foi preservado."
+        );
+      }
+
       await abrirBancoLocal();
 
       await new Promise((resolve, reject) => {
@@ -459,11 +570,15 @@ async function sincronizarCampanhas() {
       continue;
     }
 
+    if (somenteExclusoes) continue;
+
     /* ==========================
        UPSERT
     =========================== */
 
     if (!campanha.sincronizado) {
+      await verificarConflitoRemoto("campanhas", campanha);
+
       const { error } = await supabaseClient.from("campanhas").upsert(
         {
           local_id: campanha.local_id,
@@ -474,8 +589,8 @@ async function sincronizarCampanhas() {
           nome: campanha.nome,
           mes_referencia: campanha.mes_referencia,
 
-          data_inicio: campanha.data_inicio || null,
-          data_fim: campanha.data_fim || null,
+          data_inicio: campanha.data_inicio ?? null,
+          data_fim: campanha.data_fim ?? null,
 
           observacoes: campanha.observacoes,
 
@@ -507,7 +622,7 @@ async function sincronizarCampanhas() {
 
 /* MEDIÇÕES */
 
-async function sincronizarMedicoes() {
+async function sincronizarMedicoes(somenteExclusoes = false) {
   const medicoes = await listarMedicoesParaSync();
 
   for (const medicao of medicoes) {
@@ -516,14 +631,21 @@ async function sincronizarMedicoes() {
     =========================== */
 
     if (medicao.excluido === true) {
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from("medicoes")
         .delete()
-        .eq("local_id", medicao.local_id);
+        .eq("local_id", medicao.local_id)
+        .select("local_id");
 
       if (error) {
         console.error(error);
         throw new Error("Erro ao excluir medição: " + error.message);
+      }
+
+      if (!exclusaoRemotaConfirmada(data, medicao.local_id)) {
+        throw new Error(
+          "A exclusão da medição não foi confirmada pelo Supabase. O registro local foi preservado."
+        );
       }
 
       await abrirBancoLocal();
@@ -541,11 +663,15 @@ async function sincronizarMedicoes() {
       continue;
     }
 
+    if (somenteExclusoes) continue;
+
     /* ==========================
        UPSERT
     =========================== */
 
     if (!medicao.sincronizado) {
+      await verificarConflitoRemoto("medicoes", medicao);
+
       const { error } = await supabaseClient.from("medicoes").upsert(
         {
           local_id: medicao.local_id,
@@ -553,28 +679,28 @@ async function sincronizarMedicoes() {
           poco_local_id: medicao.poco_local_id,
           poco_nome: medicao.poco_nome,
 
-          campanha_local_id: medicao.campanha_local_id || null,
+          campanha_local_id: medicao.campanha_local_id ?? null,
 
           usuario_id: medicao.usuario_id,
           coletor_nome: medicao.coletor_nome,
 
-          codigo_frascaria: medicao.codigo_frascaria || null,
-          responsavel_als: medicao.responsavel_als || null,
+          codigo_frascaria: medicao.codigo_frascaria ?? null,
+          responsavel_als: medicao.responsavel_als ?? null,
 
-          data_medicao: medicao.data_medicao || null,
+          data_medicao: medicao.data_medicao ?? null,
           mes_referencia: medicao.mes_referencia,
 
-          profundidade_total_mes: medicao.profundidade_total_mes || null,
-          nivel_agua: medicao.nivel_agua || null,
-          profundidade_bomba: medicao.profundidade_bomba || null,
+          profundidade_total_mes: medicao.profundidade_total_mes ?? null,
+          nivel_agua: medicao.nivel_agua ?? null,
+          profundidade_bomba: medicao.profundidade_bomba ?? null,
 
-          coluna_agua: medicao.coluna_agua || null,
-          volume_estagnado: medicao.volume_estagnado || null,
-          volume_purga: medicao.volume_purga || null,
-          volume_total_esgotado: medicao.volume_total_esgotado || null,
+          coluna_agua: medicao.coluna_agua ?? null,
+          volume_estagnado: medicao.volume_estagnado ?? null,
+          volume_purga: medicao.volume_purga ?? null,
+          volume_total_esgotado: medicao.volume_total_esgotado ?? null,
 
           leituras: medicao.leituras || [],
-          estabilizacao: medicao.estabilizacao || null,
+          estabilizacao: medicao.estabilizacao ?? null,
           alertas: medicao.alertas || [],
 
           condicoes_ambientais: medicao.condicoes_ambientais || {},
@@ -584,7 +710,7 @@ async function sincronizarMedicoes() {
           criado_em: medicao.criado_em,
           atualizado_em: new Date().toISOString(),
 
-          duplicada_de: medicao.duplicada_de || null,
+          duplicada_de: medicao.duplicada_de ?? null,
 
           excluido: false,
         },

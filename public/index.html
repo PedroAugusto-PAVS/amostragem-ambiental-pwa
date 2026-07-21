@@ -73,6 +73,14 @@
 
 <script>
 function entrarOffline(){
+  const usuarioSalvo = JSON.parse(localStorage.getItem("usuario") || "null");
+
+  if (!usuarioSalvo) {
+    document.getElementById("loginMessage").innerText =
+      "Entre ao menos uma vez com internet antes de usar o modo offline.";
+    return;
+  }
+
   window.location.href =
   "dashboard.html";
 }

@@ -8,82 +8,105 @@
 </head>
 <body>
 
-<main class="container">
-
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+<main class="container admin-page">
+  <button class="back-btn" type="button" onclick="history.back()">← Voltar</button>
 
   <div class="page-title">
     <h1>Painel Admin</h1>
     <p>Gerencie coletores e administradores</p>
   </div>
 
-  <section class="card stats">
+  <div id="adminMessage" class="admin-message" role="status" aria-live="polite" hidden></div>
+
+  <section class="card stats" aria-label="Resumo de usuários">
     <div>
       <strong id="totalUsuarios">0</strong>
       <span>Usuários</span>
     </div>
-
     <div>
       <strong id="totalColetores">0</strong>
       <span>Coletores</span>
     </div>
-
     <div>
       <strong id="totalAdmins">0</strong>
       <span>Admins</span>
     </div>
   </section>
 
-  <h3 class="section-title">Cadastrar / Editar Usuário</h3>
+  <h2 class="section-title">Cadastrar / Editar usuário</h2>
 
-  <form class="form-card">
-
+  <form id="usuarioForm" class="form-card">
     <input type="hidden" id="usuarioIdEdicao">
 
-    <label>Nome</label>
-    <input id="nomeUsuario" placeholder="Nome completo">
+    <label for="nomeUsuario">Nome</label>
+    <input id="nomeUsuario" maxlength="120" autocomplete="name" placeholder="Nome completo" required>
 
-    <label>Email</label>
-    <input id="emailUsuario" type="email" placeholder="email@empresa.com">
+    <label for="emailUsuario">E-mail</label>
+    <input id="emailUsuario" type="email" maxlength="254" autocomplete="email" placeholder="email@empresa.com" required>
 
-    <label>Senha</label>
-    <input id="senhaUsuario" type="password" placeholder="Senha inicial">
+    <div id="campoSenhaUsuario">
+      <label for="senhaUsuario">Senha</label>
+      <input id="senhaUsuario" type="password" minlength="6" maxlength="128" autocomplete="new-password" placeholder="Senha inicial">
+    </div>
 
-    <label>Tipo</label>
+    <label for="tipoUsuario">Tipo</label>
     <select id="tipoUsuario">
       <option value="coletor">Coletor</option>
       <option value="admin">Administrador</option>
     </select>
 
-    <label>Status</label>
-    <select id="statusUsuario">
+    <label for="statusUsuario">Status</label>
+    <select id="statusUsuario" disabled>
       <option value="true">Ativo</option>
       <option value="false">Inativo</option>
     </select>
 
-    <button type="button" class="btn-blue" onclick="salvarUsuarioAdmin()">
-      Salvar usuário
-    </button>
-
-    <br><br>
-
-    <button type="button" class="btn-primary" onclick="limparFormularioUsuario()">
-      Limpar formulário
-    </button>
-
+    <div class="admin-form-actions">
+      <button id="salvarUsuarioBtn" type="submit" class="btn-blue">Salvar usuário</button>
+      <button id="limparUsuarioBtn" type="button" class="btn-primary" onclick="limparFormularioUsuario()">Limpar formulário</button>
+    </div>
   </form>
 
-  <h3 class="section-title">Usuários cadastrados</h3>
+  <div class="admin-list-heading">
+    <h2 class="section-title">Usuários cadastrados</h2>
+    <span id="usuariosVisiveis">0 usuários</span>
+  </div>
 
-  <section id="listaUsuarios"></section>
+  <section class="admin-filters" aria-label="Filtros de usuários">
+    <label class="admin-search" for="pesquisaUsuario">
+      <span>Pesquisar</span>
+      <input id="pesquisaUsuario" type="search" placeholder="Nome ou e-mail">
+    </label>
 
+    <div class="admin-filter-grid">
+      <label for="filtroTipo">
+        <span>Tipo</span>
+        <select id="filtroTipo">
+          <option value="todos">Todos</option>
+          <option value="coletor">Coletores</option>
+          <option value="admin">Administradores</option>
+        </select>
+      </label>
+
+      <label for="filtroStatus">
+        <span>Status</span>
+        <select id="filtroStatus">
+          <option value="todos">Todos</option>
+          <option value="ativo">Ativos</option>
+          <option value="inativo">Inativos</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section id="listaUsuarios" class="admin-users-list" aria-live="polite"></section>
 </main>
 
 <nav class="bottom-nav">
   <a href="dashboard.html"><span>⌂</span>Poços</a>
   <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
-  <a href="medicoes.html"><span>▣</span>Medições</a>
+  <a href="campanhas.html"><span>▣</span>Campanhas</a>
+  <a href="medicoes.html"><span>▤</span>Medições</a>
   <a class="active" href="admin.html"><span>⚙</span>Admin</a>
 </nav>
 

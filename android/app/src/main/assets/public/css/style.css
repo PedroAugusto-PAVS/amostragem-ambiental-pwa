@@ -768,6 +768,156 @@ td select {
   color: #92400e !important;
 }
 
+.admin-message {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius);
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.admin-message.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.admin-form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.admin-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-list-heading span {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-filters {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-filters label {
+  margin: 0;
+}
+
+.admin-filters label span {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.admin-search {
+  display: block;
+  margin-bottom: 10px !important;
+}
+
+.admin-filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.admin-users-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-user-card {
+  margin: 0;
+}
+
+.admin-user-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-user-header > div {
+  min-width: 0;
+}
+
+.admin-user-header strong,
+.admin-user-header p {
+  overflow-wrap: anywhere;
+}
+
+.admin-status {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.admin-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.admin-user-details {
+  margin-top: 10px;
+}
+
+.admin-user-details p span {
+  color: var(--text);
+  font-weight: bold;
+}
+
+.admin-user-actions button {
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.btn-activate,
+.btn-deactivate {
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+
+.btn-activate {
+  background: var(--green);
+}
+
+.btn-deactivate {
+  background: var(--amber);
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.login-error {
+  color: #b91c1c !important;
+}
+
 @media (max-width: 520px) {
   .grid {
     grid-template-columns: 1fr;
@@ -805,5 +955,18 @@ td select {
   .campaign-pm-actions {
     width: 100%;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-user-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-user-actions .btn-danger {
+    grid-column: 1 / -1;
   }
 }

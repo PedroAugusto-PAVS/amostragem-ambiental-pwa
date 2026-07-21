@@ -1,53 +1,90 @@
 const loginForm = document.getElementById("loginForm");
 const loginMessage = document.getElementById("loginMessage");
+const loginButton = loginForm.querySelector('button[type="submit"]');
 
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch((error) => {
+      console.error("Erro ao registrar o Service Worker:", error);
+    });
+  });
+}
 
-  const email = document.getElementById("email").value.trim();
+function mostrarErroLogin(mensagem) {
+  loginMessage.innerText = mensagem;
+  loginMessage.classList.add("login-error");
+}
+
+function definirLoginCarregando(carregando) {
+  loginButton.disabled = carregando;
+  loginButton.innerText = carregando ? "Entrando..." : "Entrar";
+}
+
+function erroLoginAmigavel(error) {
+  const codigo = String(error?.code || "").toLowerCase();
+  const mensagem = String(error?.message || "").toLowerCase();
+
+  if (codigo.includes("banned") || mensagem.includes("banned")) {
+    return "Seu usuário está inativo. Entre em contato com o administrador.";
+  }
+
+  if (!navigator.onLine) {
+    return "Sem conexão com a internet.";
+  }
+
+  return "E-mail ou senha inválidos.";
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim().toLowerCase();
   const password = document.getElementById("password").value;
 
-  loginMessage.innerText = "Entrando...";
+  loginMessage.innerText = "";
+  loginMessage.classList.remove("login-error");
+  definirLoginCarregando(true);
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
 
-  if (error) {
-    loginMessage.innerText = "Erro no login: " + error.message;
-    return;
-  }
+    if (error || !data.user) {
+      mostrarErroLogin(erroLoginAmigavel(error));
+      return;
+    }
 
-  const userId = data.user.id;
+    const { data: perfil, error: perfilError } = await supabaseClient
+      .from("usuarios")
+      .select("id, nome, email, tipo, ativo")
+      .eq("id", data.user.id)
+      .maybeSingle();
 
-  const { data: perfil, error: perfilError } = await supabaseClient
-    .from("usuarios")
-    .select("id, nome, email, tipo, ativo")
-    .eq("id", userId)
-    .maybeSingle();
+    if (perfilError || !perfil) {
+      await supabaseClient.auth.signOut();
+      localStorage.removeItem("usuario");
+      mostrarErroLogin("Não foi possível validar seu usuário. Entre em contato com o administrador.");
+      return;
+    }
 
-  if (perfilError) {
-    console.error(perfilError);
-    loginMessage.innerText = "Erro ao buscar perfil: " + perfilError.message;
-    return;
-  }
+    if (perfil.ativo === false) {
+      await supabaseClient.auth.signOut();
+      localStorage.removeItem("usuario");
+      mostrarErroLogin("Seu usuário está inativo. Entre em contato com o administrador.");
+      return;
+    }
 
-  if (!perfil) {
-    loginMessage.innerText = "Usuário logado, mas sem perfil na tabela usuarios.";
-    return;
-  }
-
-  if (!perfil.ativo) {
-    loginMessage.innerText = "Usuário inativo. Fale com o administrador.";
-    return;
-  }
-
-  localStorage.setItem("usuario", JSON.stringify(perfil));
-
-  if (perfil.tipo === "admin") {
-    window.location.href = "admin.html";
-  } else {
-    window.location.href = "dashboard.html";
+    localStorage.setItem("usuario", JSON.stringify(perfil));
+    window.location.href = perfil.tipo === "admin" ? "admin.html" : "dashboard.html";
+  } catch (_error) {
+    mostrarErroLogin(
+      navigator.onLine
+        ? "Não foi possível entrar. Tente novamente."
+        : "Sem conexão com a internet."
+    );
+  } finally {
+    definirLoginCarregando(false);
   }
 });

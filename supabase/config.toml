@@ -1,0 +1,4 @@
+project_id = "pwa-pocos"
+
+[functions.admin-users]
+verify_jwt = true

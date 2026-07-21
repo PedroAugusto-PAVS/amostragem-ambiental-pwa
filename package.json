@@ -5,7 +5,9 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "dev": "node server.js"
+        "dev": "node server.js",
+        "test": "node tests/sync-merge.test.js",
+        "check": "node --check server.js && node tests/sync-merge.test.js"
     },
     "dependencies": {
         "@capacitor/android": "^8.4.1",
