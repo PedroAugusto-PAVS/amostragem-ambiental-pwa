@@ -1,556 +1,285 @@
-import {
-  createClient,
-  type SupabaseClient,
-  type User
-} from "npm:@supabase/supabase-js@2.95.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS"
-};
-
-const jsonHeaders = {
-  ...corsHeaders,
-  "Content-Type": "application/json; charset=utf-8"
-};
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const USER_TYPES = new Set(["admin", "coletor"]);
-const LONG_BAN_DURATION = "876000h";
+import { createClient, type SupabaseClient, type User } from "npm:@supabase/supabase-js@2.95.0";
 
 type Action = "create" | "update" | "activate" | "deactivate" | "delete";
-type UserType = "admin" | "coletor";
+type UserType = "administrador" | "coletor";
+type Profile = { id: string; nome: string; email: string; tipo: UserType; ativo: boolean; criado_em?: string; atualizado_em?: string };
+type Payload = Record<string, unknown>;
 
-interface UserProfile {
-  id: string;
-  nome: string;
-  email: string;
-  tipo: UserType;
-  ativo: boolean;
-  criado_em?: string;
-  atualizado_em?: string;
-}
-
-interface RequestBody {
-  action?: Action;
-  id?: string;
-  nome?: string;
-  email?: string;
-  senha?: string;
-  tipo?: UserType;
-  ativo?: boolean;
-}
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const TYPES = new Set<UserType>(["administrador", "coletor"]);
+const BAN_DURATION = "876000h";
 
 class ApiError extends Error {
-  status: number;
-  code: string;
+  constructor(public status: number, public code: string, message: string) { super(message); }
+}
 
-  constructor(status: number, code: string, message: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
+function cors(origin: string | null) {
+  const configured = (Deno.env.get("ALLOWED_ORIGINS") || "").split(",").map((v) => v.trim()).filter(Boolean);
+  const defaults = [Deno.env.get("SUPABASE_URL") || "", "capacitor://localhost", "http://localhost"];
+  const allowed = new Set([...configured, ...defaults]);
+  const localDevelopment = Boolean(origin && /^http:\/\/localhost(?::\d+)?$/.test(origin));
+  return {
+    "Access-Control-Allow-Origin": origin && (allowed.has(origin) || localDevelopment) ? origin : "null",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin"
+  };
+}
+
+function json(status: number, body: Record<string, unknown>, origin: string | null) {
+  return new Response(JSON.stringify(body), { status, headers: { ...cors(origin), "Content-Type": "application/json; charset=utf-8" } });
+}
+
+function success(status: number, message: string, data: unknown, origin: string | null) {
+  return json(status, { success: true, message, data }, origin);
+}
+
+function normalizeEmail(value: unknown) { return String(value ?? "").trim().toLowerCase(); }
+function normalizeName(value: unknown) { return String(value ?? "").trim().replace(/\s+/g, " "); }
+
+function validId(value: unknown) {
+  const id = String(value ?? "").trim();
+  if (!UUID.test(id)) throw new ApiError(400, "INVALID_DATA", "Identificador de usuário inválido.");
+  return id;
+}
+
+function validEmail(value: unknown) {
+  const email = normalizeEmail(value);
+  if (!EMAIL.test(email) || email.length > 254) throw new ApiError(400, "INVALID_EMAIL", "Informe um e-mail válido.");
+  return email;
+}
+
+function validName(value: unknown) {
+  const name = normalizeName(value);
+  if (name.length < 2 || name.length > 120) throw new ApiError(400, "INVALID_NAME", "Informe um nome válido.");
+  return name;
+}
+
+function validPassword(value: unknown) {
+  const password = String(value ?? "");
+  if (password.length < 6) throw new ApiError(400, "PASSWORD_TOO_SHORT", "A senha deve possuir pelo menos 6 caracteres.");
+  if (password.length > 128) throw new ApiError(400, "INVALID_DATA", "A senha informada é muito longa.");
+  return password;
+}
+
+function validType(value: unknown): UserType {
+  if (!TYPES.has(value as UserType)) throw new ApiError(400, "INVALID_TYPE", "Informe um tipo de usuário válido.");
+  return value as UserType;
+}
+
+function duplicate(error: { code?: string; message?: string } | null) {
+  const text = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  return text.includes("already") || text.includes("exists") || text.includes("registered") || text.includes("duplicate");
+}
+
+function notFound(error: { status?: number; code?: string; message?: string } | null) {
+  const text = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  return error?.status === 404 || text.includes("not_found") || text.includes("not found");
+}
+
+function logError(context: string, error: unknown, ids: Record<string, unknown> = {}) {
+  console.error(context, { ...ids, message: error instanceof Error ? error.message : String(error) });
+}
+
+async function audit(admin: SupabaseClient, actorId: string, targetId: string | null, action: string, details: Payload = {}) {
+  const { error } = await admin.from("logs_usuarios").insert({ ator_id: actorId, alvo_id: targetId, acao: action, detalhes: details });
+  if (error) logError("Falha ao registrar auditoria", error, { actorId, targetId, action });
+}
+
+async function authorize(request: Request, authClient: SupabaseClient, admin: SupabaseClient) {
+  const header = request.headers.get("Authorization") || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) throw new ApiError(401, "UNAUTHORIZED", "Sessão ausente ou inválida.");
+  const { data, error } = await authClient.auth.getUser(match[1]);
+  if (error || !data.user) throw new ApiError(401, "UNAUTHORIZED", "Sessão ausente ou inválida.");
+  const { data: profile, error: profileError } = await admin.from("usuarios").select("id, tipo, ativo").eq("id", data.user.id).maybeSingle();
+  if (profileError) throw profileError;
+  if (!profile || profile.ativo !== true || profile.tipo !== "administrador") {
+    throw new ApiError(403, "FORBIDDEN", "Você não possui permissão para realizar esta operação.");
   }
+  return data.user.id;
 }
 
-function response(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
-}
-
-function normalizeEmail(value: unknown) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function normalizeName(value: unknown) {
-  return String(value || "").trim().replace(/\s+/g, " ");
-}
-
-function validateId(id: unknown) {
-  const normalized = String(id || "").trim();
-
-  if (!UUID_PATTERN.test(normalized)) {
-    throw new ApiError(400, "INVALID_DATA", "ID de usuário inválido.");
-  }
-
-  return normalized;
-}
-
-function validateEmail(email: unknown) {
-  const normalized = normalizeEmail(email);
-
-  if (!EMAIL_PATTERN.test(normalized) || normalized.length > 254) {
-    throw new ApiError(400, "INVALID_EMAIL", "Informe um e-mail válido.");
-  }
-
-  return normalized;
-}
-
-function validateName(name: unknown) {
-  const normalized = normalizeName(name);
-
-  if (normalized.length < 2 || normalized.length > 120) {
-    throw new ApiError(400, "INVALID_DATA", "Informe um nome válido.");
-  }
-
-  return normalized;
-}
-
-function validateType(type: unknown): UserType {
-  if (!USER_TYPES.has(String(type))) {
-    throw new ApiError(400, "INVALID_DATA", "Tipo de usuário inválido.");
-  }
-
-  return type as UserType;
-}
-
-function validatePassword(password: unknown) {
-  const normalized = String(password || "");
-
-  if (normalized.length < 6) {
-    throw new ApiError(
-      400,
-      "PASSWORD_TOO_SHORT",
-      "A senha deve possuir pelo menos 6 caracteres."
-    );
-  }
-
-  if (normalized.length > 128) {
-    throw new ApiError(400, "INVALID_DATA", "A senha informada é muito longa.");
-  }
-
-  return normalized;
-}
-
-function isDuplicateAuthError(error: { code?: string; message?: string } | null) {
-  const code = String(error?.code || "").toLowerCase();
-  const message = String(error?.message || "").toLowerCase();
-  return code.includes("exists") || message.includes("already") || message.includes("registered");
-}
-
-function isLastAdminError(error: { message?: string } | null) {
-  return String(error?.message || "").toLowerCase().includes("último administrador ativo") ||
-    String(error?.message || "").toLowerCase().includes("ultimo administrador ativo");
-}
-
-function isAuthNotFound(error: { status?: number; code?: string; message?: string } | null) {
-  const code = String(error?.code || "").toLowerCase();
-  const message = String(error?.message || "").toLowerCase();
-  return error?.status === 404 || code.includes("not_found") || message.includes("not found");
-}
-
-async function findAuthUserByEmail(admin: SupabaseClient, email: string) {
-  const perPage = 1000;
-
-  for (let page = 1; page <= 1000; page += 1) {
+async function findAuthByEmail(admin: SupabaseClient, email: string) {
+  const perPage = 200;
+  const maxPages = 500;
+  for (let page = 1; page <= maxPages; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-
     if (error) throw error;
-
     const found = data.users.find((user) => normalizeEmail(user.email) === email);
-
     if (found) return found;
     if (data.users.length < perPage) return null;
   }
-
-  throw new Error("Limite de paginação de usuários excedido.");
+  throw new Error("Limite controlado de paginação do Auth excedido.");
 }
 
-async function getProfile(admin: SupabaseClient, id: string) {
-  const { data, error } = await admin
-    .from("usuarios")
-    .select("id, nome, email, tipo, ativo, criado_em, atualizado_em")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
-  return data as UserProfile;
-}
-
-async function ensureEmailAvailable(
-  admin: SupabaseClient,
-  email: string,
-  ignoredUserId?: string
-) {
-  let profileQuery = admin.from("usuarios").select("id").ilike("email", email).limit(1);
-
-  if (ignoredUserId) profileQuery = profileQuery.neq("id", ignoredUserId);
-
-  const { data: profiles, error: profileError } = await profileQuery;
-
-  if (profileError) throw profileError;
-  if (profiles && profiles.length > 0) {
-    throw new ApiError(409, "EMAIL_EXISTS", "Este e-mail já está cadastrado.");
-  }
-
-  const authUser = await findAuthUserByEmail(admin, email);
-
-  if (authUser && authUser.id !== ignoredUserId) {
-    throw new ApiError(409, "EMAIL_EXISTS", "Este e-mail já está cadastrado.");
-  }
-}
-
-async function ensureCanRemoveAdminPrivilege(
-  admin: SupabaseClient,
-  target: UserProfile,
-  nextType: UserType,
-  nextActive: boolean
-) {
-  const removesPrivilege =
-    target.tipo === "admin" && target.ativo !== false &&
-    (nextType !== "admin" || nextActive === false);
-
-  if (!removesPrivilege) return;
-
-  const { count, error } = await admin
-    .from("usuarios")
-    .select("id", { count: "exact", head: true })
-    .eq("tipo", "admin")
-    .eq("ativo", true);
-
-  if (error) throw error;
-  if ((count || 0) <= 1) {
-    throw new ApiError(
-      409,
-      "LAST_ACTIVE_ADMIN",
-      "O último administrador ativo não pode ser alterado."
-    );
-  }
-}
-
-async function getAuthUser(admin: SupabaseClient, id: string) {
+async function authById(admin: SupabaseClient, id: string): Promise<User | null> {
   const { data, error } = await admin.auth.admin.getUserById(id);
-
+  if (error && notFound(error)) return null;
   if (error) throw error;
-  if (!data.user) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
-  return data.user;
+  return data.user || null;
 }
 
-async function rollbackAuthUser(
-  admin: SupabaseClient,
-  authUser: User,
-  profile: UserProfile
-) {
-  const { error } = await admin.auth.admin.updateUserById(authUser.id, {
-    email: authUser.email,
-    email_confirm: Boolean(authUser.email_confirmed_at),
-    ban_duration: profile.ativo === false ? LONG_BAN_DURATION : "none",
-    user_metadata: authUser.user_metadata
-  });
-
+async function profileById(admin: SupabaseClient, id: string): Promise<Profile | null> {
+  const { data, error } = await admin.from("usuarios").select("id, nome, email, tipo, ativo, criado_em, atualizado_em").eq("id", id).maybeSingle();
   if (error) throw error;
+  return data as Profile | null;
 }
 
-async function handleCreate(admin: SupabaseClient, body: RequestBody) {
-  const name = validateName(body.nome);
-  const email = validateEmail(body.email);
-  const password = validatePassword(body.senha);
-  const type = validateType(body.tipo);
+async function ensureEmailAvailable(admin: SupabaseClient, email: string, ignoredId?: string) {
+  let query = admin.from("usuarios").select("id").eq("email", email).limit(1);
+  if (ignoredId) query = query.neq("id", ignoredId);
+  const { data, error } = await query;
+  if (error) throw error;
+  if (data?.length) throw new ApiError(409, "EMAIL_ALREADY_EXISTS", "Este e-mail já está cadastrado.");
+  const authUser = await findAuthByEmail(admin, email);
+  if (authUser && authUser.id !== ignoredId) throw new ApiError(409, "EMAIL_ALREADY_EXISTS", "Este e-mail já está cadastrado.");
+}
 
+async function ensureNotLastAdmin(admin: SupabaseClient, profile: Profile, nextType: UserType, nextActive: boolean) {
+  if (profile.tipo !== "administrador" || !profile.ativo || (nextType === "administrador" && nextActive)) return;
+  const { count, error } = await admin.from("usuarios").select("id", { count: "exact", head: true }).eq("tipo", "administrador").eq("ativo", true);
+  if (error) throw error;
+  if ((count || 0) <= 1) throw new ApiError(409, "LAST_ACTIVE_ADMIN", "Não é possível remover ou inativar o último administrador ativo.");
+}
+
+async function createUser(admin: SupabaseClient, actorId: string, data: Payload, origin: string | null) {
+  const nome = validName(data.nome), email = validEmail(data.email), senha = validPassword(data.senha), tipo = validType(data.tipo);
   await ensureEmailAvailable(admin, email);
-
-  const { data: authData, error: authError } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { nome: name, tipo: type }
-  });
-
-  if (authError) {
-    if (isDuplicateAuthError(authError)) {
-      throw new ApiError(409, "EMAIL_EXISTS", "Este e-mail já está cadastrado.");
-    }
-    throw authError;
+  const { data: created, error } = await admin.auth.admin.createUser({ email, password: senha, email_confirm: true });
+  if (error) {
+    if (duplicate(error)) throw new ApiError(409, "EMAIL_ALREADY_EXISTS", "Este e-mail já está cadastrado.");
+    throw error;
   }
-
-  const userId = authData.user?.id;
-
-  if (!userId) throw new Error("Supabase Auth não retornou o ID do usuário.");
-
-  const { data: profile, error: profileError } = await admin
-    .from("usuarios")
-    .insert({
-      id: userId,
-      nome: name,
-      email,
-      tipo: type,
-      ativo: true
-    })
-    .select("id, nome, email, tipo, ativo, criado_em, atualizado_em")
-    .single();
-
+  const id = created.user?.id;
+  if (!id) throw new Error("Auth não retornou UUID do usuário.");
+  const { data: profile, error: profileError } = await admin.from("usuarios").insert({ id, nome, email, tipo, ativo: true }).select("id, nome, email, tipo, ativo").single();
   if (profileError) {
-    const { error: rollbackError } = await admin.auth.admin.deleteUser(userId);
-
-    if (rollbackError) {
-      console.error("Rollback da criação falhou", {
-        userId,
-        profileError: profileError.message,
-        rollbackError: rollbackError.message
-      });
-    }
-
-    throw new Error("Falha ao criar o perfil do usuário.");
+    const { error: rollbackError } = await admin.auth.admin.deleteUser(id);
+    logError("Falha ao criar perfil; compensação executada", profileError, { actorId, targetId: id });
+    if (rollbackError) logError("Falha na compensação da criação", rollbackError, { actorId, targetId: id });
+    await audit(admin, actorId, id, "falha_criacao", { compensacao_falhou: Boolean(rollbackError) });
+    throw new Error("Falha consistente ao criar usuário.");
   }
-
-  return response(201, { ok: true, user: profile });
+  await audit(admin, actorId, id, "criacao", { tipo });
+  return success(201, "Usuário cadastrado com sucesso.", profile, origin);
 }
 
-async function handleUpdate(
-  admin: SupabaseClient,
-  actorId: string,
-  body: RequestBody
-) {
-  const id = validateId(body.id);
-  const name = validateName(body.nome);
-  const email = validateEmail(body.email);
-  const type = validateType(body.tipo);
-
-  if (typeof body.ativo !== "boolean") {
-    throw new ApiError(400, "INVALID_DATA", "Status do usuário inválido.");
+async function updateUser(admin: SupabaseClient, actorId: string, data: Payload, origin: string | null) {
+  const id = validId(data.id);
+  if (Object.hasOwn(data, "senha")) throw new ApiError(400, "INVALID_DATA", "A senha não pode ser alterada nesta operação.");
+  const current = await profileById(admin, id);
+  if (!current) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
+  const changes: Partial<Profile> = {};
+  if (Object.hasOwn(data, "nome")) changes.nome = validName(data.nome);
+  if (Object.hasOwn(data, "email")) changes.email = validEmail(data.email);
+  if (Object.hasOwn(data, "tipo")) changes.tipo = validType(data.tipo);
+  if (Object.hasOwn(data, "ativo")) {
+    if (typeof data.ativo !== "boolean") throw new ApiError(400, "INVALID_DATA", "Status inválido.");
+    changes.ativo = data.ativo;
   }
-
-  const active = body.ativo !== false;
-  const oldProfile = await getProfile(admin, id);
-
-  if (id === actorId && !active) {
-    throw new ApiError(409, "SELF_DEACTIVATE", "Você não pode inativar sua própria conta.");
+  if (!Object.keys(changes).length) throw new ApiError(400, "INVALID_DATA", "Nenhuma alteração foi informada.");
+  const next = { ...current, ...changes };
+  if (id === actorId && next.ativo === false) throw new ApiError(409, "SELF_DEACTIVATE", "Você não pode inativar sua própria conta.");
+  await ensureNotLastAdmin(admin, current, next.tipo, next.ativo);
+  if (changes.email && changes.email !== current.email) await ensureEmailAvailable(admin, changes.email, id);
+  const oldAuth = await authById(admin, id);
+  if (!oldAuth) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
+  const authChanges: Payload = {};
+  if (changes.email && changes.email !== current.email) Object.assign(authChanges, { email: changes.email, email_confirm: true });
+  if (changes.ativo !== undefined) authChanges.ban_duration = changes.ativo ? "none" : BAN_DURATION;
+  let authChanged = false;
+  if (Object.keys(authChanges).length) {
+    const { error } = await admin.auth.admin.updateUserById(id, authChanges);
+    if (error) {
+      if (duplicate(error)) throw new ApiError(409, "EMAIL_ALREADY_EXISTS", "Este e-mail já está cadastrado.");
+      throw error;
+    }
+    authChanged = true;
   }
-
-  await ensureCanRemoveAdminPrivilege(admin, oldProfile, type, active);
-  await ensureEmailAvailable(admin, email, id);
-
-  const oldAuthUser = await getAuthUser(admin, id);
-  const { error: authError } = await admin.auth.admin.updateUserById(id, {
-    email,
-    email_confirm: true,
-    ban_duration: active ? "none" : LONG_BAN_DURATION,
-    user_metadata: {
-      ...oldAuthUser.user_metadata,
-      nome: name,
-      tipo: type
+  const { data: profile, error } = await admin.from("usuarios").update(changes).eq("id", id).select("id, nome, email, tipo, ativo").single();
+  if (error) {
+    if (authChanged) {
+      const { error: rollbackError } = await admin.auth.admin.updateUserById(id, { email: oldAuth.email, email_confirm: Boolean(oldAuth.email_confirmed_at), ban_duration: current.ativo ? "none" : BAN_DURATION });
+      if (rollbackError) logError("Falha na compensação da edição", rollbackError, { actorId, targetId: id });
     }
-  });
-
-  if (authError) {
-    if (isDuplicateAuthError(authError)) {
-      throw new ApiError(409, "EMAIL_EXISTS", "Este e-mail já está cadastrado.");
-    }
-    throw authError;
+    logError("Falha ao atualizar perfil", error, { actorId, targetId: id });
+    throw new Error("Falha consistente ao atualizar usuário.");
   }
-
-  const { data: profile, error: profileError } = await admin
-    .from("usuarios")
-    .update({ nome: name, email, tipo: type, ativo: active })
-    .eq("id", id)
-    .select("id, nome, email, tipo, ativo, criado_em, atualizado_em")
-    .single();
-
-  if (profileError) {
-    try {
-      await rollbackAuthUser(admin, oldAuthUser, oldProfile);
-    } catch (rollbackError) {
-      console.error("Rollback da edição falhou", {
-        userId: id,
-        profileError: profileError.message,
-        rollbackError: rollbackError instanceof Error ? rollbackError.message : rollbackError
-      });
-    }
-
-    if (isLastAdminError(profileError)) {
-      throw new ApiError(409, "LAST_ACTIVE_ADMIN", "O último administrador ativo não pode ser alterado.");
-    }
-    throw new Error("Falha ao atualizar o perfil do usuário.");
-  }
-
-  return response(200, { ok: true, user: profile });
+  await audit(admin, actorId, id, "edicao", { campos: Object.keys(changes) });
+  return success(200, "Usuário atualizado com sucesso.", profile, origin);
 }
 
-async function handleStatus(
-  admin: SupabaseClient,
-  actorId: string,
-  body: RequestBody,
-  active: boolean
-) {
-  const id = validateId(body.id);
-  const oldProfile = await getProfile(admin, id);
-
-  if (!active && id === actorId) {
-    throw new ApiError(409, "SELF_DEACTIVATE", "Você não pode inativar sua própria conta.");
-  }
-
-  await ensureCanRemoveAdminPrivilege(admin, oldProfile, oldProfile.tipo, active);
-  await getAuthUser(admin, id);
-
-  const { error: authError } = await admin.auth.admin.updateUserById(id, {
-    ban_duration: active ? "none" : LONG_BAN_DURATION
-  });
-
+async function setStatus(admin: SupabaseClient, actorId: string, data: Payload, active: boolean, origin: string | null) {
+  const id = validId(data.id);
+  const current = await profileById(admin, id);
+  if (!current) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
+  if (!active && id === actorId) throw new ApiError(409, "SELF_DEACTIVATE", "Você não pode inativar sua própria conta.");
+  await ensureNotLastAdmin(admin, current, current.tipo, active);
+  const authUser = await authById(admin, id);
+  if (!authUser) throw new ApiError(404, "USER_NOT_FOUND", "Usuário não encontrado.");
+  const { error: authError } = await admin.auth.admin.updateUserById(id, { ban_duration: active ? "none" : BAN_DURATION });
   if (authError) throw authError;
-
-  const { data: profile, error: profileError } = await admin
-    .from("usuarios")
-    .update({ ativo: active })
-    .eq("id", id)
-    .select("id, nome, email, tipo, ativo, criado_em, atualizado_em")
-    .single();
-
-  if (profileError) {
-    const { error: rollbackError } = await admin.auth.admin.updateUserById(id, {
-      ban_duration: oldProfile.ativo === false ? LONG_BAN_DURATION : "none"
-    });
-
-    if (rollbackError) {
-      console.error("Rollback de status falhou", {
-        userId: id,
-        profileError: profileError.message,
-        rollbackError: rollbackError.message
-      });
-    }
-
-    if (isLastAdminError(profileError)) {
-      throw new ApiError(409, "LAST_ACTIVE_ADMIN", "O último administrador ativo não pode ser alterado.");
-    }
-    throw new Error("Falha ao atualizar o status do usuário.");
+  const { data: profile, error } = await admin.from("usuarios").update({ ativo: active }).eq("id", id).select("id, nome, email, tipo, ativo").single();
+  if (error) {
+    const { error: rollbackError } = await admin.auth.admin.updateUserById(id, { ban_duration: current.ativo ? "none" : BAN_DURATION });
+    logError("Falha ao atualizar status", error, { actorId, targetId: id });
+    if (rollbackError) logError("Falha na compensação de status", rollbackError, { actorId, targetId: id });
+    throw new Error("Falha consistente ao atualizar status.");
   }
-
-  return response(200, { ok: true, user: profile });
+  await audit(admin, actorId, id, active ? "ativacao" : "inativacao");
+  return success(200, active ? "Usuário ativado com sucesso." : "Usuário inativado com sucesso.", profile, origin);
 }
 
-async function handleDelete(
-  admin: SupabaseClient,
-  actorId: string,
-  body: RequestBody
-) {
-  const id = validateId(body.id);
-
-  if (id === actorId) {
-    throw new ApiError(409, "SELF_DELETE", "Você não pode excluir sua própria conta.");
+async function deleteUser(admin: SupabaseClient, actorId: string, data: Payload, origin: string | null) {
+  const id = validId(data.id);
+  if (id === actorId) throw new ApiError(409, "SELF_DELETE", "Você não pode excluir sua própria conta.");
+  const profile = await profileById(admin, id);
+  const authUser = await authById(admin, id);
+  if (!profile && !authUser) return success(200, "Usuário já estava excluído.", { id }, origin);
+  if (profile) await ensureNotLastAdmin(admin, profile, "coletor", false);
+  if (profile) {
+    const { error } = await admin.from("usuarios").delete().eq("id", id);
+    if (error) throw error;
   }
-
-  const profile = await getProfile(admin, id);
-  await ensureCanRemoveAdminPrivilege(admin, profile, "coletor", false);
-
-  const { error: authError } = await admin.auth.admin.deleteUser(id);
-
-  if (authError && !isAuthNotFound(authError)) {
-    if (isLastAdminError(authError)) {
-      throw new ApiError(409, "LAST_ACTIVE_ADMIN", "O último administrador ativo não pode ser excluído.");
-    }
-    throw authError;
-  }
-
-  const { data: remainingProfile, error: profileReadError } = await admin
-    .from("usuarios")
-    .select("id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (profileReadError) throw profileReadError;
-
-  if (remainingProfile) {
-    const { error: profileDeleteError } = await admin
-      .from("usuarios")
-      .delete()
-      .eq("id", id);
-
-    if (profileDeleteError) {
-      if (isLastAdminError(profileDeleteError)) {
-        throw new ApiError(409, "LAST_ACTIVE_ADMIN", "O último administrador ativo não pode ser excluído.");
+  if (authUser) {
+    const { error } = await admin.auth.admin.deleteUser(id);
+    if (error && !notFound(error)) {
+      if (profile) {
+        const { error: rollbackError } = await admin.from("usuarios").insert(profile);
+        if (rollbackError) logError("Falha na compensação da exclusão", rollbackError, { actorId, targetId: id });
       }
-      throw new Error("O acesso foi removido, mas o perfil exige limpeza administrativa.");
+      logError("Falha ao excluir usuário do Auth", error, { actorId, targetId: id });
+      throw new Error("Falha consistente ao excluir usuário.");
     }
   }
-
-  return response(200, { ok: true });
+  await audit(admin, actorId, id, "exclusao", { perfil_existia: Boolean(profile), auth_existia: Boolean(authUser) });
+  return success(200, "Usuário excluído com sucesso.", { id }, origin);
 }
 
 Deno.serve(async (request) => {
-  if (request.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  if (request.method !== "POST") {
-    return response(405, { ok: false, code: "INVALID_DATA", message: "Método não permitido." });
-  }
-
+  const origin = request.headers.get("Origin");
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(origin) });
+  if (request.method !== "POST") return json(400, { success: false, code: "INVALID_DATA", message: "Requisição inválida." }, origin);
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const authorization = request.headers.get("Authorization") || "";
-    const accessToken = authorization.replace(/^Bearer\s+/i, "");
-
-    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-      throw new Error("Secrets obrigatórios da Edge Function não estão disponíveis.");
-    }
-
-    if (!accessToken || accessToken === authorization) {
-      throw new ApiError(401, "NO_PERMISSION", "Sessão inválida.");
-    }
-
-    const authClient = createClient(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-    const admin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-    const { data: authData, error: authError } = await authClient.auth.getUser(accessToken);
-
-    if (authError || !authData.user) {
-      throw new ApiError(401, "NO_PERMISSION", "Sessão inválida.");
-    }
-
-    const { data: actorProfile, error: actorError } = await admin
-      .from("usuarios")
-      .select("id, tipo, ativo")
-      .eq("id", authData.user.id)
-      .maybeSingle();
-
-    if (actorError) throw actorError;
-    if (!actorProfile || actorProfile.ativo === false) {
-      throw new ApiError(403, "USER_INACTIVE", "Seu usuário está inativo.");
-    }
-    if (actorProfile.tipo !== "admin") {
-      throw new ApiError(403, "NO_PERMISSION", "Operação permitida apenas para administradores.");
-    }
-
-    let body: RequestBody;
-
-    try {
-      body = await request.json();
-    } catch (_error) {
-      throw new ApiError(400, "INVALID_DATA", "Corpo da requisição inválido.");
-    }
-
-    switch (body.action) {
-      case "create":
-        return await handleCreate(admin, body);
-      case "update":
-        return await handleUpdate(admin, authData.user.id, body);
-      case "activate":
-        return await handleStatus(admin, authData.user.id, body, true);
-      case "deactivate":
-        return await handleStatus(admin, authData.user.id, body, false);
-      case "delete":
-        return await handleDelete(admin, authData.user.id, body);
-      default:
-        throw new ApiError(400, "INVALID_DATA", "Ação administrativa inválida.");
-    }
+    const url = Deno.env.get("SUPABASE_URL"), anon = Deno.env.get("SUPABASE_ANON_KEY"), service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !anon || !service) throw new Error("Configuração obrigatória ausente.");
+    const authClient = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
+    const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
+    const actorId = await authorize(request, authClient, admin);
+    const body = await request.json().catch(() => { throw new ApiError(400, "INVALID_DATA", "Corpo da requisição inválido."); });
+    const action = body?.action as Action, data = body?.data;
+    if (!data || typeof data !== "object" || Array.isArray(data)) throw new ApiError(400, "INVALID_DATA", "Dados da operação inválidos.");
+    if (action === "create") return await createUser(admin, actorId, data, origin);
+    if (action === "update") return await updateUser(admin, actorId, data, origin);
+    if (action === "activate") return await setStatus(admin, actorId, data, true, origin);
+    if (action === "deactivate") return await setStatus(admin, actorId, data, false, origin);
+    if (action === "delete") return await deleteUser(admin, actorId, data, origin);
+    throw new ApiError(400, "INVALID_DATA", "Ação administrativa inválida.");
   } catch (error) {
-    if (error instanceof ApiError) {
-      return response(error.status, { ok: false, code: error.code, message: error.message });
-    }
-
-    console.error("Falha inesperada em admin-users", {
-      message: error instanceof Error ? error.message : String(error)
-    });
-    return response(500, {
-      ok: false,
-      code: "UNEXPECTED",
-      message: "Não foi possível concluir a operação. Tente novamente."
-    });
+    if (error instanceof ApiError) return json(error.status, { success: false, code: error.code, message: error.message }, origin);
+    logError("Falha interna em admin-users", error);
+    return json(500, { success: false, code: "UNEXPECTED_ERROR", message: "Não foi possível concluir a operação. Tente novamente." }, origin);
   }
 });

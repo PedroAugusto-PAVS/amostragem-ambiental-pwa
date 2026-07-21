@@ -1,97 +1,112 @@
-# Gerenciamento seguro de usuários
+# Módulo seguro de usuários
 
-## Arquivos do módulo
+O frontend usa somente a chave pública e o JWT da sessão. A função `admin-users` valida o JWT, busca o perfil pelo UUID autenticado e exige `tipo = 'administrador'` e `ativo = true`. A Service Role existe apenas no ambiente da Edge Function.
 
-- `supabase/functions/admin-users/index.ts`: Edge Function administrativa.
-- `supabase/migrations/202607210001_admin_users_security.sql`: estrutura, índices, triggers e RLS.
-- `supabase/config.toml`: mantém a validação JWT obrigatória para `admin-users`.
-- `public/admin.html`: painel administrativo existente.
-- `public/js/admin.js`: listagem, filtros e operações via Edge Function.
-- `public/js/auth.js`: login com encerramento de sessão para perfil ausente ou inativo.
-- `public/css/style.css`: estilos exclusivos dos controles administrativos.
-- `server.js`: servidor estático, sem Service Role e sem rotas administrativas.
+## Contrato
 
-## Segurança e consistência
+`POST /functions/v1/admin-users`, com `Authorization: Bearer <JWT>`:
 
-O navegador usa apenas a chave pública do projeto e o JWT da sessão. A Service Role fica somente no ambiente da Edge Function.
+```json
+{ "action": "create", "data": { "nome": "Ana", "email": "ana@example.com", "senha": "segredo", "tipo": "coletor" } }
+```
 
-Usuários autenticados recebem somente `SELECT` em `public.usuarios`: cada usuário lê o próprio perfil e administradores ativos podem listar todos. `INSERT`, `UPDATE` e `DELETE` diretos são revogados; toda mutação passa pela Edge Function, evitando divergência entre Auth e perfil.
+Ações: `create`, `update`, `activate`, `deactivate` e `delete`. Respostas usam `success`, `message`, `data` e, em erros, `code`. A edição rejeita senha. Os tipos válidos são `administrador` e `coletor`.
 
-Todas as ações validam novamente o JWT, consultam `public.usuarios` e exigem administrador ativo. A criação usa `auth.admin.createUser` com `email_confirm: true`. Se a inserção do perfil falhar, a função remove imediatamente o usuário recém-criado no Auth.
+O Auth não possui busca administrativa direta por e-mail na versão usada. A função pagina `listUsers` em blocos de 200, até 500 páginas (100 mil usuários); isso tem custo linear e deve ser substituído por uma API oficial mais eficiente se ela surgir.
 
-Na edição, o Auth é atualizado primeiro e o perfil depois. Se o perfil falhar, os campos do Auth são restaurados. Ativação e inativação usam o mesmo mecanismo de compensação e também banem ou liberam o login no Auth.
+Inativação usa `updateUserById(..., { ban_duration })`, suportado pela versão fixada do SDK, e o guard do frontend também consulta `usuarios.ativo` após login, restauração, refresh do token e retorno da rede. Dados offline não são apagados.
 
-A exclusão começa no Auth. A foreign key `usuarios.id -> auth.users.id on delete cascade` remove o perfil na mesma operação do banco. A função verifica e remove qualquer perfil remanescente, cobrindo instalações antigas. Se o Auth falhar, o perfil não é removido.
+## Banco e diagnóstico
 
-O trigger `proteger_administradores_ativos` usa advisory lock transacional. Assim, mesmo duas requisições concorrentes não conseguem remover, rebaixar ou inativar todos os administradores ativos.
+Antes de `db push`, execute no SQL Editor:
 
-## Pré-requisitos
+```sql
+select lower(btrim(email)) as email_normalizado,
+       count(*) as quantidade,
+       array_agg(id order by id) as usuarios
+from public.usuarios
+group by lower(btrim(email))
+having count(*) > 1;
+```
 
-- Docker Desktop para executar a pilha Supabase local.
-- Supabase CLI via `npx supabase` ou instalação global.
-- Acesso ao projeto Supabase `ecmctjixtznsixajfclt` para aplicar migration e deploy.
-- Backup das tabelas `public.usuarios` e `auth.users` antes da migration.
+Corrija duplicidades manualmente também no Auth. A migration não exclui nem mescla registros. Ela converte o valor legado `admin` para `administrador`, reforça constraints, RLS, índices e cria `logs_usuarios`. `is_admin()` usa `SECURITY DEFINER`, proprietário `postgres`, `search_path` fixo e `row_security=off`: isso evita recursão da policy; `EXECUTE` fica restrito a `authenticated` e `service_role`.
 
-As variáveis `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` já são fornecidas automaticamente às Edge Functions hospedadas. A Service Role não deve ser adicionada a `public/`, ao APK ou ao repositório.
+## CORS e secrets
+
+Nas Edge Functions hospedadas, `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` são secrets reservados fornecidos pelo Supabase. Confirme sem imprimir valores:
+
+```powershell
+supabase secrets list
+```
+
+Configure somente as origens web adicionais, separadas por vírgula:
+
+```powershell
+supabase secrets set ALLOWED_ORIGINS=https://app.exemplo.com,https://admin.exemplo.com
+```
+
+Por padrão são aceitos o domínio do projeto Supabase, `capacitor://localhost` e `http://localhost`. A Service Role nunca deve ser copiada para `.env` público, `public/` ou APK.
 
 ## Deploy
 
-Execute na raiz do projeto:
-
 ```powershell
-npx.cmd supabase login
-npx.cmd supabase link --project-ref ecmctjixtznsixajfclt
-npx.cmd supabase db push
-npx.cmd supabase functions deploy admin-users
-npx.cmd cap sync android
+git add .
+git commit -m "backup antes do modulo seguro de usuarios"
+git tag pre-admin-users
+supabase login
+supabase link --project-ref SEU_PROJECT_REF
+supabase db push
+supabase functions deploy admin-users
 ```
 
-Não use `--no-verify-jwt`. O arquivo `supabase/config.toml` mantém `verify_jwt = true`.
+Não use `--no-verify-jwt`. Após testes:
+
+```powershell
+git add .
+git commit -m "implementa gerenciamento seguro de usuarios"
+```
 
 ## Teste local
 
 ```powershell
-npx.cmd supabase start
-npx.cmd supabase db reset
-npx.cmd supabase functions serve admin-users
-npm.cmd run dev
+supabase start
+supabase db reset
+supabase functions serve admin-users --env-file supabase/.env.local
+npm run dev
+node tests/admin-users.test.js
 ```
 
-Abra `http://localhost:3000`, entre com um administrador da pilha local e use o painel. Para testar o frontend contra a pilha local, altere temporariamente `SUPABASE_URL` e `SUPABASE_ANON_KEY` em `public/js/supabase.js` somente no ambiente local; não versionar chaves locais ou secretas.
+Use secrets locais emitidos por `supabase status`; não versione `supabase/.env.local`. Teste no navegador, PWA e APK real. Para APK, a cópia de `public/` deve ser feita posteriormente pelo fluxo normal do Capacitor; este módulo não executa sincronização Android.
 
 ## Checklist
 
-- Admin ativo consegue listar usuários.
-- Coletor não consegue listar todos os usuários nem invocar a função.
-- Token ausente ou expirado retorna mensagem de permissão.
-- Cadastro normal cria Auth confirmado e perfil ativo com o mesmo UUID.
-- E-mail duplicado no Auth ou em `public.usuarios` é recusado.
-- Senha menor que seis caracteres e e-mail inválido são recusados.
-- Falha ao inserir perfil remove o Auth recém-criado.
-- Edição altera nome, e-mail, tipo e status nos dois locais.
-- Falha no perfil durante edição restaura o Auth.
-- Usuário inativo não consegue entrar e sua sessão é encerrada no login.
-- Admin não consegue inativar ou excluir a própria conta.
-- Último admin ativo não pode ser inativado, rebaixado ou excluído.
-- Ativar libera novamente o login.
-- Excluir remove Auth e perfil.
-- Pesquisa por nome/e-mail e filtros de tipo/status funcionam juntos.
-- Cliques repetidos durante uma operação não criam requisições duplicadas.
-- Mensagens do Supabase não aparecem diretamente na interface.
-- Fluxos funcionam no navegador e no APK após o deploy da Edge Function.
+- Criar coletor/admin; normalizar e-mail; rejeitar duplicado no perfil ou Auth, senha curta, nome vazio e tipo inválido.
+- Rejeitar coletor, perfil ausente/inativo, JWT ausente/expirado e localStorage adulterado.
+- Editar nome/tipo/e-mail; rejeitar duplicidade e senha; compensar Auth se o perfil falhar.
+- Ativar; inativar coletor; rejeitar autoinativação e último admin; sessão inativa encerra ao ser revalidada.
+- Excluir coletor/admin com outro admin; rejeitar autoexclusão/último admin; testar perfil sem Auth, Auth sem perfil, falha e retry.
+- Confirmar lista/contadores/filtros sem reload, loading, clique duplo, recuperação dos botões e mensagens sem detalhes internos.
+- Simular internet instável e ausência de rede nos três ambientes.
 
-## Rollback
+Falhas de compensação devem ser conferidas nos logs da função e em `logs_usuarios`; nunca são enviados stack, SQL ou secrets ao cliente.
 
-Antes do deploy, exporte o schema e os dados de `public.usuarios`. Para voltar o frontend, reverta apenas os arquivos listados em "Arquivos do módulo" e execute `npx.cmd cap sync android`.
+## Rollback sem perda de usuários
 
-Para retirar a Edge Function remota:
+Frontend: reverta somente `public/admin.html`, `public/js/admin.js`, `public/js/auth.js` e `public/js/supabase.js` para `pre-admin-users`. Não sincronize Android automaticamente.
+
+Edge Function: redeploy da versão marcada ou remova a função:
 
 ```powershell
-npx.cmd supabase functions delete admin-users --project-ref ecmctjixtznsixajfclt
+git show pre-admin-users:supabase/functions/admin-users/index.ts > supabase/functions/admin-users/index.ts
+supabase functions deploy admin-users
+# ou, para desativá-la:
+supabase functions delete admin-users --project-ref SEU_PROJECT_REF
 ```
 
-Não remova a foreign key em cascata nem desabilite RLS sem restaurar previamente policies equivalentes. Se for indispensável reverter a migration, restaure o backup do schema/policies em uma janela de manutenção; migrations de segurança não devem ser desfeitas por um `down` genérico que possa reabrir acesso.
+Banco: não apague `usuarios` nem reverta a conversão de tipos enquanto o frontend novo estiver ativo. Em manutenção, remova apenas policies/funções/índices criados por `202607210002`, restaure as policies capturadas no backup e mantenha `logs_usuarios` para preservar auditoria. A tabela de logs pode permanecer sem impacto. Rollback de schema deve ser uma migration nova, revisada, nunca `db reset` em produção.
 
-## Dependências da estrutura real
+## Limitações
 
-A migration interrompe sem alterar nada se encontrar e-mail inválido ou duplicado, tipo diferente de `admin`/`coletor`, ou perfil órfão sem linha correspondente em `auth.users`. Esses registros devem ser revisados manualmente antes do `db push`. Policies antigas da tabela `usuarios` são substituídas pelas policies versionadas deste módulo.
+- Não há transação distribuída entre Auth e `public`; a função usa compensação explícita.
+- Auditoria é best-effort para não transformar indisponibilidade do log em inconsistência de usuário.
+- Uma sessão já offline pode operar conforme o comportamento offline existente até voltar a ter rede, exceto quando o cache local já registra `ativo=false`.

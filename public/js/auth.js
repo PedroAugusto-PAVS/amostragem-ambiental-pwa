@@ -11,79 +11,44 @@ if ("serviceWorker" in navigator) {
 }
 
 function mostrarErroLogin(mensagem) {
-  loginMessage.innerText = mensagem;
+  loginMessage.textContent = mensagem;
   loginMessage.classList.add("login-error");
 }
 
 function definirLoginCarregando(carregando) {
   loginButton.disabled = carregando;
-  loginButton.innerText = carregando ? "Entrando..." : "Entrar";
+  loginButton.textContent = carregando ? "Entrando..." : "Entrar";
 }
 
 function erroLoginAmigavel(error) {
-  const codigo = String(error?.code || "").toLowerCase();
-  const mensagem = String(error?.message || "").toLowerCase();
-
-  if (codigo.includes("banned") || mensagem.includes("banned")) {
-    return "Seu usuário está inativo. Entre em contato com o administrador.";
-  }
-
-  if (!navigator.onLine) {
-    return "Sem conexão com a internet.";
-  }
-
+  const texto = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  if (texto.includes("banned")) return "Seu usuário está inativo. Entre em contato com o administrador.";
+  if (!navigator.onLine) return "Sem conexão com a internet.";
   return "E-mail ou senha inválidos.";
+}
+
+const mensagemPendente = sessionStorage.getItem("mensagem_auth");
+if (mensagemPendente) {
+  sessionStorage.removeItem("mensagem_auth");
+  mostrarErroLogin(mensagemPendente);
 }
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
-
-  loginMessage.innerText = "";
+  loginMessage.textContent = "";
   loginMessage.classList.remove("login-error");
   definirLoginCarregando(true);
-
   try {
     const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
+      email: document.getElementById("email").value.trim().toLowerCase(),
+      password: document.getElementById("password").value
     });
-
-    if (error || !data.user) {
-      mostrarErroLogin(erroLoginAmigavel(error));
-      return;
-    }
-
-    const { data: perfil, error: perfilError } = await supabaseClient
-      .from("usuarios")
-      .select("id, nome, email, tipo, ativo")
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    if (perfilError || !perfil) {
-      await supabaseClient.auth.signOut();
-      localStorage.removeItem("usuario");
-      mostrarErroLogin("Não foi possível validar seu usuário. Entre em contato com o administrador.");
-      return;
-    }
-
-    if (perfil.ativo === false) {
-      await supabaseClient.auth.signOut();
-      localStorage.removeItem("usuario");
-      mostrarErroLogin("Seu usuário está inativo. Entre em contato com o administrador.");
-      return;
-    }
-
-    localStorage.setItem("usuario", JSON.stringify(perfil));
-    window.location.href = perfil.tipo === "admin" ? "admin.html" : "dashboard.html";
+    if (error || !data.user) return mostrarErroLogin(erroLoginAmigavel(error));
+    const perfil = await window.hydrotrackAuth.validarUsuarioAtivo({ redirecionar: false });
+    if (!perfil) return mostrarErroLogin("Seu usuário está inativo. Entre em contato com o administrador.");
+    window.location.href = perfil.tipo === "administrador" ? "admin.html" : "dashboard.html";
   } catch (_error) {
-    mostrarErroLogin(
-      navigator.onLine
-        ? "Não foi possível entrar. Tente novamente."
-        : "Sem conexão com a internet."
-    );
+    mostrarErroLogin(navigator.onLine ? "Não foi possível entrar. Tente novamente." : "Sem conexão com a internet.");
   } finally {
     definirLoginCarregando(false);
   }
