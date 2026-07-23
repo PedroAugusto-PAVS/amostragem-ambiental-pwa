@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Exportar Fichas</title>
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icons/icon_48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   </head>
   <body>
     <main class="container">
@@ -17,12 +19,12 @@
 
       <section class="form-card">
         <label>Projeto</label>
-        <select id="filtroProjeto" onchange="atualizarFiltros()">
+        <select id="filtroProjeto" onchange="atualizarFiltroProjeto()">
           <option value="">Todos os projetos</option>
         </select>
 
         <label>Campanha</label>
-        <select id="filtroCampanha" onchange="atualizarFiltros()">
+        <select id="filtroCampanha" onchange="atualizarFiltroCampanha()">
           <option value="">Todas as campanhas</option>
         </select>
 

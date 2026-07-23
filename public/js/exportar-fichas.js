@@ -60,7 +60,13 @@ function carregarCampanhasSelect() {
 }
 
 function carregarPocosSelect() {
-  const projetoId = document.getElementById("filtroProjeto").value;
+  const projetoSelecionadoId = document.getElementById("filtroProjeto").value;
+  const campanhaId = document.getElementById("filtroCampanha").value;
+  const campanhaSelecionada = campanhasExportacao.find(
+    (campanha) => campanha.local_id === campanhaId
+  );
+  const projetoId =
+    projetoSelecionadoId || campanhaSelecionada?.projeto_local_id || "";
   const container = document.getElementById("listaPocosFiltro");
 
   const pocosFiltrados = pocosExportacao.filter((poco) => {
@@ -106,15 +112,26 @@ function alternarTodosPocos() {
   renderizarMedicoesExportacao();
 }
 
-function atualizarFiltros() {
+function atualizarFiltroProjeto() {
   carregarCampanhasSelect();
   carregarPocosSelect();
+  renderizarMedicoesExportacao();
+}
+
+function atualizarFiltroCampanha() {
+  if (!document.getElementById("filtroProjeto").value) {
+    carregarPocosSelect();
+  }
+
   renderizarMedicoesExportacao();
 }
 
 function obterMedicoesFiltradas() {
   const projetoId = document.getElementById("filtroProjeto").value;
   const campanhaId = document.getElementById("filtroCampanha").value;
+  const campanhaSelecionada = campanhasExportacao.find(
+    (campanha) => campanha.local_id === campanhaId
+  );
   const pocosSelecionados = Array.from(
     document.querySelectorAll(".checkPocoFiltro:checked")
   ).map((check) => check.value);
@@ -125,7 +142,16 @@ function obterMedicoesFiltradas() {
     );
 
     if (projetoId && poco?.projeto_local_id !== projetoId) return false;
-    if (campanhaId && medicao.campanha_local_id !== campanhaId) return false;
+    if (
+      campanhaId &&
+      !medicaoEhCompativelComCampanha(
+        campanhaSelecionada,
+        medicao,
+        poco,
+        campanhasExportacao
+      )
+    )
+      return false;
     if (
       pocosSelecionados.length > 0 &&
       !pocosSelecionados.includes(medicao.poco_local_id)

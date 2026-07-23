@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v50";
+const CACHE_NAME = "pocos-cache-v51";
 
 const FILES_TO_CACHE = [
   "/",

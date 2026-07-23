@@ -144,7 +144,7 @@ function renderizarLeituras(leituras) {
 
 function gerarHorarios() {
   const horarioInicial = document.getElementById("horarioInicial").value;
-  const quantidade = Number(document.getElementById("quantidadeLeituras").value) || 6;
+  const quantidade = Number(document.getElementById("quantidadeLeituras").value) || 4;
 
   if (!horarioInicial) {
     alert("Informe o horário inicial.");
