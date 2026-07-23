@@ -1,118 +1,162 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administração</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administração</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container admin-page">
+      <button class="back-btn" type="button" onclick="history.back()">
+        ← Voltar
+      </button>
 
-<main class="container admin-page">
-  <button class="back-btn" type="button" onclick="history.back()">← Voltar</button>
+      <div class="page-title">
+        <h1>Painel Admin</h1>
+        <p>Gerencie coletores e administradores</p>
+      </div>
 
-  <div class="page-title">
-    <h1>Painel Admin</h1>
-    <p>Gerencie coletores e administradores</p>
-  </div>
+      <div
+        id="adminMessage"
+        class="admin-message"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
 
-  <div id="adminMessage" class="admin-message" role="status" aria-live="polite" hidden></div>
+      <section class="card stats" aria-label="Resumo de usuários">
+        <div>
+          <strong id="totalUsuarios">0</strong>
+          <span>Usuários</span>
+        </div>
+        <div>
+          <strong id="totalColetores">0</strong>
+          <span>Coletores</span>
+        </div>
+        <div>
+          <strong id="totalAdmins">0</strong>
+          <span>Admins</span>
+        </div>
+      </section>
 
-  <section class="card stats" aria-label="Resumo de usuários">
-    <div>
-      <strong id="totalUsuarios">0</strong>
-      <span>Usuários</span>
-    </div>
-    <div>
-      <strong id="totalColetores">0</strong>
-      <span>Coletores</span>
-    </div>
-    <div>
-      <strong id="totalAdmins">0</strong>
-      <span>Admins</span>
-    </div>
-  </section>
+      <h2 class="section-title">Cadastrar / Editar usuário</h2>
 
-  <h2 class="section-title">Cadastrar / Editar usuário</h2>
+      <form id="usuarioForm" class="form-card">
+        <input type="hidden" id="usuarioIdEdicao" />
 
-  <form id="usuarioForm" class="form-card">
-    <input type="hidden" id="usuarioIdEdicao">
+        <label for="nomeUsuario">Nome</label>
+        <input
+          id="nomeUsuario"
+          maxlength="120"
+          autocomplete="name"
+          placeholder="Nome completo"
+          required
+        />
 
-    <label for="nomeUsuario">Nome</label>
-    <input id="nomeUsuario" maxlength="120" autocomplete="name" placeholder="Nome completo" required>
+        <label for="emailUsuario">E-mail</label>
+        <input
+          id="emailUsuario"
+          type="email"
+          maxlength="254"
+          autocomplete="email"
+          placeholder="email@empresa.com"
+          required
+        />
 
-    <label for="emailUsuario">E-mail</label>
-    <input id="emailUsuario" type="email" maxlength="254" autocomplete="email" placeholder="email@empresa.com" required>
+        <div id="campoSenhaUsuario">
+          <label for="senhaUsuario">Senha</label>
+          <input
+            id="senhaUsuario"
+            type="password"
+            minlength="6"
+            maxlength="128"
+            autocomplete="new-password"
+            placeholder="Senha inicial"
+          />
+        </div>
 
-    <div id="campoSenhaUsuario">
-      <label for="senhaUsuario">Senha</label>
-      <input id="senhaUsuario" type="password" minlength="6" maxlength="128" autocomplete="new-password" placeholder="Senha inicial">
-    </div>
-
-    <label for="tipoUsuario">Tipo</label>
-    <select id="tipoUsuario">
-      <option value="coletor">Coletor</option>
-      <option value="administrador">Administrador</option>
-    </select>
-
-    <label for="statusUsuario">Status</label>
-    <select id="statusUsuario" disabled>
-      <option value="true">Ativo</option>
-      <option value="false">Inativo</option>
-    </select>
-
-    <div class="admin-form-actions">
-      <button id="salvarUsuarioBtn" type="submit" class="btn-blue">Salvar usuário</button>
-      <button id="limparUsuarioBtn" type="button" class="btn-primary" onclick="limparFormularioUsuario()">Limpar formulário</button>
-    </div>
-  </form>
-
-  <div class="admin-list-heading">
-    <h2 class="section-title">Usuários cadastrados</h2>
-    <span id="usuariosVisiveis">0 usuários</span>
-  </div>
-
-  <section class="admin-filters" aria-label="Filtros de usuários">
-    <label class="admin-search" for="pesquisaUsuario">
-      <span>Pesquisar</span>
-      <input id="pesquisaUsuario" type="search" placeholder="Nome ou e-mail">
-    </label>
-
-    <div class="admin-filter-grid">
-      <label for="filtroTipo">
-        <span>Tipo</span>
-        <select id="filtroTipo">
-          <option value="todos">Todos</option>
-          <option value="coletor">Coletores</option>
-          <option value="administrador">Administradores</option>
+        <label for="tipoUsuario">Tipo</label>
+        <select id="tipoUsuario">
+          <option value="coletor">Coletor</option>
+          <option value="administrador">Administrador</option>
         </select>
-      </label>
 
-      <label for="filtroStatus">
-        <span>Status</span>
-        <select id="filtroStatus">
-          <option value="todos">Todos</option>
-          <option value="ativo">Ativos</option>
-          <option value="inativo">Inativos</option>
+        <label for="statusUsuario">Status</label>
+        <select id="statusUsuario" disabled>
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
         </select>
-      </label>
-    </div>
-  </section>
 
-  <section id="listaUsuarios" class="admin-users-list" aria-live="polite"></section>
-</main>
+        <div class="admin-form-actions">
+          <button id="salvarUsuarioBtn" type="submit" class="btn-blue">
+            Salvar usuário
+          </button>
+          <button
+            id="limparUsuarioBtn"
+            type="button"
+            class="btn-primary"
+            onclick="limparFormularioUsuario()"
+          >
+            Limpar formulário
+          </button>
+        </div>
+      </form>
 
-<nav class="bottom-nav">
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>▣</span>Campanhas</a>
-  <a href="medicoes.html"><span>▤</span>Medições</a>
-  <a class="active" href="admin.html"><span>⚙</span>Admin</a>
-</nav>
+      <div class="admin-list-heading">
+        <h2 class="section-title">Usuários cadastrados</h2>
+        <span id="usuariosVisiveis">0 usuários</span>
+      </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="js/admin.js"></script>
+      <section class="admin-filters" aria-label="Filtros de usuários">
+        <label class="admin-search" for="pesquisaUsuario">
+          <span>Pesquisar</span>
+          <input
+            id="pesquisaUsuario"
+            type="search"
+            placeholder="Nome ou e-mail"
+          />
+        </label>
 
-</body>
+        <div class="admin-filter-grid">
+          <label for="filtroTipo">
+            <span>Tipo</span>
+            <select id="filtroTipo">
+              <option value="todos">Todos</option>
+              <option value="coletor">Coletores</option>
+              <option value="administrador">Administradores</option>
+            </select>
+          </label>
+
+          <label for="filtroStatus">
+            <span>Status</span>
+            <select id="filtroStatus">
+              <option value="todos">Todos</option>
+              <option value="ativo">Ativos</option>
+              <option value="inativo">Inativos</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section
+        id="listaUsuarios"
+        class="admin-users-list"
+        aria-live="polite"
+      ></section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>▣</span>Campanhas</a>
+      <a href="medicoes.html"><span>▤</span>Medições</a>
+      <a class="active" href="admin.html"><span>⚙</span>Admin</a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>

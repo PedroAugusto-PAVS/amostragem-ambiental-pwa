@@ -1,22 +1,46 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">#075664</item>
+        <item name="android:navigationBarColor">#075664</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="android:background">@null</item>
-    </style>
+    <style
+    name="AppTheme.NoActionBar"
+    parent="Theme.AppCompat.DayNight.NoActionBar"
+  >
 
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">#075664</item>
+        <item name="android:navigationBarColor">#075664</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+
+        <item name="windowSplashScreenBackground">#075664</item>
+
+        <item name="windowSplashScreenAnimatedIcon">
+            @mipmap/ic_launcher
+        </item>
+
+        <item name="postSplashScreenTheme">
+            @style/AppTheme.NoActionBar
+        </item>
+
+        <item name="windowSplashScreenAnimationDuration">
+            1000
+        </item>
+
     </style>
+
 </resources>

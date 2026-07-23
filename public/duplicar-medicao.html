@@ -1,62 +1,57 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duplicar Medição</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Duplicar Medição</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-<main class="container">
+      <div class="page-title">
+        <h1>Duplicar Medição</h1>
+        <p id="nomePocoSelecionado">Poço selecionado</p>
+      </div>
 
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+      <section class="card">
+        <strong>Como funciona?</strong>
+        <p>
+          Escolha uma medição já cadastrada e informe o novo mês. O sistema vai
+          copiar as leituras, condições e dados como base.
+        </p>
+      </section>
 
-  <div class="page-title">
-    <h1>Duplicar Medição</h1>
-    <p id="nomePocoSelecionado">Poço selecionado</p>
-  </div>
+      <form class="form-card">
+        <label>Medição de origem</label>
+        <select id="medicaoOrigem">
+          <option value="">Selecione uma medição</option>
+        </select>
 
-  <section class="card">
-    <strong>Como funciona?</strong>
-    <p>
-      Escolha uma medição já cadastrada e informe o novo mês. 
-      O sistema vai copiar as leituras, condições e dados como base.
-    </p>
-  </section>
+        <label>Nova data da medição</label>
+        <input type="date" id="novaDataMedicao" />
 
-  <form class="form-card">
+        <label>Novo mês de referência</label>
+        <input type="month" id="novoMesReferencia" />
 
-    <label>Medição de origem</label>
-    <select id="medicaoOrigem">
-      <option value="">Selecione uma medição</option>
-    </select>
+        <br /><br />
 
-    <label>Nova data da medição</label>
-    <input type="date" id="novaDataMedicao">
+        <button type="button" class="btn-blue" onclick="duplicarMedicao()">
+          Duplicar Medição
+        </button>
+      </form>
+    </main>
 
-    <label>Novo mês de referência</label>
-    <input type="month" id="novoMesReferencia">
-
-    <br><br>
-
-    <button type="button" class="btn-blue" onclick="duplicarMedicao()">
-      Duplicar Medição
-    </button>
-
-  </form>
-
-</main>
-
-<nav class="bottom-nav">
-  <a href="menu.html"><span>☰</span>Menu</a>
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
-</nav>
-<script src="js/db-local.js"></script>
-<script src="js/duplicar-medicao.js"></script>
-
-</body>
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
+    <script src="js/db-local.js"></script>
+    <script src="js/duplicar-medicao.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>

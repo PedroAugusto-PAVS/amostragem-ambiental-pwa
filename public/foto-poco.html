@@ -1,50 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-<title>Fotos do PM</title>
+    <title>Fotos do PM</title>
 
-<link rel="stylesheet"
-href="css/style.css">
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-</head>
-<body>
+      <div class="page-title">
+        <h1>Fotos</h1>
 
-<main class="container">
+        <p id="subtituloFotos">Fotos do PM</p>
+      </div>
 
-<button
-class="back-btn"
-onclick="history.back()">
-← Voltar
-</button>
+      <section id="fotosPocoContainer"></section>
 
-<div class="page-title">
+      <h3 class="section-title">Fotos das Medições</h3>
 
-<h1>Fotos</h1>
+      <section id="fotosMedicoesContainer"></section>
+    </main>
 
-<p id="subtituloFotos">
-Fotos do PM
-</p>
-
-</div>
-
-<section id="fotosPocoContainer">
-</section>
-
-<h3 class="section-title">
-Fotos das Medições
-</h3>
-
-<section id="fotosMedicoesContainer">
-</section>
-
-</main>
-
-<script src="js/db-local.js"></script>
-<script src="js/foto-poco.js"></script>
-
-</body>
+    <script src="js/db-local.js"></script>
+    <script src="js/foto-poco.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>

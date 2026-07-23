@@ -1,38 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campanhas</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campanhas</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-<main class="container">
+      <div class="page-title">
+        <h1>Campanhas</h1>
+        <p>Controle mensal das coletas</p>
+      </div>
 
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
+      <section id="listaCampanhas"></section>
+    </main>
 
-  <div class="page-title">
-    <h1>Campanhas</h1>
-    <p>Controle mensal das coletas</p>
-  </div>
+    <button
+      class="float-btn"
+      onclick="window.location.href='nova-campanha.html'"
+    >
+      +
+    </button>
 
-  <section id="listaCampanhas"></section>
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html" class="active"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
 
-</main>
-
-<button class="float-btn" onclick="window.location.href='nova-campanha.html'">+</button>
-
-<nav class="bottom-nav">
-  <a href="menu.html"><span>☰</span>Menu</a>
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
-</nav>
-
-<script src="js/db-local.js"></script>
-<script src="js/campanhas.js"></script>
-
-</body>
+    <script src="js/db-local.js"></script>
+    <script src="js/campanhas.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>

@@ -1,76 +1,71 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editar Campanha</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Campanha</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <button class="back-btn" onclick="history.back()">← Voltar</button>
 
-<main class="container">
-
-  <button class="back-btn" onclick="history.back()">← Voltar</button>
-
-  <div class="page-title">
-    <h1>Editar Campanha</h1>
-    <p>Altere os dados da campanha de coleta</p>
-  </div>
-
-  <form class="form-card">
-
-    <label>Projeto</label>
-    <select id="projetoSelect">
-      <option value="">Selecione</option>
-    </select>
-
-    <label>Nome da campanha</label>
-    <input id="nomeCampanha">
-
-    <label>Mês referência</label>
-    <input type="month" id="mesReferencia">
-
-    <div class="grid">
-      <div>
-        <label>Data início</label>
-        <input type="date" id="dataInicio">
+      <div class="page-title">
+        <h1>Editar Campanha</h1>
+        <p>Altere os dados da campanha de coleta</p>
       </div>
 
-      <div>
-        <label>Data fim</label>
-        <input type="date" id="dataFim">
-      </div>
-    </div>
+      <form class="form-card">
+        <label>Projeto</label>
+        <select id="projetoSelect">
+          <option value="">Selecione</option>
+        </select>
 
-    <label>Status</label>
-    <select id="statusCampanha">
-      <option value="true">Ativa</option>
-      <option value="false">Inativa</option>
-    </select>
+        <label>Nome da campanha</label>
+        <input id="nomeCampanha" />
 
-    <label>Observações</label>
-    <textarea id="observacoes"></textarea>
+        <label>Mês referência</label>
+        <input type="month" id="mesReferencia" />
 
-    <br>
+        <div class="grid">
+          <div>
+            <label>Data início</label>
+            <input type="date" id="dataInicio" />
+          </div>
 
-    <button type="button" class="btn-blue" onclick="salvarEdicaoCampanha()">
-      Salvar alterações
-    </button>
+          <div>
+            <label>Data fim</label>
+            <input type="date" id="dataFim" />
+          </div>
+        </div>
 
-  </form>
+        <label>Status</label>
+        <select id="statusCampanha">
+          <option value="true">Ativa</option>
+          <option value="false">Inativa</option>
+        </select>
 
-</main>
+        <label>Observações</label>
+        <textarea id="observacoes"></textarea>
 
-<nav class="bottom-nav">
-  <a href="menu.html"><span>☰</span>Menu</a>
-  <a href="dashboard.html"><span>⌂</span>Poços</a>
-  <a href="projetos.html"><span>▦</span>Projetos</a>
-  <a href="campanhas.html"><span>📋</span>Campanhas</a>
-  <a href="configuracoes.html"><span>⚙</span>Config.</a>
-</nav>
+        <br />
 
-<script src="js/db-local.js"></script>
-<script src="js/editar-campanha.js"></script>
+        <button type="button" class="btn-blue" onclick="salvarEdicaoCampanha()">
+          Salvar alterações
+        </button>
+      </form>
+    </main>
 
-</body>
+    <nav class="bottom-nav">
+      <a href="menu.html"><span>☰</span>Menu</a>
+      <a href="dashboard.html"><span>⌂</span>Poços</a>
+      <a href="projetos.html"><span>▦</span>Projetos</a>
+      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="configuracoes.html"><span>⚙</span>Config.</a>
+    </nav>
+
+    <script src="js/db-local.js"></script>
+    <script src="js/editar-campanha.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>

@@ -1,43 +1,103 @@
-const usuarioLocal = JSON.parse(localStorage.getItem("usuario") || "null");
+const usuarioLocal = JSON.parse(
+  localStorage.getItem("usuario") || "null"
+);
 
 let usuarioLogado = usuarioLocal;
 let usuariosCarregados = [];
-let operacaoEmAndamento = false;
+let formularioEmProcessamento = false;
 let mensagemTimer = null;
 
+const usuariosEmProcessamento = new Set();
+
 const mensagensErro = {
-  EMAIL_EXISTS: "Este e-mail já está cadastrado.",
-  PASSWORD_TOO_SHORT: "A senha deve possuir pelo menos 6 caracteres.",
-  INVALID_EMAIL: "Informe um e-mail válido.",
-  NO_CONNECTION: "Sem conexão com a internet.",
-  NO_PERMISSION: "Você não possui permissão para realizar esta operação.",
-  USER_INACTIVE: "Seu usuário está inativo.",
-  LAST_ACTIVE_ADMIN: "O último administrador ativo não pode ser inativado, removido ou rebaixado.",
-  SELF_DEACTIVATE: "Você não pode inativar sua própria conta.",
-  SELF_DELETE: "Você não pode excluir sua própria conta.",
-  USER_NOT_FOUND: "Usuário não encontrado.",
-  INVALID_DATA: "Revise os dados informados.",
-  UNEXPECTED: "Não foi possível concluir a operação. Tente novamente."
+  EMAIL_ALREADY_EXISTS:
+    "Este e-mail já está cadastrado.",
+
+  PASSWORD_TOO_SHORT:
+    "A senha deve possuir pelo menos 6 caracteres.",
+
+  INVALID_EMAIL:
+    "Informe um e-mail válido.",
+
+  INVALID_NAME:
+    "Informe um nome válido.",
+
+  INVALID_TYPE:
+    "Informe um tipo de usuário válido.",
+
+  INVALID_DATA:
+    "Revise os dados informados.",
+
+  NO_CONNECTION:
+    "Sem conexão com a internet.",
+
+  UNAUTHORIZED:
+    "Sua sessão expirou. Entre novamente.",
+
+  FORBIDDEN:
+    "Você não possui permissão para realizar esta operação.",
+
+  USER_INACTIVE:
+    "Seu usuário está inativo. Entre em contato com o administrador.",
+
+  LAST_ACTIVE_ADMIN:
+    "Não é possível remover ou inativar o último administrador ativo.",
+
+  SELF_DEACTIVATE:
+    "Você não pode inativar sua própria conta.",
+
+  SELF_DELETE:
+    "Você não pode excluir sua própria conta.",
+
+  MAIN_ADMIN_REQUIRED:
+    "Somente o administrador principal pode excluir usuários.",
+
+  MAIN_ADMIN_PROTECTED:
+    "O administrador principal não pode ser inativado ou transformado em coletor.",
+
+  MAIN_ADMIN_DELETE_NOT_ALLOWED:
+    "O administrador principal não pode ser excluído.",
+
+  USER_NOT_FOUND:
+    "Usuário não encontrado.",
+
+  UNEXPECTED_ERROR:
+    "Não foi possível concluir a operação. Tente novamente."
 };
 
-function textoSeguro(valor, padrao = "-") {
-  const texto = String(valor || "").trim();
-  return texto || padrao;
+/*
+ * O banco utiliza:
+ * - admin
+ * - coletor
+ *
+ * A interface utiliza:
+ * - administrador
+ * - coletor
+ */
+function tipoCanonico(tipo) {
+  return tipo === "admin"
+    ? "administrador"
+    : tipo;
 }
 
-function normalizarPesquisa(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
+function mostrarMensagem(
+  mensagem,
+  tipo = "success"
+) {
+  const elemento =
+    document.getElementById("adminMessage");
 
-function mostrarMensagem(mensagem, tipo = "success") {
-  const elemento = document.getElementById("adminMessage");
+  if (!elemento) {
+    console.log(mensagem);
+    return;
+  }
+
   clearTimeout(mensagemTimer);
+
   elemento.textContent = mensagem;
-  elemento.className = `admin-message ${tipo}`;
+  elemento.className =
+    `admin-message ${tipo}`;
+
   elemento.hidden = false;
 
   mensagemTimer = setTimeout(() => {
@@ -45,399 +105,1385 @@ function mostrarMensagem(mensagem, tipo = "success") {
   }, 6000);
 }
 
-function mensagemPorCodigo(codigo) {
-  return mensagensErro[codigo] || mensagensErro.UNEXPECTED;
+function mensagemPorErro(error) {
+  if (
+    !navigator.onLine ||
+    error?.name === "TypeError"
+  ) {
+    return mensagensErro.NO_CONNECTION;
+  }
+
+  return (
+    mensagensErro[error?.code] ||
+    error?.message ||
+    mensagensErro.UNEXPECTED_ERROR
+  );
 }
 
-function definirCarregando(carregando, texto = "Processando...") {
-  operacaoEmAndamento = carregando;
-  document.querySelectorAll("button, input, select").forEach((elemento) => {
-    if (elemento.id === "pesquisaUsuario" || elemento.id.startsWith("filtro")) {
-      elemento.disabled = carregando;
-      return;
-    }
+function textoSeguro(
+  valor,
+  padrao = "-"
+) {
+  return (
+    String(valor || "").trim() ||
+    padrao
+  );
+}
 
-    elemento.disabled = carregando;
-  });
+function normalizarPesquisa(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+    .toLowerCase()
+    .trim();
+}
 
-  const botaoSalvar = document.getElementById("salvarUsuarioBtn");
+function usuarioAtualEhPrincipal() {
+  return (
+    usuarioLogado?.admin_principal === true
+  );
+}
 
-  if (botaoSalvar) {
-    botaoSalvar.textContent = carregando ? texto : "Salvar usuário";
-  }
+function usuarioEhOAtual(usuario) {
+  return (
+    usuario?.id &&
+    usuarioLogado?.id &&
+    usuario.id === usuarioLogado.id
+  );
+}
 
-  if (!carregando) {
-    atualizarEstadoFormulario();
-  }
+function usuarioEhPrincipal(usuario) {
+  return (
+    usuario?.admin_principal === true
+  );
 }
 
 function atualizarEstadoFormulario() {
-  const emEdicao = Boolean(document.getElementById("usuarioIdEdicao").value);
-  document.getElementById("statusUsuario").disabled = !emEdicao || operacaoEmAndamento;
-  document.getElementById("campoSenhaUsuario").hidden = emEdicao;
-  document.getElementById("senhaUsuario").disabled = emEdicao || operacaoEmAndamento;
-}
-
-async function validarAdministradorAtual() {
-  const { data: authData, error: authError } = await supabaseClient.auth.getUser();
-  const authUser = authData?.user;
-
-  if (authError || !authUser) {
-    localStorage.removeItem("usuario");
-    window.location.href = "index.html";
-    return false;
-  }
-
-  const { data: perfil, error: perfilError } = await supabaseClient
-    .from("usuarios")
-    .select("id, nome, email, tipo, ativo")
-    .eq("id", authUser.id)
-    .maybeSingle();
-
-  if (perfilError || !perfil || perfil.ativo === false || perfil.tipo !== "admin") {
-    await supabaseClient.auth.signOut();
-    localStorage.removeItem("usuario");
-    alert(
-      perfil?.ativo === false
-        ? "Seu usuário está inativo."
-        : "Você não possui permissão para acessar esta página."
+  const campoId =
+    document.getElementById(
+      "usuarioIdEdicao"
     );
-    window.location.href = "index.html";
-    return false;
+
+  const campoSenha =
+    document.getElementById(
+      "campoSenhaUsuario"
+    );
+
+  const senha =
+    document.getElementById(
+      "senhaUsuario"
+    );
+
+  const status =
+    document.getElementById(
+      "statusUsuario"
+    );
+
+  const tipo =
+    document.getElementById(
+      "tipoUsuario"
+    );
+
+  const salvar =
+    document.getElementById(
+      "salvarUsuarioBtn"
+    );
+
+  const limpar =
+    document.getElementById(
+      "limparUsuarioBtn"
+    );
+
+  const editando =
+    Boolean(campoId?.value);
+
+  const usuarioEmEdicao =
+    usuariosCarregados.find(
+      (usuario) =>
+        usuario.id === campoId?.value
+    );
+
+  const editandoPrincipal =
+    usuarioEmEdicao?.admin_principal === true;
+
+  if (campoSenha) {
+    campoSenha.hidden = editando;
   }
 
-  usuarioLogado = perfil;
-  localStorage.setItem("usuario", JSON.stringify(perfil));
-  return true;
+  if (senha) {
+    senha.disabled =
+      editando ||
+      formularioEmProcessamento;
+  }
+
+  if (status) {
+    status.disabled =
+      !editando ||
+      formularioEmProcessamento ||
+      editandoPrincipal;
+  }
+
+  /*
+   * O administrador principal não pode
+   * ser transformado em coletor.
+   */
+  if (tipo) {
+    tipo.disabled =
+      formularioEmProcessamento ||
+      editandoPrincipal;
+  }
+
+  if (salvar) {
+    salvar.disabled =
+      formularioEmProcessamento;
+  }
+
+  if (limpar) {
+    limpar.disabled =
+      formularioEmProcessamento;
+  }
 }
 
-async function invocarAdminUsers(action, payload = {}) {
-  if (!navigator.onLine) {
-    throw { code: "NO_CONNECTION" };
+function definirFormularioCarregando(
+  carregando,
+  texto = "Processando..."
+) {
+  formularioEmProcessamento =
+    carregando;
+
+  const botao =
+    document.getElementById(
+      "salvarUsuarioBtn"
+    );
+
+  if (botao) {
+    botao.textContent =
+      carregando
+        ? texto
+        : "Salvar usuário";
   }
 
-  const { data: sessaoData, error: sessaoError } = await supabaseClient.auth.getSession();
-  const accessToken = sessaoData?.session?.access_token;
-
-  if (sessaoError || !accessToken) {
-    throw { code: "NO_PERMISSION" };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
-  try {
-    const resposta = await fetch(`${SUPABASE_URL}/functions/v1/admin-users`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ action, ...payload }),
-      signal: controller.signal
-    });
-    const resultado = await resposta.json().catch(() => ({}));
-
-    if (!resposta.ok || resultado.ok === false) {
-      throw { code: resultado.code || (resposta.status === 403 ? "NO_PERMISSION" : "UNEXPECTED") };
-    }
-
-    return resultado;
-  } catch (error) {
-    if (error?.code) throw error;
-    throw { code: navigator.onLine ? "UNEXPECTED" : "NO_CONNECTION" };
-  } finally {
-    clearTimeout(timeout);
-  }
+  atualizarEstadoFormulario();
 }
 
-async function carregarAdmin() {
-  const lista = document.getElementById("listaUsuarios");
-  lista.replaceChildren(criarEstadoLista("Carregando usuários..."));
-
-  const { data, error } = await supabaseClient
-    .from("usuarios")
-    .select("id, nome, email, tipo, ativo, criado_em, atualizado_em")
-    .order("nome", { ascending: true });
-
-  if (error) {
-    lista.replaceChildren(criarEstadoLista("Não foi possível carregar os usuários."));
-    mostrarMensagem(mensagensErro.UNEXPECTED, "error");
+async function executarOperacaoUsuario(
+  chave,
+  operacao,
+  botao
+) {
+  if (
+    usuariosEmProcessamento.has(chave)
+  ) {
     return;
   }
 
-  usuariosCarregados = data || [];
-  document.getElementById("totalUsuarios").textContent = usuariosCarregados.length;
-  document.getElementById("totalColetores").textContent =
-    usuariosCarregados.filter((usuario) => usuario.tipo === "coletor").length;
-  document.getElementById("totalAdmins").textContent =
-    usuariosCarregados.filter((usuario) => usuario.tipo === "admin").length;
+  usuariosEmProcessamento.add(chave);
+
+  if (botao) {
+    botao.disabled = true;
+  }
+
+  try {
+    return await operacao();
+  } finally {
+    usuariosEmProcessamento.delete(chave);
+
+    if (
+      botao?.isConnected
+    ) {
+      botao.disabled = false;
+    }
+  }
+}
+
+/*
+ * Valida o usuário utilizando o sistema
+ * de autenticação já existente.
+ *
+ * Depois busca diretamente no banco
+ * o campo admin_principal.
+ */
+async function validarAdministradorAtual() {
+  const perfil =
+    await window.hydrotrackAuth
+      ?.validarUsuarioAtivo({
+        exigirAdministrador: true
+      });
+
+  if (!perfil) {
+    return false;
+  }
+
+  const {
+    data: perfilAtual,
+    error
+  } = await supabaseClient
+    .from("usuarios")
+    .select(`
+      id,
+      nome,
+      email,
+      tipo,
+      ativo,
+      admin_principal
+    `)
+    .eq("id", perfil.id)
+    .maybeSingle();
+
+  if (
+    error ||
+    !perfilAtual
+  ) {
+    console.error(
+      "Erro ao validar administrador:",
+      error
+    );
+
+    throw {
+      code: "UNAUTHORIZED",
+      message:
+        "Não foi possível validar o administrador atual."
+    };
+  }
+
+  if (
+    perfilAtual.ativo !== true ||
+    perfilAtual.tipo !== "admin"
+  ) {
+    throw {
+      code: "FORBIDDEN"
+    };
+  }
+
+  usuarioLogado = {
+    ...perfil,
+    ...perfilAtual,
+
+    tipo:
+      tipoCanonico(
+        perfilAtual.tipo
+      ),
+
+    admin_principal:
+      perfilAtual
+        .admin_principal === true
+  };
+
+  return true;
+}
+
+async function invocarAdminUsers(
+  action,
+  data = {}
+) {
+  if (!navigator.onLine) {
+    throw {
+      code: "NO_CONNECTION"
+    };
+  }
+
+  const {
+    data: resultado,
+    error
+  } =
+    await supabaseClient.functions.invoke(
+      "admin-users",
+      {
+        body: {
+          action,
+          data
+        }
+      }
+    );
+
+  if (error) {
+    let payload = resultado;
+
+    /*
+     * Algumas versões do Supabase colocam
+     * a resposta da Edge Function dentro
+     * de error.context.
+     */
+    if (
+      !payload &&
+      error.context?.json
+    ) {
+      payload =
+        await error.context
+          .json()
+          .catch(() => null);
+    }
+
+    throw {
+      code:
+        payload?.code ||
+        (
+          error.context?.status === 403
+            ? "FORBIDDEN"
+            : "UNEXPECTED_ERROR"
+        ),
+
+      message:
+        payload?.message ||
+        error?.message
+    };
+  }
+
+  if (
+    !resultado?.success
+  ) {
+    throw {
+      code:
+        resultado?.code ||
+        "UNEXPECTED_ERROR",
+
+      message:
+        resultado?.message
+    };
+  }
+
+  return resultado;
+}
+
+function criarEstadoLista(texto) {
+  const estado =
+    document.createElement("div");
+
+  estado.className =
+    "dashboard-empty-state";
+
+  const mensagem =
+    document.createElement("p");
+
+  mensagem.textContent = texto;
+
+  estado.appendChild(mensagem);
+
+  return estado;
+}
+
+async function carregarAdmin() {
+  const lista =
+    document.getElementById(
+      "listaUsuarios"
+    );
+
+  if (!lista) {
+    return;
+  }
+
+  lista.replaceChildren(
+    criarEstadoLista(
+      "Carregando usuários..."
+    )
+  );
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("usuarios")
+    .select(`
+      id,
+      nome,
+      email,
+      tipo,
+      ativo,
+      admin_principal,
+      criado_em,
+      atualizado_em
+    `)
+    .order("nome");
+
+  if (error) {
+    console.error(
+      "Erro ao carregar usuários:",
+      error
+    );
+
+    lista.replaceChildren(
+      criarEstadoLista(
+        "Não foi possível carregar os usuários."
+      )
+    );
+
+    mostrarMensagem(
+      mensagensErro.UNEXPECTED_ERROR,
+      "error"
+    );
+
+    return;
+  }
+
+  usuariosCarregados =
+    (data || []).map(
+      (usuario) => ({
+        ...usuario,
+
+        tipo:
+          tipoCanonico(
+            usuario.tipo
+          ),
+
+        admin_principal:
+          usuario
+            .admin_principal === true
+      })
+    );
+
+  const totalUsuarios =
+    document.getElementById(
+      "totalUsuarios"
+    );
+
+  const totalColetores =
+    document.getElementById(
+      "totalColetores"
+    );
+
+  const totalAdmins =
+    document.getElementById(
+      "totalAdmins"
+    );
+
+  if (totalUsuarios) {
+    totalUsuarios.textContent =
+      usuariosCarregados.length;
+  }
+
+  if (totalColetores) {
+    totalColetores.textContent =
+      usuariosCarregados.filter(
+        (usuario) =>
+          usuario.tipo === "coletor"
+      ).length;
+  }
+
+  if (totalAdmins) {
+    totalAdmins.textContent =
+      usuariosCarregados.filter(
+        (usuario) =>
+          usuario.tipo ===
+          "administrador"
+      ).length;
+  }
 
   renderizarUsuarios();
 }
 
-function criarEstadoLista(texto) {
-  const estado = document.createElement("div");
-  estado.className = "dashboard-empty-state";
-  const mensagem = document.createElement("p");
-  mensagem.textContent = texto;
-  estado.appendChild(mensagem);
-  return estado;
-}
-
 function usuariosFiltrados() {
-  const pesquisa = normalizarPesquisa(document.getElementById("pesquisaUsuario").value);
-  const tipo = document.getElementById("filtroTipo").value;
-  const status = document.getElementById("filtroStatus").value;
+  const campoPesquisa =
+    document.getElementById(
+      "pesquisaUsuario"
+    );
 
-  return usuariosCarregados.filter((usuario) => {
-    const correspondePesquisa = !pesquisa || normalizarPesquisa(
-      `${usuario.nome || ""} ${usuario.email || ""}`
-    ).includes(pesquisa);
-    const correspondeTipo = tipo === "todos" || usuario.tipo === tipo;
-    const correspondeStatus =
-      status === "todos" ||
-      (status === "ativo" && usuario.ativo !== false) ||
-      (status === "inativo" && usuario.ativo === false);
+  const campoTipo =
+    document.getElementById(
+      "filtroTipo"
+    );
 
-    return correspondePesquisa && correspondeTipo && correspondeStatus;
-  });
+  const campoStatus =
+    document.getElementById(
+      "filtroStatus"
+    );
+
+  const pesquisa =
+    normalizarPesquisa(
+      campoPesquisa?.value
+    );
+
+  const tipo =
+    campoTipo?.value || "todos";
+
+  const status =
+    campoStatus?.value || "todos";
+
+  return usuariosCarregados.filter(
+    (usuario) => {
+      const texto =
+        normalizarPesquisa(
+          `${usuario.nome || ""} ${usuario.email || ""}`
+        );
+
+      const correspondePesquisa =
+        !pesquisa ||
+        texto.includes(pesquisa);
+
+      const correspondeTipo =
+        tipo === "todos" ||
+        usuario.tipo === tipo;
+
+      const correspondeStatus =
+        status === "todos" ||
+        (
+          status === "ativo"
+        ) === (
+          usuario.ativo !== false
+        );
+
+      return (
+        correspondePesquisa &&
+        correspondeTipo &&
+        correspondeStatus
+      );
+    }
+  );
 }
 
-function criarBotao(texto, classe, acao) {
-  const botao = document.createElement("button");
+function criarBotao(
+  texto,
+  classe,
+  acao,
+  id
+) {
+  const botao =
+    document.createElement("button");
+
   botao.type = "button";
   botao.className = classe;
   botao.textContent = texto;
-  botao.addEventListener("click", acao);
+
+  botao.disabled =
+    usuariosEmProcessamento
+      .has(id);
+
+  botao.addEventListener(
+    "click",
+    () => acao(botao)
+  );
+
   return botao;
 }
 
-function criarLinhaInfo(rotulo, valor) {
-  const linha = document.createElement("p");
-  const titulo = document.createElement("span");
-  titulo.textContent = `${rotulo}: `;
-  linha.append(titulo, document.createTextNode(textoSeguro(valor)));
-  return linha;
+function criarIdentificadorPrincipal() {
+  const selo =
+    document.createElement("span");
+
+  selo.className =
+    "admin-principal-badge";
+
+  selo.textContent =
+    "Administrador principal";
+
+  selo.title =
+    "Este administrador possui a permissão exclusiva de excluir usuários.";
+
+  return selo;
 }
 
 function criarCardUsuario(usuario) {
-  const card = document.createElement("article");
-  card.className = "card admin-user-card";
+  const card =
+    document.createElement("article");
 
-  const cabecalho = document.createElement("div");
-  cabecalho.className = "admin-user-header";
-  const identidade = document.createElement("div");
-  const nome = document.createElement("strong");
-  nome.textContent = textoSeguro(usuario.nome, "Sem nome");
-  const email = document.createElement("p");
-  email.textContent = textoSeguro(usuario.email);
-  identidade.append(nome, email);
+  card.className =
+    "card admin-user-card";
 
-  const status = document.createElement("span");
-  status.className = `admin-status ${usuario.ativo === false ? "inactive" : "active"}`;
-  status.textContent = usuario.ativo === false ? "Inativo" : "Ativo";
-  cabecalho.append(identidade, status);
+  if (
+    usuarioEhPrincipal(usuario)
+  ) {
+    card.classList.add(
+      "admin-user-main"
+    );
+  }
 
-  const detalhes = document.createElement("div");
-  detalhes.className = "admin-user-details";
-  detalhes.appendChild(
-    criarLinhaInfo("Tipo", usuario.tipo === "admin" ? "Administrador" : "Coletor")
+  const cabecalho =
+    document.createElement("div");
+
+  cabecalho.className =
+    "admin-user-header";
+
+  const identidade =
+    document.createElement("div");
+
+  const nome =
+    document.createElement("strong");
+
+  nome.textContent =
+    textoSeguro(
+      usuario.nome,
+      "Sem nome"
+    );
+
+  const email =
+    document.createElement("p");
+
+  email.textContent =
+    textoSeguro(usuario.email);
+
+  identidade.append(
+    nome,
+    email
   );
 
-  const acoes = document.createElement("div");
-  acoes.className = "card-actions admin-user-actions";
-  acoes.append(
-    criarBotao("Editar", "btn-blue compact-btn", () => editarUsuario(usuario.id)),
+  if (
+    usuarioEhPrincipal(usuario)
+  ) {
+    identidade.appendChild(
+      criarIdentificadorPrincipal()
+    );
+  }
+
+  const status =
+    document.createElement("span");
+
+  status.className =
+    `admin-status ${
+      usuario.ativo === false
+        ? "inactive"
+        : "active"
+    }`;
+
+  status.textContent =
+    usuario.ativo === false
+      ? "Inativo"
+      : "Ativo";
+
+  cabecalho.append(
+    identidade,
+    status
+  );
+
+  const detalhes =
+    document.createElement("div");
+
+  detalhes.className =
+    "admin-user-details";
+
+  const tipo =
+    document.createElement("p");
+
+  tipo.textContent =
+    `Tipo: ${
+      usuario.tipo ===
+      "administrador"
+        ? "Administrador"
+        : "Coletor"
+    }`;
+
+  detalhes.appendChild(tipo);
+
+  if (
+    usuarioEhOAtual(usuario)
+  ) {
+    const contaAtual =
+      document.createElement("p");
+
+    contaAtual.className =
+      "admin-current-user";
+
+    contaAtual.textContent =
+      "Esta é sua conta";
+
+    detalhes.appendChild(
+      contaAtual
+    );
+  }
+
+  const acoes =
+    document.createElement("div");
+
+  acoes.className =
+    "card-actions admin-user-actions";
+
+  const botaoEditar =
     criarBotao(
-      usuario.ativo === false ? "Ativar" : "Inativar",
-      `compact-btn ${usuario.ativo === false ? "btn-activate" : "btn-deactivate"}`,
-      () => alternarStatusUsuario(usuario.id)
-    ),
-    criarBotao("Excluir", "btn-danger compact-btn", () => excluirUsuario(usuario.id))
+      "Editar",
+      "btn-blue compact-btn",
+      () =>
+        editarUsuario(usuario.id),
+      usuario.id
+    );
+
+  acoes.appendChild(botaoEditar);
+
+  /*
+   * Não permite exibir o botão de
+   * inativação para:
+   * - a própria conta;
+   * - o administrador principal.
+   *
+   * O botão Ativar continua aparecendo
+   * para contas comuns inativas.
+   */
+  const podeAlterarStatus =
+    !usuarioEhPrincipal(usuario) &&
+    !usuarioEhOAtual(usuario);
+
+  if (
+    podeAlterarStatus
+  ) {
+    const botaoStatus =
+      criarBotao(
+        usuario.ativo === false
+          ? "Ativar"
+          : "Inativar",
+
+        `compact-btn ${
+          usuario.ativo === false
+            ? "btn-activate"
+            : "btn-deactivate"
+        }`,
+
+        (botao) =>
+          alternarStatusUsuario(
+            usuario.id,
+            botao
+          ),
+
+        usuario.id
+      );
+
+    acoes.appendChild(
+      botaoStatus
+    );
+  }
+
+  /*
+   * Excluir aparece somente quando:
+   * - usuário logado é admin principal;
+   * - alvo não é a própria conta;
+   * - alvo não é outro admin principal.
+   */
+  const podeExcluir =
+    usuarioAtualEhPrincipal() &&
+    !usuarioEhOAtual(usuario) &&
+    !usuarioEhPrincipal(usuario);
+
+  if (
+    podeExcluir
+  ) {
+    const botaoExcluir =
+      criarBotao(
+        "Excluir",
+        "btn-danger compact-btn",
+
+        (botao) =>
+          excluirUsuario(
+            usuario.id,
+            botao
+          ),
+
+        usuario.id
+      );
+
+    acoes.appendChild(
+      botaoExcluir
+    );
+  }
+
+  card.append(
+    cabecalho,
+    detalhes,
+    acoes
   );
 
-  card.append(cabecalho, detalhes, acoes);
   return card;
 }
 
 function renderizarUsuarios() {
-  const lista = document.getElementById("listaUsuarios");
-  const filtrados = usuariosFiltrados();
-  lista.replaceChildren();
+  const lista =
+    document.getElementById(
+      "listaUsuarios"
+    );
 
-  document.getElementById("usuariosVisiveis").textContent =
-    `${filtrados.length} ${filtrados.length === 1 ? "usuário" : "usuários"}`;
-
-  if (filtrados.length === 0) {
-    lista.appendChild(criarEstadoLista("Nenhum usuário encontrado."));
+  if (!lista) {
     return;
   }
 
-  filtrados.forEach((usuario) => lista.appendChild(criarCardUsuario(usuario)));
+  const filtrados =
+    usuariosFiltrados();
+
+  lista.replaceChildren();
+
+  const usuariosVisiveis =
+    document.getElementById(
+      "usuariosVisiveis"
+    );
+
+  if (usuariosVisiveis) {
+    usuariosVisiveis.textContent =
+      `${filtrados.length} ${
+        filtrados.length === 1
+          ? "usuário"
+          : "usuários"
+      }`;
+  }
+
+  if (
+    !filtrados.length
+  ) {
+    lista.appendChild(
+      criarEstadoLista(
+        "Nenhum usuário encontrado."
+      )
+    );
+
+    return;
+  }
+
+  filtrados.forEach(
+    (usuario) => {
+      lista.appendChild(
+        criarCardUsuario(usuario)
+      );
+    }
+  );
 }
 
 function limparFormularioUsuario() {
-  document.getElementById("usuarioForm").reset();
-  document.getElementById("usuarioIdEdicao").value = "";
-  document.getElementById("tipoUsuario").value = "coletor";
-  document.getElementById("statusUsuario").value = "true";
+  const formulario =
+    document.getElementById(
+      "usuarioForm"
+    );
+
+  formulario?.reset();
+
+  const idEdicao =
+    document.getElementById(
+      "usuarioIdEdicao"
+    );
+
+  const tipoUsuario =
+    document.getElementById(
+      "tipoUsuario"
+    );
+
+  const statusUsuario =
+    document.getElementById(
+      "statusUsuario"
+    );
+
+  const senhaUsuario =
+    document.getElementById(
+      "senhaUsuario"
+    );
+
+  if (idEdicao) {
+    idEdicao.value = "";
+  }
+
+  if (tipoUsuario) {
+    tipoUsuario.value =
+      "coletor";
+
+    tipoUsuario.disabled = false;
+  }
+
+  if (statusUsuario) {
+    statusUsuario.value =
+      "true";
+  }
+
+  if (senhaUsuario) {
+    senhaUsuario.value = "";
+  }
+
   atualizarEstadoFormulario();
 }
 
 function editarUsuario(id) {
-  const usuario = usuariosCarregados.find((item) => item.id === id);
+  const usuario =
+    usuariosCarregados.find(
+      (item) => item.id === id
+    );
 
   if (!usuario) {
-    mostrarMensagem(mensagensErro.USER_NOT_FOUND, "error");
+    mostrarMensagem(
+      mensagensErro.USER_NOT_FOUND,
+      "error"
+    );
+
     return;
   }
 
-  document.getElementById("usuarioIdEdicao").value = usuario.id;
-  document.getElementById("nomeUsuario").value = usuario.nome || "";
-  document.getElementById("emailUsuario").value = usuario.email || "";
-  document.getElementById("senhaUsuario").value = "";
-  document.getElementById("tipoUsuario").value = usuario.tipo || "coletor";
-  document.getElementById("statusUsuario").value = usuario.ativo === false ? "false" : "true";
-  atualizarEstadoFormulario();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  document.getElementById("nomeUsuario").focus();
-}
+  const idEdicao =
+    document.getElementById(
+      "usuarioIdEdicao"
+    );
 
-function validarFormulario({ nome, email, senha, emEdicao }) {
-  if (!nome) return "Informe o nome do usuário.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return mensagensErro.INVALID_EMAIL;
-  if (!emEdicao && senha.length < 6) return mensagensErro.PASSWORD_TOO_SHORT;
-  return "";
+  const nome =
+    document.getElementById(
+      "nomeUsuario"
+    );
+
+  const email =
+    document.getElementById(
+      "emailUsuario"
+    );
+
+  const senha =
+    document.getElementById(
+      "senhaUsuario"
+    );
+
+  const tipo =
+    document.getElementById(
+      "tipoUsuario"
+    );
+
+  const status =
+    document.getElementById(
+      "statusUsuario"
+    );
+
+  if (idEdicao) {
+    idEdicao.value =
+      usuario.id;
+  }
+
+  if (nome) {
+    nome.value =
+      usuario.nome || "";
+  }
+
+  if (email) {
+    email.value =
+      usuario.email || "";
+  }
+
+  if (senha) {
+    senha.value = "";
+  }
+
+  if (tipo) {
+    tipo.value =
+      tipoCanonico(
+        usuario.tipo
+      );
+  }
+
+  if (status) {
+    status.value =
+      String(
+        usuario.ativo !== false
+      );
+  }
+
+  atualizarEstadoFormulario();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  if (
+    usuarioEhPrincipal(usuario)
+  ) {
+    mostrarMensagem(
+      "O administrador principal pode ter nome e e-mail editados, mas não pode ser inativado ou transformado em coletor.",
+      "info"
+    );
+  }
 }
 
 async function salvarUsuarioAdmin() {
-  if (operacaoEmAndamento) return;
-
-  const id = document.getElementById("usuarioIdEdicao").value;
-  const dados = {
-    id,
-    nome: document.getElementById("nomeUsuario").value.trim(),
-    email: document.getElementById("emailUsuario").value.trim().toLowerCase(),
-    senha: document.getElementById("senhaUsuario").value,
-    tipo: document.getElementById("tipoUsuario").value,
-    ativo: document.getElementById("statusUsuario").value === "true"
-  };
-  const erroValidacao = validarFormulario({ ...dados, emEdicao: Boolean(id) });
-
-  if (erroValidacao) {
-    mostrarMensagem(erroValidacao, "error");
+  if (
+    formularioEmProcessamento
+  ) {
     return;
   }
 
-  if (id && !confirm("Deseja salvar as alterações deste usuário?")) return;
+  const id =
+    document.getElementById(
+      "usuarioIdEdicao"
+    )?.value || "";
 
-  definirCarregando(true, id ? "Salvando..." : "Criando...");
-
-  try {
-    await invocarAdminUsers(
-      id ? "update" : "create",
-      id
-        ? { id, nome: dados.nome, email: dados.email, tipo: dados.tipo, ativo: dados.ativo }
-        : { nome: dados.nome, email: dados.email, senha: dados.senha, tipo: dados.tipo }
+  const usuarioAtual =
+    usuariosCarregados.find(
+      (usuario) =>
+        usuario.id === id
     );
-    mostrarMensagem(id ? "Usuário atualizado com sucesso." : "Usuário criado com sucesso.");
-    limparFormularioUsuario();
-    await carregarAdmin();
-  } catch (error) {
-    mostrarMensagem(mensagemPorCodigo(error.code), "error");
-  } finally {
-    definirCarregando(false);
+
+  const data = {
+    nome:
+      document
+        .getElementById(
+          "nomeUsuario"
+        )
+        ?.value
+        .trim() || "",
+
+    email:
+      document
+        .getElementById(
+          "emailUsuario"
+        )
+        ?.value
+        .trim()
+        .toLowerCase() || "",
+
+    tipo:
+      document
+        .getElementById(
+          "tipoUsuario"
+        )
+        ?.value || "coletor"
+  };
+
+  if (id) {
+    Object.assign(
+      data,
+      {
+        id,
+
+        ativo:
+          document
+            .getElementById(
+              "statusUsuario"
+            )
+            ?.value === "true"
+      }
+    );
+
+    /*
+     * Caso seja o administrador principal,
+     * mantém os valores protegidos mesmo
+     * que alguém tente mudar pelo HTML.
+     */
+    if (
+      usuarioAtual
+        ?.admin_principal === true
+    ) {
+      data.tipo =
+        "administrador";
+
+      data.ativo = true;
+    }
+  } else {
+    data.senha =
+      document
+        .getElementById(
+          "senhaUsuario"
+        )
+        ?.value || "";
   }
-}
 
-async function alternarStatusUsuario(id) {
-  if (operacaoEmAndamento) return;
-  const usuario = usuariosCarregados.find((item) => item.id === id);
-
-  if (!usuario) {
-    mostrarMensagem(mensagensErro.USER_NOT_FOUND, "error");
+  if (
+    id &&
+    !confirm(
+      "Deseja salvar as alterações deste usuário?"
+    )
+  ) {
     return;
   }
 
-  const ativar = usuario.ativo === false;
-
-  if (!ativar && usuario.id === usuarioLogado.id) {
-    mostrarMensagem(mensagensErro.SELF_DEACTIVATE, "error");
-    return;
-  }
-
-  if (!confirm(`${ativar ? "Ativar" : "Inativar"} ${textoSeguro(usuario.nome, usuario.email)}?`)) {
-    return;
-  }
-
-  definirCarregando(true);
+  definirFormularioCarregando(
+    true,
+    id
+      ? "Salvando..."
+      : "Criando..."
+  );
 
   try {
-    await invocarAdminUsers(ativar ? "activate" : "deactivate", { id });
-    mostrarMensagem(`Usuário ${ativar ? "ativado" : "inativado"} com sucesso.`);
+    const resultado =
+      await invocarAdminUsers(
+        id
+          ? "update"
+          : "create",
+        data
+      );
+
+    mostrarMensagem(
+      resultado.message
+    );
+
+    limparFormularioUsuario();
+
     await carregarAdmin();
   } catch (error) {
-    mostrarMensagem(mensagemPorCodigo(error.code), "error");
+    console.error(
+      "Erro ao salvar usuário:",
+      error
+    );
+
+    mostrarMensagem(
+      mensagemPorErro(error),
+      "error"
+    );
   } finally {
-    definirCarregando(false);
+    definirFormularioCarregando(
+      false
+    );
   }
 }
 
-async function excluirUsuario(id) {
-  if (operacaoEmAndamento) return;
-  const usuario = usuariosCarregados.find((item) => item.id === id);
+async function alternarStatusUsuario(
+  id,
+  botao
+) {
+  const usuario =
+    usuariosCarregados.find(
+      (item) => item.id === id
+    );
 
   if (!usuario) {
-    mostrarMensagem(mensagensErro.USER_NOT_FOUND, "error");
+    mostrarMensagem(
+      mensagensErro.USER_NOT_FOUND,
+      "error"
+    );
+
     return;
   }
 
-  if (usuario.id === usuarioLogado.id) {
-    mostrarMensagem(mensagensErro.SELF_DELETE, "error");
+  if (
+    usuarioEhPrincipal(usuario)
+  ) {
+    mostrarMensagem(
+      mensagensErro.MAIN_ADMIN_PROTECTED,
+      "error"
+    );
+
     return;
   }
 
-  if (!confirm(`Excluir permanentemente ${textoSeguro(usuario.nome, usuario.email)}? Esta ação não pode ser desfeita.`)) {
+  if (
+    usuarioEhOAtual(usuario)
+  ) {
+    mostrarMensagem(
+      mensagensErro.SELF_DEACTIVATE,
+      "error"
+    );
+
     return;
   }
 
-  definirCarregando(true, "Excluindo...");
+  const ativar =
+    usuario.ativo === false;
 
-  try {
-    await invocarAdminUsers("delete", { id });
-    mostrarMensagem("Usuário excluído com sucesso.");
-    limparFormularioUsuario();
-    await carregarAdmin();
-  } catch (error) {
-    mostrarMensagem(mensagemPorCodigo(error.code), "error");
-  } finally {
-    definirCarregando(false);
+  if (
+    !ativar &&
+    !confirm(
+      `Inativar ${textoSeguro(
+        usuario.nome,
+        usuario.email
+      )}?`
+    )
+  ) {
+    return;
   }
+
+  await executarOperacaoUsuario(
+    id,
+
+    async () => {
+      try {
+        const resultado =
+          await invocarAdminUsers(
+            ativar
+              ? "activate"
+              : "deactivate",
+            { id }
+          );
+
+        mostrarMensagem(
+          resultado.message
+        );
+
+        await carregarAdmin();
+      } catch (error) {
+        console.error(
+          "Erro ao alterar status:",
+          error
+        );
+
+        mostrarMensagem(
+          mensagemPorErro(error),
+          "error"
+        );
+      }
+    },
+
+    botao
+  );
 }
 
-document.getElementById("usuarioForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  salvarUsuarioAdmin();
-});
-document.getElementById("pesquisaUsuario").addEventListener("input", renderizarUsuarios);
-document.getElementById("filtroTipo").addEventListener("change", renderizarUsuarios);
-document.getElementById("filtroStatus").addEventListener("change", renderizarUsuarios);
+async function excluirUsuario(
+  id,
+  botao
+) {
+  if (
+    !usuarioAtualEhPrincipal()
+  ) {
+    mostrarMensagem(
+      mensagensErro.MAIN_ADMIN_REQUIRED,
+      "error"
+    );
+
+    return;
+  }
+
+  const usuario =
+    usuariosCarregados.find(
+      (item) => item.id === id
+    );
+
+  if (!usuario) {
+    mostrarMensagem(
+      mensagensErro.USER_NOT_FOUND,
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    usuarioEhOAtual(usuario)
+  ) {
+    mostrarMensagem(
+      mensagensErro.SELF_DELETE,
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    usuarioEhPrincipal(usuario)
+  ) {
+    mostrarMensagem(
+      mensagensErro
+        .MAIN_ADMIN_DELETE_NOT_ALLOWED,
+      "error"
+    );
+
+    return;
+  }
+
+  const confirmou =
+    confirm(
+      `Excluir permanentemente ${textoSeguro(
+        usuario.nome,
+        usuario.email
+      )}?\n\nEsta ação não pode ser desfeita.`
+    );
+
+  if (!confirmou) {
+    return;
+  }
+
+  await executarOperacaoUsuario(
+    id,
+
+    async () => {
+      try {
+        const resultado =
+          await invocarAdminUsers(
+            "delete",
+            { id }
+          );
+
+        mostrarMensagem(
+          resultado.message
+        );
+
+        limparFormularioUsuario();
+
+        await carregarAdmin();
+      } catch (error) {
+        console.error(
+          "Erro ao excluir usuário:",
+          error
+        );
+
+        mostrarMensagem(
+          mensagemPorErro(error),
+          "error"
+        );
+      }
+    },
+
+    botao
+  );
+}
+
+function adicionarEventosAdmin() {
+  const formulario =
+    document.getElementById(
+      "usuarioForm"
+    );
+
+  const pesquisa =
+    document.getElementById(
+      "pesquisaUsuario"
+    );
+
+  const filtroTipo =
+    document.getElementById(
+      "filtroTipo"
+    );
+
+  const filtroStatus =
+    document.getElementById(
+      "filtroStatus"
+    );
+
+  const limpar =
+    document.getElementById(
+      "limparUsuarioBtn"
+    );
+
+  formulario?.addEventListener(
+    "submit",
+    (event) => {
+      event.preventDefault();
+      salvarUsuarioAdmin();
+    }
+  );
+
+  pesquisa?.addEventListener(
+    "input",
+    renderizarUsuarios
+  );
+
+  filtroTipo?.addEventListener(
+    "change",
+    renderizarUsuarios
+  );
+
+  filtroStatus?.addEventListener(
+    "change",
+    renderizarUsuarios
+  );
+
+  limpar?.addEventListener(
+    "click",
+    limparFormularioUsuario
+  );
+}
 
 async function inicializarAdmin() {
-  definirCarregando(true, "Carregando...");
+  definirFormularioCarregando(
+    true,
+    "Carregando..."
+  );
 
   try {
-    if (await validarAdministradorAtual()) {
+    const autorizado =
+      await validarAdministradorAtual();
+
+    if (autorizado) {
       limparFormularioUsuario();
       await carregarAdmin();
     }
-  } catch (_error) {
-    mostrarMensagem(mensagensErro.UNEXPECTED, "error");
+  } catch (error) {
+    console.error(
+      "Erro ao inicializar administração:",
+      error
+    );
+
+    mostrarMensagem(
+      mensagemPorErro(error),
+      "error"
+    );
   } finally {
-    definirCarregando(false);
+    definirFormularioCarregando(
+      false
+    );
   }
 }
 
+adicionarEventosAdmin();
 inicializarAdmin();

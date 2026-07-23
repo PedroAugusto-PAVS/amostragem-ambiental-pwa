@@ -12,4 +12,4 @@ supabase/functions/.env
 supabase/functions/.env.local
 supabase/.temp/
 
-capacitor.config.ts
+capacitor.config.json

@@ -1,4 +1,4 @@
-package br.com.pavs.pocos;
+package br.com.pavs.hydrotrack;
 
 import com.getcapacitor.BridgeActivity;
 

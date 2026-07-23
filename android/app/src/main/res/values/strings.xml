@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">HydroTrack</string>
     <string name="title_activity_main">HydroTrack</string>
-    <string name="package_name">br.com.pavs.pocos</string>
-    <string name="custom_url_scheme">br.com.pavs.pocos</string>
+    <string name="package_name">br.com.pavs.hydrotrack</string>
+    <string name="custom_url_scheme">br.com.pavs.hydrotrack</string>
 </resources>

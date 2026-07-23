@@ -1,95 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Poços Subterrâneos</title>
+    <title>Poços Subterrâneos</title>
 
-<link rel="stylesheet" href="css/style.css">
-<link rel="manifest" href="manifest.json">
-
-</head>
-<body class="login-page">
-
-<div class="login-card-modern">
-
-  <div class="logo">
-   <img src="icons/splash_logo.png" class="logo-login">
-  </div>
-
-  <h1>
-    HydroTrack
-
-  </h1>
-
-  <p>
-    Sistema de Monitoramento de Poços e Águas Subterrâneas
-  </p>
-
-  <form id="loginForm">
-
-    <div class="input-icon">
-      <input
-        type="email"
-        id="email"
-        placeholder="E-mail"
-        required
-      >
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="manifest" href="manifest.json" />
+  </head>
+  <body class="login-page">
+    <div id="hydrotrack-splash" class="hydrotrack-splash">
+      <img
+        src="icons/splash.png"
+        alt="HydroTrack"
+        class="hydrotrack-splash-image"
+      />
     </div>
 
-    <div class="input-icon">
-      <input
-        type="password"
-        id="password"
-        placeholder="Senha"
-        required
-      >
+    <div class="login-card-modern">
+      <div class="logo">
+        <img src="icons/splash_logo.png" class="logo-login" />
+      </div>
+
+      <h1>HydroTrack</h1>
+
+      <p>Sistema de Monitoramento de Poços e Águas Subterrâneas</p>
+
+      <form id="loginForm">
+        <div class="input-icon">
+          <input type="email" id="email" placeholder="E-mail" required />
+        </div>
+
+        <div class="input-icon">
+          <input type="password" id="password" placeholder="Senha" required />
+        </div>
+
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+
+      <br />
+
+      <button class="btn-blue" onclick="entrarOffline()">Entrar Offline</button>
+
+      <br /><br />
+
+      <p id="loginMessage"></p>
     </div>
 
-    <button
-      type="submit"
-      class="btn-primary"
-    >
-      Entrar
-    </button>
+    <script>
+      function entrarOffline() {
+        const usuarioSalvo = JSON.parse(
+          localStorage.getItem("usuario") || "null"
+        );
 
-  </form>
+        if (!usuarioSalvo) {
+          document.getElementById("loginMessage").innerText =
+            "Entre ao menos uma vez com internet antes de usar o modo offline.";
+          return;
+        }
 
-  <br>
+        window.location.href = "dashboard.html";
+      }
+    </script>
 
-  <button
-    class="btn-blue"
-    onclick="entrarOffline()"
-  >
-    Entrar Offline
-  </button>
+    <script>
+      window.addEventListener("load", function () {
+        const splash = document.getElementById("hydrotrack-splash");
 
-  <br><br>
+        if (!splash) {
+          return;
+        }
 
-  <p id="loginMessage"></p>
+        setTimeout(function () {
+          splash.classList.add("is-hidden");
 
-</div>
+          setTimeout(function () {
+            splash.remove();
+          }, 500);
+        }, 1800);
+      });
+    </script>
 
-<script>
-function entrarOffline(){
-  const usuarioSalvo = JSON.parse(localStorage.getItem("usuario") || "null");
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  if (!usuarioSalvo) {
-    document.getElementById("loginMessage").innerText =
-      "Entre ao menos uma vez com internet antes de usar o modo offline.";
-    return;
-  }
-
-  window.location.href =
-  "dashboard.html";
-}
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="js/supabase.js"></script>
-<script src="js/auth.js"></script>
-
-</body>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/theme.js"></script>
+  </body>
 </html>
