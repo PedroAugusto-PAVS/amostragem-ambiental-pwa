@@ -7,11 +7,15 @@
     "androidScheme": "https"
   },
 
+  "android": {
+    "backgroundColor": "#075664"
+  },
+
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 1800,
+      "launchShowDuration": 0,
       "launchAutoHide": true,
-      "launchFadeOutDuration": 300,
+      "launchFadeOutDuration": 0,
       "backgroundColor": "#075664",
       "showSpinner": false,
       "androidScaleType": "CENTER_CROP",

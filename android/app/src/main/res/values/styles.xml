@@ -25,22 +25,6 @@
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-
-        <item name="windowSplashScreenBackground">#075664</item>
-
-        <item name="windowSplashScreenAnimatedIcon">
-            @mipmap/ic_launcher
-        </item>
-
-        <item name="postSplashScreenTheme">
-            @style/AppTheme.NoActionBar
-        </item>
-
-        <item name="windowSplashScreenAnimationDuration">
-            1000
-        </item>
-
-    </style>
+    <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar" />
 
 </resources>

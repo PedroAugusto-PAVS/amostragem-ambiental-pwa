@@ -207,7 +207,9 @@ function renderizarMedicoesExportacao() {
           <p>Projeto: ${projeto?.nome || "-"}</p>
           <p>Campanha: ${campanha?.nome || medicao.mes_referencia || "-"}</p>
           <p>Data: ${medicao.data_medicao || "-"}</p>
-          <p>Código ALS: ${medicao.codigo_frascaria || "-"}</p>
+          <p>Códigos das amostras: ${
+            escaparHtml(formatarCodigosDaMedicao(medicao)) || "-"
+          }</p>
           <p>Volume estagnado: ${medicao.volume_estagnado || 0} L</p>
           <p>Status: ${medicao.sincronizado ? "Sincronizado" : "Pendente"}</p>
         </div>

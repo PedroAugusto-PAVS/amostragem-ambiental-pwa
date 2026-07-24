@@ -31,6 +31,28 @@ function t(valor) {
     const cond = medicao.condicoes_ambientais || {};
     const estabilizacao = medicao.estabilizacao || {};
     const perfil = poco?.perfil_construtivo || {};
+    const codigosAmostras = obterCodigosDaMedicao(medicao);
+    const listaCodigosAmostras = codigosAmostras.length
+      ? `
+        <ul
+          class="codigos-amostras"
+          style="padding-left:20px;overflow-wrap:anywhere;"
+        >
+          ${codigosAmostras
+            .map(
+              (item) => `
+                <li
+                  style="break-inside:avoid;page-break-inside:avoid;margin-bottom:4px;"
+                >
+                  <strong>${escaparHtml(item.codigo)}</strong>
+                  — ${escaparHtml(formatarTipoCodigoAmostra(item.tipo))}
+                </li>
+              `
+            )
+            .join("")}
+        </ul>
+      `
+      : `<div class="linha">-</div>`;
   
     document.getElementById("fichaContainer").innerHTML = `
       <h1>Ficha de Campo - Amostragem Ambiental</h1>
@@ -47,7 +69,9 @@ function t(valor) {
       <div class="linha"><strong>Coletor:</strong> ${t(medicao.coletor_nome)}</div>
       <div class="linha"><strong>Data da medição:</strong> ${t(medicao.data_medicao)}</div>
       <div class="linha"><strong>Mês referência:</strong> ${t(medicao.mes_referencia)}</div>
-  
+      <h3 style="break-after:avoid;page-break-after:avoid;">Códigos das amostras</h3>
+      ${listaCodigosAmostras}
+
       <h2>3. Localização</h2>
       <div class="linha"><strong>UTM E:</strong> ${t(poco?.utm_e)}</div>
       <div class="linha"><strong>UTM N:</strong> ${t(poco?.utm_n)}</div>

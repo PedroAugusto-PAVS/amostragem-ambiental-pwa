@@ -30,8 +30,26 @@
           </div>
         </div>
 
-        <label>Código da frascaria / Código ALS</label>
-        <input id="codigoFrascaria" placeholder="Ex.: ALS-000123" />
+        <fieldset class="codigos-amostras-fieldset">
+          <legend>Códigos das amostras</legend>
+          <p class="codigos-amostras-ajuda">
+            Informe o código da frascaria / Código ALS e o tipo de cada amostra.
+          </p>
+
+          <div
+            id="listaCodigosAmostras"
+            class="codigos-amostras-lista"
+            aria-live="polite"
+          ></div>
+
+          <button
+            type="button"
+            id="adicionarCodigoAmostra"
+            class="btn-blue codigos-amostras-adicionar"
+          >
+            + Adicionar código
+          </button>
+        </fieldset>
 
         <label>Responsável ALS</label>
         <input id="responsavelAls" />
@@ -200,6 +218,7 @@
     <script src="js/db-local.js"></script>
     <script src="js/calculos.js"></script>
     <script src="js/alertas.js"></script>
+    <script src="js/codigos-amostras-form.js"></script>
     <script src="js/nova-medicao.js"></script>
     <script src="js/theme.js"></script>
   </body>

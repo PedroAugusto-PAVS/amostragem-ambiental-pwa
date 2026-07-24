@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v51";
+const CACHE_NAME = "pocos-cache-v53";
 
 const FILES_TO_CACHE = [
   "/",
@@ -55,6 +55,7 @@ const FILES_TO_CACHE = [
 
   "/js/nova-medicao.js",
   "/js/editar-medicao.js",
+  "/js/codigos-amostras-form.js",
   "/js/duplicar-medicao.js",
   "/js/medicoes.js",
 

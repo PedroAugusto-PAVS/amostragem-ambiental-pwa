@@ -165,6 +165,81 @@ async function baixarMedicoesSupabase() {
   return data || [];
 }
 
+function erroIndicaMigracaoCodigosPendente(error) {
+  const codigo = String(error?.code || "");
+  const mensagem = String(error?.message || "").toLowerCase();
+
+  return (
+    codigo === "42P01" ||
+    codigo === "PGRST205" ||
+    mensagem.includes("medicao_codigos") &&
+      (mensagem.includes("does not exist") ||
+        mensagem.includes("schema cache") ||
+        mensagem.includes("não existe"))
+  );
+}
+
+function erroSincronizacaoCodigos(prefixo, error) {
+  if (erroIndicaMigracaoCodigosPendente(error)) {
+    return new Error(
+      "A migração da tabela medicao_codigos ainda não foi aplicada no Supabase. " +
+        "Execute o arquivo SQL da funcionalidade antes de sincronizar os códigos."
+    );
+  }
+
+  return new Error(`${prefixo}: ${error?.message || "erro desconhecido"}`);
+}
+
+async function baixarCodigosMedicoesSupabase() {
+  const { data, error } = await supabaseClient
+    .from("medicao_codigos")
+    .select("local_id, medicao_local_id, codigo, tipo, ordem, criado_em")
+    .order("ordem", { ascending: true });
+
+  if (error) {
+    throw erroSincronizacaoCodigos(
+      "Erro ao baixar códigos das amostras",
+      error
+    );
+  }
+
+  return data || [];
+}
+
+function anexarCodigosRemotosAsMedicoes(medicoes, codigosRemotos) {
+  const codigosPorMedicao = new Map();
+
+  for (const item of codigosRemotos || []) {
+    if (!item?.medicao_local_id) continue;
+
+    if (!codigosPorMedicao.has(item.medicao_local_id)) {
+      codigosPorMedicao.set(item.medicao_local_id, []);
+    }
+
+    codigosPorMedicao.get(item.medicao_local_id).push({
+      local_id: item.local_id,
+      codigo: item.codigo,
+      tipo: item.tipo,
+      ordem: Number.isInteger(item.ordem) ? item.ordem : 0,
+      criado_em: item.criado_em || null,
+    });
+  }
+
+  return (medicoes || []).map((medicao) => {
+    const codigos = codigosPorMedicao.get(medicao.local_id) || [];
+
+    if (codigos.length === 0) {
+      return medicao;
+    }
+
+    return {
+      ...medicao,
+      codigos_amostras: codigos.sort((a, b) => a.ordem - b.ordem),
+      codigo_frascaria: obterCodigoPrincipal(codigos),
+    };
+  });
+}
+
 function validarDadosBaixados(nomeStore, registros) {
   if (!Array.isArray(registros)) {
     throw new Error(`Resposta inválida ao baixar ${nomeStore}.`);
@@ -263,12 +338,18 @@ async function substituirStoresComMerge(dadosRemotos) {
 }
 
 async function reconciliarDadosSupabase() {
-  const [projetos, pocos, campanhas, medicoes] = await Promise.all([
+  const [projetos, pocos, campanhas, medicoesSemCodigos, codigosMedicoes] =
+    await Promise.all([
     baixarProjetosSupabase(),
     baixarPocosSupabase(),
     baixarCampanhasSupabase(),
     baixarMedicoesSupabase(),
+    baixarCodigosMedicoesSupabase(),
   ]);
+  const medicoes = anexarCodigosRemotosAsMedicoes(
+    medicoesSemCodigos,
+    codigosMedicoes
+  );
 
   const dadosRemotos = { projetos, pocos, campanhas, medicoes };
 
@@ -283,6 +364,7 @@ async function reconciliarDadosSupabase() {
     pocos: pocos.length,
     campanhas: campanhas.length,
     medicoes: medicoes.length,
+    codigos_amostras: codigosMedicoes.length,
   };
 }
 
@@ -622,6 +704,260 @@ async function sincronizarCampanhas(somenteExclusoes = false) {
 
 /* MEDIÇÕES */
 
+async function buscarCodigosRemotosDaMedicao(medicaoLocalId) {
+  const { data, error } = await supabaseClient
+    .from("medicao_codigos")
+    .select("local_id, medicao_local_id, codigo, tipo, ordem, criado_em")
+    .eq("medicao_local_id", medicaoLocalId)
+    .order("ordem", { ascending: true });
+
+  if (error) {
+    throw erroSincronizacaoCodigos(
+      "Erro ao consultar códigos da medição",
+      error
+    );
+  }
+
+  return data || [];
+}
+
+async function executarUpsertCodigos(payload, remotos) {
+  if (payload.length === 0) {
+    return;
+  }
+
+  const remotosPorId = new Map(
+    remotos.map((item) => [item.local_id, item])
+  );
+  const ocupanteAtualPorCodigo = new Map(
+    remotos.map((item) => [
+      normalizarCodigoAmostra(item.codigo).toLocaleUpperCase("pt-BR"),
+      item.local_id,
+    ])
+  );
+  const existeColisaoDeRenomeacao = payload.some((item) => {
+    const ocupante = ocupanteAtualPorCodigo.get(
+      item.codigo.toLocaleUpperCase("pt-BR")
+    );
+    return ocupante && ocupante !== item.local_id;
+  });
+
+  // Uma cadeia como A→B e B→C viola temporariamente o índice único se for
+  // executada diretamente. Libera primeiro os códigos antigos com marcadores
+  // técnicos; se a segunda etapa falhar, o snapshot local continua íntegro e
+  // a próxima tentativa restaura os valores finais pelos mesmos UUIDs.
+  if (existeColisaoDeRenomeacao) {
+    const payloadPorId = new Map(
+      payload.map((item) => [item.local_id, item])
+    );
+    const idsParaTemporizar = new Set();
+
+    for (const item of payload) {
+      const remoto = remotosPorId.get(item.local_id);
+
+      if (
+        remoto &&
+        normalizarCodigoAmostra(remoto.codigo).toLocaleUpperCase("pt-BR") !==
+          item.codigo.toLocaleUpperCase("pt-BR")
+      ) {
+        idsParaTemporizar.add(item.local_id);
+      }
+
+      const ocupante = ocupanteAtualPorCodigo.get(
+        item.codigo.toLocaleUpperCase("pt-BR")
+      );
+
+      if (ocupante && ocupante !== item.local_id) {
+        idsParaTemporizar.add(ocupante);
+      }
+    }
+
+    const codigosReservados = new Set([
+      ...remotos.map((item) =>
+        normalizarCodigoAmostra(item.codigo).toLocaleUpperCase("pt-BR")
+      ),
+      ...payload.map((item) => item.codigo.toLocaleUpperCase("pt-BR")),
+    ]);
+    const temporarios = remotos
+      .filter((remoto) => idsParaTemporizar.has(remoto.local_id))
+      .map((remoto) => {
+        const itemFinal = payloadPorId.get(remoto.local_id);
+        let codigoTemporario = `HT-SYNC-${remoto.local_id}`;
+        let sufixo = 1;
+
+        while (
+          codigosReservados.has(
+            codigoTemporario.toLocaleUpperCase("pt-BR")
+          )
+        ) {
+          sufixo += 1;
+          codigoTemporario = `HT-SYNC-${sufixo}-${remoto.local_id}`;
+        }
+
+        codigosReservados.add(
+          codigoTemporario.toLocaleUpperCase("pt-BR")
+        );
+        return {
+          local_id: remoto.local_id,
+          medicao_local_id: remoto.medicao_local_id,
+          codigo: codigoTemporario,
+          tipo: itemFinal?.tipo || remoto.tipo || "outro",
+          ordem: Number.isInteger(itemFinal?.ordem)
+            ? itemFinal.ordem
+            : remoto.ordem || 0,
+          criado_em:
+            itemFinal?.criado_em ||
+            remoto.criado_em ||
+            new Date().toISOString(),
+          atualizado_em:
+            itemFinal?.atualizado_em || new Date().toISOString(),
+        };
+      });
+
+    if (temporarios.length > 0) {
+      const { error } = await supabaseClient
+        .from("medicao_codigos")
+        .upsert(temporarios, { onConflict: "local_id" });
+
+      if (error) {
+        throw erroSincronizacaoCodigos(
+          "Erro ao preparar a atualização dos códigos da medição",
+          error
+        );
+      }
+    }
+  }
+
+  const { error } = await supabaseClient
+    .from("medicao_codigos")
+    .upsert(payload, { onConflict: "local_id" });
+
+  if (error) {
+    throw erroSincronizacaoCodigos(
+      "Erro ao salvar códigos da medição",
+      error
+    );
+  }
+}
+
+async function sincronizarCodigosDaMedicao(
+  medicao,
+  codigosRemotosConhecidos = null
+) {
+  const codigosLidos = obterCodigosDaMedicao(medicao);
+
+  if (codigosLidos.length === 0 && !medicaoMarcadaManualmente(medicao)) {
+    throw new Error(
+      `A medição ${medicao.local_id} não possui código de amostra válido.`
+    );
+  }
+
+  let codigos = codigosLidos.length
+    ? prepararCodigosAmostras(codigosLidos)
+    : [];
+  const remotos =
+    codigosRemotosConhecidos ||
+    (await buscarCodigosRemotosDaMedicao(medicao.local_id));
+  const remotosPorCodigo = new Map(
+    remotos.map((item) => [
+      normalizarCodigoAmostra(item.codigo).toLocaleUpperCase("pt-BR"),
+      item,
+    ])
+  );
+  const remotosPorId = new Map(
+    remotos.map((item) => [item.local_id, item])
+  );
+  const idsRemotosReservados = new Set(
+    codigos
+      .map((item) => item.local_id)
+      .filter((localId) => remotosPorId.has(localId))
+  );
+
+  codigos = codigos.map((item, index) => {
+    const remotoComMesmoId = remotosPorId.get(item.local_id);
+    const remotoComMesmoCodigo = remotosPorCodigo.get(
+      item.codigo.toLocaleUpperCase("pt-BR")
+    );
+    const podeAdotarIdPorCodigo =
+      !remotoComMesmoId &&
+      remotoComMesmoCodigo &&
+      !idsRemotosReservados.has(remotoComMesmoCodigo.local_id);
+    const remotoReconciliado =
+      remotoComMesmoId ||
+      (podeAdotarIdPorCodigo ? remotoComMesmoCodigo : null);
+
+    if (remotoReconciliado) {
+      idsRemotosReservados.add(remotoReconciliado.local_id);
+    }
+
+    return {
+      ...item,
+      local_id: remotoReconciliado?.local_id || item.local_id,
+      ordem: index,
+      criado_em:
+        remotoReconciliado?.criado_em ||
+        item.criado_em ||
+        new Date().toISOString(),
+    };
+  });
+
+  medicao.codigos_amostras = codigos;
+  medicao.codigo_frascaria = obterCodigoPrincipal(codigos) || null;
+
+  // Persiste IDs reconciliados antes das chamadas remotas. Em caso de falha,
+  // a próxima tentativa reutiliza os mesmos IDs e permanece idempotente.
+  await atualizarMedicaoLocal(medicao);
+
+  if (codigos.length > 0) {
+    const atualizadoEm = new Date().toISOString();
+    const payload = codigos.map((item) => ({
+      local_id: item.local_id,
+      medicao_local_id: medicao.local_id,
+      codigo: item.codigo,
+      tipo: item.tipo,
+      ordem: item.ordem,
+      criado_em: item.criado_em,
+      atualizado_em: atualizadoEm,
+    }));
+    await executarUpsertCodigos(payload, remotos);
+  }
+
+  const idsAtuais = new Set(codigos.map((item) => item.local_id));
+  const idsRemovidos = remotos
+    .map((item) => item.local_id)
+    .filter((localId) => !idsAtuais.has(localId));
+
+  if (idsRemovidos.length > 0) {
+    const { data, error } = await supabaseClient
+      .from("medicao_codigos")
+      .delete()
+      .eq("medicao_local_id", medicao.local_id)
+      .in("local_id", idsRemovidos)
+      .select("local_id");
+
+    if (error) {
+      throw erroSincronizacaoCodigos(
+        "Erro ao remover códigos antigos da medição",
+        error
+      );
+    }
+
+    const idsExcluidos = new Set((data || []).map((item) => item.local_id));
+    const exclusaoIncompleta = idsRemovidos.some(
+      (localId) => !idsExcluidos.has(localId)
+    );
+
+    if (exclusaoIncompleta) {
+      throw new Error(
+        "O Supabase não confirmou a remoção de todos os códigos antigos. " +
+          "A medição local foi preservada como pendente."
+      );
+    }
+  }
+
+  return codigos;
+}
+
 async function sincronizarMedicoes(somenteExclusoes = false) {
   const medicoes = await listarMedicoesParaSync();
 
@@ -672,7 +1008,32 @@ async function sincronizarMedicoes(somenteExclusoes = false) {
     if (!medicao.sincronizado) {
       await verificarConflitoRemoto("medicoes", medicao);
 
-      const { error } = await supabaseClient.from("medicoes").upsert(
+      const codigos = obterCodigosDaMedicao(medicao);
+
+      if (codigos.length > 0) {
+        medicao.codigos_amostras = prepararCodigosAmostras(codigos);
+        medicao.codigo_frascaria =
+          obterCodigoPrincipal(medicao.codigos_amostras) || null;
+        await atualizarMedicaoLocal(medicao);
+      } else if (medicaoMarcadaManualmente(medicao)) {
+        medicao.codigos_amostras = [];
+      } else {
+        throw new Error(
+          `A medição ${medicao.local_id} não possui código de amostra válido.`
+        );
+      }
+
+      // Consulta a tabela filha antes de alterar o pai. Se a migração ainda não
+      // foi aplicada ou a RLS estiver incorreta, a tentativa para aqui sem
+      // avançar o timestamp remoto da medição.
+      const codigosRemotos = await buscarCodigosRemotosDaMedicao(
+        medicao.local_id
+      );
+      const atualizadoEmRemoto = new Date().toISOString();
+
+      const { data: medicaoRemota, error } = await supabaseClient
+        .from("medicoes")
+        .upsert(
         {
           local_id: medicao.local_id,
 
@@ -708,7 +1069,7 @@ async function sincronizarMedicoes(somenteExclusoes = false) {
           fotos: medicao.fotos || [],
 
           criado_em: medicao.criado_em,
-          atualizado_em: new Date().toISOString(),
+          atualizado_em: atualizadoEmRemoto,
 
           duplicada_de: medicao.duplicada_de ?? null,
 
@@ -717,16 +1078,31 @@ async function sincronizarMedicoes(somenteExclusoes = false) {
         {
           onConflict: "local_id",
         }
-      );
+        )
+        .select("atualizado_em")
+        .maybeSingle();
 
       if (error) {
         console.error(error);
         throw new Error("Erro ao sincronizar medição: " + error.message);
       }
 
+      // O pai já foi gravado. Persistir esse timestamp como novo baseline evita
+      // que uma falha posterior nos filhos pareça um conflito criado por outro
+      // dispositivo na próxima tentativa.
+      medicao.sincronizado = false;
+      medicao.sincronizado_em =
+        medicaoRemota?.atualizado_em || atualizadoEmRemoto;
+      medicao.atualizado_em = atualizadoEmRemoto;
+      await atualizarMedicaoLocal(medicao);
+
+      await sincronizarCodigosDaMedicao(medicao, codigosRemotos);
+
       medicao.sincronizado = true;
-      medicao.sincronizado_em = new Date().toISOString();
-      medicao.atualizado_em = new Date().toISOString();
+      medicao.sincronizado_em =
+        medicaoRemota?.atualizado_em || atualizadoEmRemoto;
+      medicao.atualizado_em =
+        medicaoRemota?.atualizado_em || atualizadoEmRemoto;
 
       await atualizarMedicaoLocal(medicao);
     }

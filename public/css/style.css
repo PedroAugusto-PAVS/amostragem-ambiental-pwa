@@ -263,6 +263,68 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .card-actions { display: flex; gap: 9px; margin-top: 14px; }
 .card-actions button { flex: 1; }
 
+.codigos-amostras-fieldset {
+  min-width: 0;
+  margin: 18px 0;
+  padding: 0;
+  border: 0;
+}
+.codigos-amostras-fieldset legend {
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+.form-card .codigos-amostras-ajuda {
+  margin: 6px 0 12px;
+}
+.codigos-amostras-lista {
+  display: grid;
+  gap: 12px;
+}
+.codigo-amostra-item {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.codigo-amostra-campo {
+  min-width: 0;
+}
+.codigo-amostra-campo label {
+  margin-top: 0;
+}
+.codigo-amostra-valor[aria-invalid="true"] {
+  border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(229, 38, 46, 0.12);
+}
+.codigo-amostra-remover {
+  min-height: 50px;
+}
+.codigos-amostras-adicionar {
+  margin-top: 12px;
+}
+.sample-codes-summary {
+  margin: 10px 0;
+}
+.sample-codes-summary strong {
+  display: block;
+  margin-bottom: 5px;
+}
+.sample-codes-summary ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.sample-codes-summary li {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+
 .menu-section, .menu-group { margin-bottom: 15px; padding: 16px; box-shadow: var(--shadow); }
 .menu-section h2, .menu-section h3, .menu-group h2, .menu-group h3 { margin: 0 0 15px; color: var(--text); font-size: 16px; }
 .menu-section .btn-primary, .menu-section .btn-blue, .menu-group .btn-primary, .menu-group .btn-blue { margin-bottom: 12px; }
@@ -571,6 +633,14 @@ html[data-theme="dark"] .admin-message.error { color: #ff9aaa; }
   .bottom-nav { max-width: 760px; }
   .float-btn { right: max(28px, calc((100vw - 760px) / 2 + 28px)); }
   .dashboard-hero { min-height: 170px; }
+  .codigo-amostra-item {
+    grid-template-columns: minmax(0, 2fr) minmax(170px, 1fr) auto;
+    align-items: end;
+  }
+  .codigo-amostra-remover {
+    width: auto;
+    min-width: 112px;
+  }
 }
 @media (max-width: 520px) {
   .container { max-width: 430px; padding-right: 13px; padding-left: 13px; }

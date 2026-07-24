@@ -43,7 +43,9 @@ async function carregarMedicoes() {
 
         <p>Data: ${data}</p>
         <p>Mês referência: ${ficha.mes_referencia || "-"}</p>
-        <p>Código ALS: ${ficha.codigo_frascaria || "-"}</p>
+        <p>Códigos das amostras: ${
+          escaparHtml(formatarCodigosDaMedicao(ficha)) || "-"
+        }</p>
         <p>Status: ${ficha.sincronizado ? "Sincronizado" : "Pendente"}</p>
         <p>Volume estagnado: ${ficha.volume_estagnado || 0} L</p>
       </div>

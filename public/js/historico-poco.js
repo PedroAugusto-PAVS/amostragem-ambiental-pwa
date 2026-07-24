@@ -95,11 +95,31 @@ async function carregarHistorico() {
   }
 
   historico.forEach((m) => {
+    const codigos = obterCodigosDaMedicao(m);
+    const codigosHtml = codigos.length
+      ? `
+        <div class="sample-codes-summary">
+          <strong>Códigos das amostras</strong>
+          <ul>
+            ${codigos
+              .map(
+                (item) =>
+                  `<li><span>${escaparHtml(item.codigo)}</span> — ${escaparHtml(
+                    formatarTipoCodigoAmostra(item.tipo)
+                  )}</li>`
+              )
+              .join("")}
+          </ul>
+        </div>
+      `
+      : `<p>Códigos das amostras: -</p>`;
+
     lista.innerHTML += `
       <div class="card">
         <strong>${m.mes_referencia || "Medição"}</strong>
 
         <p>Data: ${m.data_medicao || "-"}</p>
+        ${codigosHtml}
         <p>Profundidade total medida: ${m.profundidade_total_mes || 0} m</p>
         <p>Nível d'água: ${m.nivel_agua || 0} m</p>
         <p>Coluna d'água: ${m.coluna_agua || 0} m</p>

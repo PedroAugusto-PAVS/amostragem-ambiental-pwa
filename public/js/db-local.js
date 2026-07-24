@@ -283,6 +283,290 @@ async function listarMedicoesLocais() {
   });
 }
 
+const TIPOS_CODIGO_AMOSTRA = Object.freeze([
+  "normal",
+  "duplicata",
+  "branco",
+  "branco_campo",
+  "branco_viagem",
+  "controle",
+  "outro",
+]);
+
+const ROTULOS_TIPOS_CODIGO_AMOSTRA = Object.freeze({
+  normal: "Normal",
+  duplicata: "Duplicata",
+  branco: "Branco",
+  branco_campo: "Branco de campo",
+  branco_viagem: "Branco de viagem",
+  controle: "Controle",
+  outro: "Outro",
+});
+
+function normalizarCodigoAmostra(codigo) {
+  return codigo === null || codigo === undefined ? "" : String(codigo).trim();
+}
+
+function normalizarTipoCodigoAmostra(tipo) {
+  const valor = String(tipo || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("-", "_")
+    .replaceAll(" ", "_");
+
+  const aliases = {
+    brancodecampo: "branco_campo",
+    brancodeviagem: "branco_viagem",
+  };
+  const canonico = aliases[valor.replaceAll("_", "")] || valor;
+
+  return TIPOS_CODIGO_AMOSTRA.includes(canonico) ? canonico : "";
+}
+
+function formatarTipoCodigoAmostra(tipo) {
+  const canonico = normalizarTipoCodigoAmostra(tipo);
+  return ROTULOS_TIPOS_CODIGO_AMOSTRA[canonico] || "Outro";
+}
+
+function gerarLocalIdCodigoAmostra() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  // Mantém compatibilidade com a coluna UUID do Supabase mesmo em WebViews
+  // antigos que ainda não expõem crypto.randomUUID().
+  const bytes = new Uint8Array(16);
+
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hexadecimal = Array.from(bytes, (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+
+  return [
+    hexadecimal.slice(0, 8),
+    hexadecimal.slice(8, 12),
+    hexadecimal.slice(12, 16),
+    hexadecimal.slice(16, 20),
+    hexadecimal.slice(20),
+  ].join("-");
+}
+
+function medicaoMarcadaManualmente(medicao) {
+  if (!medicao) {
+    return false;
+  }
+
+  if (medicao.marcado_manual === true) {
+    return true;
+  }
+
+  const possuiCodigoRealNoArray =
+    Array.isArray(medicao.codigos_amostras) &&
+    medicao.codigos_amostras.some((item) => {
+      const codigo = normalizarCodigoAmostra(item?.codigo);
+      return (
+        codigo &&
+        codigo.toLocaleLowerCase("pt-BR") !== "marcado manualmente"
+      );
+    });
+
+  if (possuiCodigoRealNoArray) {
+    return false;
+  }
+
+  const codigoLegado = normalizarCodigoAmostra(
+    medicao.codigo_frascaria ||
+      medicao.codigo_amostra ||
+      medicao.codigo ||
+      medicao.cod_amostra
+  );
+
+  return (
+    codigoLegado.toLocaleLowerCase("pt-BR") === "marcado manualmente"
+  );
+}
+
+function obterCodigosDaMedicao(medicao) {
+  if (!medicao || medicaoMarcadaManualmente(medicao)) {
+    return [];
+  }
+
+  if (
+    Array.isArray(medicao.codigos_amostras) &&
+    medicao.codigos_amostras.length > 0
+  ) {
+    return medicao.codigos_amostras
+      .map((item, index) => ({
+        local_id: item?.local_id || item?.id || null,
+        codigo: normalizarCodigoAmostra(item?.codigo),
+        tipo: normalizarTipoCodigoAmostra(item?.tipo) || "outro",
+        ordem: Number.isInteger(item?.ordem) ? item.ordem : index,
+        criado_em: item?.criado_em || item?.created_at || null,
+      }))
+      .filter((item) => item.codigo)
+      .sort((a, b) => a.ordem - b.ordem);
+  }
+
+  const codigoAntigo = normalizarCodigoAmostra(
+    medicao.codigo_frascaria ||
+      medicao.codigo_amostra ||
+      medicao.codigo ||
+      medicao.cod_amostra
+  );
+
+  if (!codigoAntigo) {
+    return [];
+  }
+
+  return [
+    {
+      local_id: null,
+      codigo: codigoAntigo,
+      tipo: "normal",
+      ordem: 0,
+      criado_em: medicao.criado_em || null,
+    },
+  ];
+}
+
+function validarCodigosAmostras(codigos) {
+  if (!Array.isArray(codigos) || codigos.length === 0) {
+    return {
+      valido: false,
+      mensagem: "A medição precisa ter pelo menos um código de amostra.",
+      codigos: [],
+    };
+  }
+
+  const normalizados = [];
+  const codigosUnicos = new Set();
+
+  for (let index = 0; index < codigos.length; index += 1) {
+    const item = codigos[index] || {};
+    const codigo = normalizarCodigoAmostra(item.codigo);
+    const tipo = normalizarTipoCodigoAmostra(item.tipo);
+
+    if (!codigo) {
+      return {
+        valido: false,
+        mensagem: `Informe o código da amostra na linha ${index + 1}.`,
+        codigos: [],
+      };
+    }
+
+    if (codigo.length > 200) {
+      return {
+        valido: false,
+        mensagem: `O código da linha ${index + 1} deve ter no máximo 200 caracteres.`,
+        codigos: [],
+      };
+    }
+
+    if (!tipo) {
+      return {
+        valido: false,
+        mensagem: `Selecione um tipo válido na linha ${index + 1}.`,
+        codigos: [],
+      };
+    }
+
+    const chave = codigo.toLocaleUpperCase("pt-BR");
+
+    if (codigosUnicos.has(chave)) {
+      return {
+        valido: false,
+        mensagem: `O código "${codigo}" está repetido nesta medição.`,
+        codigos: [],
+      };
+    }
+
+    codigosUnicos.add(chave);
+    normalizados.push({
+      ...item,
+      codigo,
+      tipo,
+      ordem: index,
+    });
+  }
+
+  return {
+    valido: true,
+    mensagem: "",
+    codigos: normalizados,
+  };
+}
+
+function prepararCodigosAmostras(codigos) {
+  const validacao = validarCodigosAmostras(codigos);
+
+  if (!validacao.valido) {
+    throw new Error(validacao.mensagem);
+  }
+
+  const idsUtilizados = new Set();
+  const criadoEm = new Date().toISOString();
+
+  return validacao.codigos.map((item, index) => {
+    let localId = item.local_id || item.id || "";
+
+    if (!localId || idsUtilizados.has(localId)) {
+      do {
+        localId = gerarLocalIdCodigoAmostra();
+      } while (idsUtilizados.has(localId));
+    }
+
+    idsUtilizados.add(localId);
+
+    return {
+      local_id: localId,
+      codigo: item.codigo,
+      tipo: item.tipo,
+      ordem: index,
+      criado_em: item.criado_em || item.created_at || criadoEm,
+    };
+  });
+}
+
+function obterCodigoPrincipal(codigosOuMedicao) {
+  const codigos = Array.isArray(codigosOuMedicao)
+    ? codigosOuMedicao
+    : obterCodigosDaMedicao(codigosOuMedicao);
+  const principal =
+    codigos.find(
+      (item) => normalizarTipoCodigoAmostra(item?.tipo) === "normal"
+    ) || codigos[0];
+
+  return normalizarCodigoAmostra(principal?.codigo);
+}
+
+function formatarCodigosDaMedicao(medicao, separador = "; ") {
+  return obterCodigosDaMedicao(medicao)
+    .map(
+      (item) =>
+        `${item.codigo} — ${formatarTipoCodigoAmostra(item.tipo)}`
+    )
+    .join(separador);
+}
+
+function escaparHtml(valor) {
+  return String(valor ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function criarDataLocal(valor) {
   if (!valor) return null;
 

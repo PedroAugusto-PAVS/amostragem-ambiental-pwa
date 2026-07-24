@@ -47,8 +47,9 @@ async function carregarEdicao() {
   document.getElementById("dataMedicao").value = medicaoAtual.data_medicao || "";
   document.getElementById("mesReferencia").value = medicaoAtual.mes_referencia || "";
 
-  document.getElementById("codigoFrascaria").value =
-    medicaoAtual.codigo_frascaria || "";
+  inicializarFormularioCodigosAmostras(
+    obterCodigosDaMedicao(medicaoAtual),
+  );
 
   document.getElementById("responsavelAls").value =
     medicaoAtual.responsavel_als || medicaoAtual.coletor_nome || usuario.nome || "";
@@ -268,14 +269,15 @@ function avaliarEstabilizacaoTela() {
 async function salvarEdicaoMedicao() {
   atualizarCalculos();
 
-  const codigoFrascaria =
-    document.getElementById("codigoFrascaria").value.trim();
+  const codigosFormulario = obterCodigosFormularioAmostras();
+  const validacaoCodigos = validarCodigosAmostras(codigosFormulario);
 
   const responsavelAls =
     document.getElementById("responsavelAls").value.trim();
 
-  if (!codigoFrascaria) {
-    alert("Informe o código da frascaria / Código ALS.");
+  if (!validacaoCodigos.valido) {
+    alert(validacaoCodigos.mensagem);
+    focarPrimeiroCodigoAmostraInvalido();
     return;
   }
 
@@ -284,13 +286,18 @@ async function salvarEdicaoMedicao() {
     return;
   }
 
+  const codigosAmostras = prepararCodigosAmostras(
+    validacaoCodigos.codigos,
+  );
   const novasFotosFiles = document.getElementById("fotosMedicao").files;
   const novasFotos = await converterFotosBase64(novasFotosFiles);
 
   medicaoAtual.data_medicao = document.getElementById("dataMedicao").value;
   medicaoAtual.mes_referencia = document.getElementById("mesReferencia").value;
 
-  medicaoAtual.codigo_frascaria = codigoFrascaria;
+  medicaoAtual.codigos_amostras = codigosAmostras;
+  medicaoAtual.codigo_frascaria = obterCodigoPrincipal(codigosAmostras);
+  medicaoAtual.marcado_manual = false;
   medicaoAtual.responsavel_als = responsavelAls;
 
   medicaoAtual.profundidade_total_mes =

@@ -76,6 +76,19 @@ async function duplicarMedicao() {
     return;
   }
 
+  const codigosOrigem = obterCodigosDaMedicao(origem).map((codigo) => {
+    const copia = { ...codigo };
+    delete copia.id;
+    delete copia.local_id;
+    delete copia.medicao_id;
+    delete copia.criado_em;
+    delete copia.created_at;
+    return copia;
+  });
+  const codigosAmostras = codigosOrigem.length
+    ? prepararCodigosAmostras(codigosOrigem)
+    : [];
+
   const novaMedicao = {
     ...origem,
 
@@ -83,6 +96,9 @@ async function duplicarMedicao() {
 
     data_medicao: novaData,
     mes_referencia: novoMes,
+
+    codigos_amostras: codigosAmostras,
+    codigo_frascaria: obterCodigoPrincipal(codigosAmostras),
 
     sincronizado: false,
     criado_em: new Date().toISOString(),

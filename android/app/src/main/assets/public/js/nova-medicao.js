@@ -192,7 +192,8 @@ async function salvarMedicao() {
 
   const dataMedicao = document.getElementById("dataMedicao").value;
   const mesReferencia = document.getElementById("mesReferencia").value;
-  const codigoFrascaria = document.getElementById("codigoFrascaria").value.trim();
+  const codigosFormulario = obterCodigosFormularioAmostras();
+  const validacaoCodigos = validarCodigosAmostras(codigosFormulario);
   const responsavelAls = document.getElementById("responsavelAls").value.trim();
 
   if (!dataMedicao || !mesReferencia) {
@@ -200,8 +201,9 @@ async function salvarMedicao() {
     return;
   }
 
-  if (!codigoFrascaria) {
-    alert("Informe o código da frascaria / Código ALS.");
+  if (!validacaoCodigos.valido) {
+    alert(validacaoCodigos.mensagem);
+    focarPrimeiroCodigoAmostraInvalido();
     return;
   }
 
@@ -215,6 +217,9 @@ async function salvarMedicao() {
     return;
   }
 
+  const codigosAmostras = prepararCodigosAmostras(
+    validacaoCodigos.codigos,
+  );
   const leituras = obterLeituras();
   const estabilizacao = calcularEstabilizacao(leituras);
   const alertas = gerarAlertasAmbientais(leituras);
@@ -233,7 +238,8 @@ async function salvarMedicao() {
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
 
-    codigo_frascaria: codigoFrascaria,
+    codigos_amostras: codigosAmostras,
+    codigo_frascaria: obterCodigoPrincipal(codigosAmostras),
     responsavel_als: responsavelAls,
 
     data_medicao: dataMedicao,
@@ -284,4 +290,5 @@ async function salvarMedicao() {
   }
 }
 
+inicializarFormularioCodigosAmostras();
 carregarPoco();

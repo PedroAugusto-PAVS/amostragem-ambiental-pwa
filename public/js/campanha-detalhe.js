@@ -283,6 +283,7 @@ async function marcarPmColetado(pocoLocalId) {
     campanha_local_id: campanhaAtual.local_id,
     usuario_id: usuario.id,
     coletor_nome: usuario.nome || "",
+    codigos_amostras: [],
     codigo_frascaria: "Marcado manualmente",
     responsavel_als: usuario.nome || "",
     data_medicao: dataMedicao,
