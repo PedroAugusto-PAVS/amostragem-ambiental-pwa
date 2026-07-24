@@ -85,10 +85,14 @@ async function baixarDadosSupabase() {
   }
 
   try {
-    const totais = await reconciliarDadosSupabase();
+    const totais = await reconciliarDadosSupabase({
+      permitirMigracaoCodigosPendente: true,
+    });
 
     if (statusSync) {
-      statusSync.innerText = "Dados restaurados com sucesso";
+      statusSync.innerText = totais.migracaoCodigosPendente
+        ? "Dados antigos restaurados; migração de códigos pendente"
+        : "Dados restaurados com sucesso";
     }
 
     alert(
@@ -96,7 +100,12 @@ async function baixarDadosSupabase() {
         `Projetos: ${totais.projetos}\n` +
         `PMs/Poços: ${totais.pocos}\n` +
         `Campanhas: ${totais.campanhas}\n` +
-        `Medições: ${totais.medicoes}`
+        `Medições: ${totais.medicoes}` +
+        (totais.migracaoCodigosPendente
+          ? "\n\nAtenção: a tabela medicao_codigos ainda não está disponível no Supabase. " +
+            "Os dados antigos e o código principal foram restaurados, mas os códigos múltiplos " +
+            "só poderão ser recuperados e sincronizados quando a tabela estiver disponível."
+          : "")
     );
 
     atualizarTelasAposSync();
@@ -168,42 +177,62 @@ async function baixarMedicoesSupabase() {
 function erroIndicaMigracaoCodigosPendente(error) {
   const codigo = String(error?.code || "");
   const mensagem = String(error?.message || "").toLowerCase();
+  const mencionaTabelaCodigos = mensagem.includes("medicao_codigos");
 
   return (
-    codigo === "42P01" ||
     codigo === "PGRST205" ||
-    mensagem.includes("medicao_codigos") &&
+    (codigo === "42P01" && mencionaTabelaCodigos) ||
+    (mencionaTabelaCodigos &&
       (mensagem.includes("does not exist") ||
         mensagem.includes("schema cache") ||
-        mensagem.includes("não existe"))
+        mensagem.includes("não existe")))
   );
 }
 
 function erroSincronizacaoCodigos(prefixo, error) {
   if (erroIndicaMigracaoCodigosPendente(error)) {
     return new Error(
-      "A migração da tabela medicao_codigos ainda não foi aplicada no Supabase. " +
-        "Execute o arquivo SQL da funcionalidade antes de sincronizar os códigos."
+      "A tabela medicao_codigos não está disponível no Supabase. " +
+        "Confirme se a migração foi aplicada e se o cache do esquema está atualizado " +
+        "antes de sincronizar os códigos."
     );
   }
 
   return new Error(`${prefixo}: ${error?.message || "erro desconhecido"}`);
 }
 
-async function baixarCodigosMedicoesSupabase() {
+async function baixarCodigosMedicoesSupabase(
+  { permitirMigracaoPendente = false } = {}
+) {
   const { data, error } = await supabaseClient
     .from("medicao_codigos")
     .select("local_id, medicao_local_id, codigo, tipo, ordem, criado_em")
     .order("ordem", { ascending: true });
 
   if (error) {
+    if (
+      permitirMigracaoPendente &&
+      erroIndicaMigracaoCodigosPendente(error)
+    ) {
+      console.warn(
+        "Tabela medicao_codigos indisponível. Restaurando dados legados sem códigos múltiplos."
+      );
+      return {
+        codigos: [],
+        migracaoPendente: true,
+      };
+    }
+
     throw erroSincronizacaoCodigos(
       "Erro ao baixar códigos das amostras",
       error
     );
   }
 
-  return data || [];
+  return {
+    codigos: data || [],
+    migracaoPendente: false,
+  };
 }
 
 function anexarCodigosRemotosAsMedicoes(medicoes, codigosRemotos) {
@@ -282,6 +311,33 @@ function mesclarDadosRemotosComPendencias(remotos, locais, sincronizadoEm) {
   return Array.from(registrosPorId.values());
 }
 
+function preservarCodigosLocaisNasMedicoes(remotas, locais) {
+  const locaisPorId = new Map(
+    (locais || []).map((medicao) => [medicao.local_id, medicao])
+  );
+
+  return (remotas || []).map((remota) => {
+    const local = locaisPorId.get(remota.local_id);
+    const codigosLocais = Array.isArray(local?.codigos_amostras)
+      ? local.codigos_amostras
+      : [];
+
+    if (codigosLocais.length === 0) {
+      return remota;
+    }
+
+    return {
+      ...remota,
+      codigos_amostras: codigosLocais,
+      codigo_frascaria:
+        obterCodigoPrincipal(codigosLocais) ||
+        local.codigo_frascaria ||
+        remota.codigo_frascaria,
+      sincronizado: false,
+    };
+  });
+}
+
 async function lerTodosRegistrosDaStore(nomeStore) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction([nomeStore], "readonly");
@@ -294,7 +350,10 @@ async function lerTodosRegistrosDaStore(nomeStore) {
   });
 }
 
-async function substituirStoresComMerge(dadosRemotos) {
+async function substituirStoresComMerge(
+  dadosRemotos,
+  { preservarCodigosLocais = false } = {}
+) {
   await abrirBancoLocal();
 
   const stores = ["projetos", "pocos", "campanhas", "medicoes"];
@@ -308,11 +367,19 @@ async function substituirStoresComMerge(dadosRemotos) {
   const dadosFinais = {};
 
   for (const nomeStore of stores) {
-    dadosFinais[nomeStore] = mesclarDadosRemotosComPendencias(
+    const dadosMesclados = mesclarDadosRemotosComPendencias(
       dadosRemotos[nomeStore],
       dadosLocais[nomeStore],
       sincronizadoEm
     );
+
+    dadosFinais[nomeStore] =
+      nomeStore === "medicoes" && preservarCodigosLocais
+        ? preservarCodigosLocaisNasMedicoes(
+            dadosMesclados,
+            dadosLocais[nomeStore]
+          )
+        : dadosMesclados;
   }
 
   await new Promise((resolve, reject) => {
@@ -337,15 +404,25 @@ async function substituirStoresComMerge(dadosRemotos) {
   });
 }
 
-async function reconciliarDadosSupabase() {
-  const [projetos, pocos, campanhas, medicoesSemCodigos, codigosMedicoes] =
-    await Promise.all([
+async function reconciliarDadosSupabase(
+  { permitirMigracaoCodigosPendente = false } = {}
+) {
+  const [
+    projetos,
+    pocos,
+    campanhas,
+    medicoesSemCodigos,
+    resultadoCodigosMedicoes,
+  ] = await Promise.all([
     baixarProjetosSupabase(),
     baixarPocosSupabase(),
     baixarCampanhasSupabase(),
     baixarMedicoesSupabase(),
-    baixarCodigosMedicoesSupabase(),
+    baixarCodigosMedicoesSupabase({
+      permitirMigracaoPendente: permitirMigracaoCodigosPendente,
+    }),
   ]);
+  const codigosMedicoes = resultadoCodigosMedicoes.codigos;
   const medicoes = anexarCodigosRemotosAsMedicoes(
     medicoesSemCodigos,
     codigosMedicoes
@@ -357,7 +434,9 @@ async function reconciliarDadosSupabase() {
     validarDadosBaixados(nomeStore, registros);
   }
 
-  await substituirStoresComMerge(dadosRemotos);
+  await substituirStoresComMerge(dadosRemotos, {
+    preservarCodigosLocais: resultadoCodigosMedicoes.migracaoPendente,
+  });
 
   return {
     projetos: projetos.length,
@@ -365,6 +444,7 @@ async function reconciliarDadosSupabase() {
     campanhas: campanhas.length,
     medicoes: medicoes.length,
     codigos_amostras: codigosMedicoes.length,
+    migracaoCodigosPendente: resultadoCodigosMedicoes.migracaoPendente,
   };
 }
 

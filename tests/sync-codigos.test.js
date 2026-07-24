@@ -37,6 +37,8 @@ function carregarApi() {
 ${fonteSync}
 globalThis.syncCodigosTestApi = {
   anexarCodigosRemotosAsMedicoes,
+  baixarCodigosMedicoesSupabase,
+  preservarCodigosLocaisNasMedicoes,
   buscarCodigosRemotosDaMedicao,
   sincronizarCodigosDaMedicao,
   sincronizarMedicoes,
@@ -336,6 +338,44 @@ async function testarAnexacaoRemota(api) {
   assert.equal(resultado[1].codigos_amostras, undefined);
 }
 
+async function testarPreservacaoCodigosLocais(api) {
+  const remotas = [
+    {
+      local_id: "m-1",
+      codigo_frascaria: "REMOTO-LEGADO",
+      nivel_agua: 10,
+    },
+    {
+      local_id: "m-2",
+      codigo_frascaria: "SEM-LOCAL",
+    },
+  ];
+  const locais = [
+    {
+      local_id: "m-1",
+      sincronizado: true,
+      codigo_frascaria: "NORMAL-LOCAL",
+      codigos_amostras: [
+        { codigo: "NORMAL-LOCAL", tipo: "normal" },
+        { codigo: "DUP-LOCAL", tipo: "duplicata" },
+      ],
+    },
+  ];
+
+  const resultado = api.preservarCodigosLocaisNasMedicoes(
+    remotas,
+    locais,
+  );
+
+  assert.equal(resultado[0].nivel_agua, 10);
+  assert.equal(resultado[0].codigo_frascaria, "NORMAL-LOCAL");
+  assert.equal(resultado[0].codigos_amostras.length, 2);
+  assert.equal(resultado[0].sincronizado, false);
+  assert.equal(resultado[1].codigo_frascaria, "SEM-LOCAL");
+  assert.equal(resultado[1].codigos_amostras, undefined);
+  assert.equal(remotas[0].codigos_amostras, undefined);
+}
+
 async function testarInclusaoIdempotente(api) {
   const idRemoto = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
   const mock = criarMockCodigos([
@@ -620,7 +660,150 @@ async function testarFalhaERetry(api) {
       },
       [],
     ),
-    /migração da tabela medicao_codigos ainda não foi aplicada/i,
+    /tabela medicao_codigos não está disponível/i,
+  );
+}
+
+async function testarRestauracaoLegadaSemMigracao(api) {
+  const consultas = [];
+  const errosMigracao = [
+    {
+      code: "42P01",
+      message: 'relation "medicao_codigos" does not exist',
+    },
+    {
+      code: "PGRST205",
+      message:
+        "Could not find the table public.medicao_codigos in the schema cache",
+    },
+  ];
+
+  for (const erro of errosMigracao) {
+    api.configurarDependencias({
+      supabaseClient: {
+        from(tabela) {
+          consultas.push(tabela);
+          return {
+            select() {
+              return this;
+            },
+            order() {
+              return Promise.resolve({ data: null, error: erro });
+            },
+          };
+        },
+      },
+    });
+
+    const resultado = await api.baixarCodigosMedicoesSupabase({
+      permitirMigracaoPendente: true,
+    });
+
+    assert.deepEqual(copiar(resultado.codigos), []);
+    assert.equal(resultado.migracaoPendente, true);
+  }
+
+  assert.deepEqual(consultas, [
+    "medicao_codigos",
+    "medicao_codigos",
+  ]);
+
+  await assert.rejects(
+    api.baixarCodigosMedicoesSupabase(),
+    /tabela medicao_codigos não está disponível/i,
+  );
+
+  api.configurarDependencias({
+    supabaseClient: {
+      from() {
+        return {
+          select() {
+            return this;
+          },
+          order() {
+            return Promise.resolve({
+              data: [
+                {
+                  local_id: "codigo-1",
+                  medicao_local_id: "medicao-1",
+                  codigo: "NORMAL",
+                  tipo: "normal",
+                  ordem: 0,
+                },
+                {
+                  local_id: "codigo-2",
+                  medicao_local_id: "medicao-1",
+                  codigo: "DUPLICATA",
+                  tipo: "duplicata",
+                  ordem: 1,
+                },
+              ],
+              error: null,
+            });
+          },
+        };
+      },
+    },
+  });
+
+  const resultadoComTabela = await api.baixarCodigosMedicoesSupabase();
+  assert.equal(resultadoComTabela.migracaoPendente, false);
+  assert.equal(resultadoComTabela.codigos.length, 2);
+
+  api.configurarDependencias({
+    supabaseClient: {
+      from() {
+        return {
+          select() {
+            return this;
+          },
+          order() {
+            return Promise.resolve({
+              data: null,
+              error: {
+                code: "42501",
+                message: "permission denied",
+              },
+            });
+          },
+        };
+      },
+    },
+  });
+
+  await assert.rejects(
+    api.baixarCodigosMedicoesSupabase({
+      permitirMigracaoPendente: true,
+    }),
+    /erro ao baixar códigos das amostras.*permission denied/i,
+  );
+
+  api.configurarDependencias({
+    supabaseClient: {
+      from() {
+        return {
+          select() {
+            return this;
+          },
+          order() {
+            return Promise.resolve({
+              data: null,
+              error: {
+                code: "42P01",
+                message: 'relation "outra_tabela" does not exist',
+              },
+            });
+          },
+        };
+      },
+    },
+  });
+
+  await assert.rejects(
+    api.baixarCodigosMedicoesSupabase({
+      permitirMigracaoPendente: true,
+    }),
+    /erro ao baixar códigos das amostras.*outra_tabela/i,
   );
 }
 
@@ -711,11 +894,13 @@ async function testarOffline(instancia) {
 async function executar() {
   const instancia = carregarApi();
   await testarAnexacaoRemota(instancia.api);
+  await testarPreservacaoCodigosLocais(instancia.api);
   await testarInclusaoIdempotente(instancia.api);
   await testarRemocao(instancia.api);
   await testarRenomeacaoSemColisaoDeIds(instancia.api);
   await testarRemocaoComReusoDoCodigo(instancia.api);
   await testarFalhaERetry(instancia.api);
+  await testarRestauracaoLegadaSemMigracao(instancia.api);
   await testarPaiFalhaERetry(instancia.api);
   await testarMarcadorManualRestaurado(instancia.api);
   await testarOffline(instancia);
