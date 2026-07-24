@@ -17,6 +17,8 @@
       .ficha {
         max-width: 800px;
         margin: auto;
+        font-size: 13pt;
+        line-height: 1.3;
       }
 
       h1,
@@ -24,11 +26,24 @@
         color: #000;
       }
 
+      h1 {
+        font-size: 26pt;
+      }
+
+      h2 {
+        font-size: 19pt;
+      }
+
+      h3 {
+        font-size: 15pt;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
         margin: 10px 0 20px;
-        font-size: 12px;
+        font-size: 10.5pt;
+        line-height: 1.25;
       }
 
       th,
@@ -36,11 +51,14 @@
         border: 1px solid #333;
         padding: 6px;
         text-align: left;
+        overflow-wrap: anywhere;
       }
 
       .linha {
         margin-bottom: 6px;
-        font-size: 13px;
+        font-size: 11pt;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
       }
 
       .assinaturas {
@@ -61,12 +79,33 @@
       }
 
       @media print {
+        @page {
+          size: A4;
+        }
+
         .no-print {
           display: none;
         }
 
         body {
           padding: 0;
+        }
+
+        h1,
+        h2,
+        h3 {
+          break-after: avoid;
+        }
+
+        tr,
+        .linha,
+        li,
+        .assinaturas {
+          break-inside: avoid;
+        }
+
+        thead {
+          display: table-header-group;
         }
       }
     </style>

@@ -8,9 +8,11 @@
         <item name="colorAccent">@color/colorAccent</item>
 
         <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#075664</item>
         <item name="android:statusBarColor">#075664</item>
         <item name="android:navigationBarColor">#075664</item>
         <item name="android:windowLightStatusBar">false</item>
+
     </style>
 
     <style
@@ -20,9 +22,11 @@
 
         <item name="windowActionModeOverlay">true</item>
         <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#075664</item>
         <item name="android:statusBarColor">#075664</item>
         <item name="android:navigationBarColor">#075664</item>
         <item name="android:windowLightStatusBar">false</item>
+
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="AppTheme.NoActionBar" />

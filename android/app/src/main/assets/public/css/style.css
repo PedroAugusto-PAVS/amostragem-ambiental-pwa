@@ -630,7 +630,7 @@ html[data-theme="dark"] .admin-message.error { color: #ff9aaa; }
 
 @media (min-width: 700px) {
   .container { max-width: 760px; padding-right: 22px; padding-left: 22px; }
-  .bottom-nav { max-width: 760px; }
+  .bottom-nav { max-width: 760px; } 
   .float-btn { right: max(28px, calc((100vw - 760px) / 2 + 28px)); }
   .dashboard-hero { min-height: 170px; }
   .codigo-amostra-item {

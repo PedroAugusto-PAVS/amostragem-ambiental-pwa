@@ -71,7 +71,6 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   const cond = medicao.condicoes_ambientais || {};
   const leituras = medicao.leituras || [];
   const faixas = calcularFaixasAceitacao(leituras);
-  const codigosAmostras = obterCodigosDaMedicao(medicao);
 
   const jsPDF = window.jspdf?.jsPDF || window.jsPDF || window.jspdf;
 
@@ -181,14 +180,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(135, y, 135, y + 24);
 
   labelValor("Identificação do PM:", poco?.nome || medicao.poco_nome, 10, y + 8, 38, 6);
-  labelValor(
-    "Código principal:",
-    obterCodigoPrincipal(codigosAmostras),
-    10,
-    y + 20,
-    30,
-    6
-  );
+  labelValor("Código ALS:", medicao.codigo_frascaria, 10, y + 20, 28, 6);
 
   labelValor("Data Amostragem:", medicao.data_medicao, 78, y + 8, 34, 6);
   labelValor("Prof. Bomba:", `${texto(medicao.profundidade_bomba)} m`, 78, y + 20, 28, 6);
@@ -297,90 +289,6 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   doc.text(obs, 35, y + 21);
 
   y += 28;
-
-  /* CÓDIGOS DAS AMOSTRAS */
-  const alturaPagina =
-    typeof doc.internal.pageSize.getHeight === "function"
-      ? doc.internal.pageSize.getHeight()
-      : doc.internal.pageSize.height;
-  const limiteInferior = alturaPagina - margem;
-  const alturaTituloCodigos = 8;
-  const alturaLinhaCodigo = 4;
-
-  function desenharTituloCodigos(continuacao = false) {
-    box(margem, y, largura, alturaTituloCodigos);
-    center(
-      `Códigos das amostras${continuacao ? " (continuação)" : ""}`,
-      margem,
-      y + 5.5,
-      largura,
-      6.5,
-      true
-    );
-    y += alturaTituloCodigos;
-  }
-
-  function adicionarPaginaCodigos() {
-    doc.addPage();
-    y = margem;
-    desenharTituloCodigos(true);
-  }
-
-  if (y + alturaTituloCodigos + 7 > limiteInferior) {
-    doc.addPage();
-    y = margem;
-  }
-
-  desenharTituloCodigos();
-
-  const itensCodigos = codigosAmostras.length
-    ? codigosAmostras.map((item) => {
-        const codigo = texto(item.codigo);
-        const tipo = formatarTipoCodigoAmostra(item.tipo);
-        return `• ${codigo} — ${tipo}`;
-      })
-    : ["-"];
-
-  itensCodigos.forEach((item) => {
-    const linhas = doc.splitTextToSize(item, largura - 8);
-    let indiceLinha = 0;
-
-    while (indiceLinha < linhas.length) {
-      let linhasDisponiveis = Math.floor(
-        (limiteInferior - y - 3) / alturaLinhaCodigo
-      );
-
-      if (linhasDisponiveis < 1) {
-        adicionarPaginaCodigos();
-        linhasDisponiveis = Math.floor(
-          (limiteInferior - y - 3) / alturaLinhaCodigo
-        );
-      }
-
-      const trecho = linhas.slice(
-        indiceLinha,
-        indiceLinha + linhasDisponiveis
-      );
-      const alturaTrecho = trecho.length * alturaLinhaCodigo + 3;
-
-      box(margem, y, largura, alturaTrecho);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(5.8);
-      doc.text(trecho, margem + 4, y + 4.5, { lineHeightFactor: 1.2 });
-
-      y += alturaTrecho;
-      indiceLinha += trecho.length;
-
-      if (indiceLinha < linhas.length) adicionarPaginaCodigos();
-    }
-  });
-
-  y += 3;
-
-  if (y + 34 > limiteInferior) {
-    doc.addPage();
-    y = margem;
-  }
 
   /* ASSINATURAS */
   box(margem, y, largura, 34);
