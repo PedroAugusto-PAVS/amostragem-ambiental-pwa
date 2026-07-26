@@ -575,6 +575,71 @@ async function sincronizarProjetos(somenteExclusoes = false) {
 
 /* PMS / POÇOS */
 
+/**
+ * Converte valores destinados a colunas numeric do Supabase.
+ *
+ * Regras:
+ * - null, undefined, "" e espaços viram null;
+ * - números com vírgula decimal são convertidos para ponto;
+ * - valores numéricos válidos são enviados como Number;
+ * - valores não vazios e inválidos interrompem a sincronização com uma
+ *   mensagem que identifica o PM e o campo problemático.
+ */
+function normalizarNumeroPocoParaSupabase(valor, nomeCampo, localIdPoco) {
+  if (valor === null || valor === undefined) {
+    return null;
+  }
+
+  if (typeof valor === "string") {
+    const valorLimpo = valor.trim();
+
+    if (valorLimpo === "") {
+      return null;
+    }
+
+    let valorNormalizado = valorLimpo.replace(/\s/g, "");
+
+    // Aceita tanto o formato 10.5 quanto 10,5. Também trata valores
+    // formatados como 1.234,56 ou 1,234.56.
+    if (valorNormalizado.includes(",") && valorNormalizado.includes(".")) {
+      if (
+        valorNormalizado.lastIndexOf(",") >
+        valorNormalizado.lastIndexOf(".")
+      ) {
+        valorNormalizado = valorNormalizado
+          .replace(/\./g, "")
+          .replace(",", ".");
+      } else {
+        valorNormalizado = valorNormalizado.replace(/,/g, "");
+      }
+    } else {
+      valorNormalizado = valorNormalizado.replace(",", ".");
+    }
+
+    const numero = Number(valorNormalizado);
+
+    if (Number.isFinite(numero)) {
+      return numero;
+    }
+
+    throw new Error(
+      `Valor numérico inválido no campo ${nomeCampo} do PM ` +
+        `${localIdPoco || "sem local_id"}: "${valor}".`
+    );
+  }
+
+  const numero = Number(valor);
+
+  if (Number.isFinite(numero)) {
+    return numero;
+  }
+
+  throw new Error(
+    `Valor numérico inválido no campo ${nomeCampo} do PM ` +
+      `${localIdPoco || "sem local_id"}: ${String(valor)}.`
+  );
+}
+
 async function sincronizarPocos(somenteExclusoes = false) {
   const pocos = await listarPocosParaSync();
 
@@ -625,50 +690,86 @@ async function sincronizarPocos(somenteExclusoes = false) {
     if (!poco.sincronizado) {
       await verificarConflitoRemoto("pocos", poco);
 
-      const { error } = await supabaseClient.from("pocos").upsert(
-        {
-          local_id: poco.local_id,
-          usuario_id: poco.usuario_id,
+      const pocoParaSupabase = {
+        local_id: poco.local_id,
+        usuario_id: poco.usuario_id,
 
-          projeto_local_id: poco.projeto_local_id ?? null,
+        projeto_local_id: poco.projeto_local_id ?? null,
 
-          nome: poco.nome,
-          tipo: poco.tipo,
-          local_propriedade: poco.local_propriedade,
+        nome: poco.nome,
+        tipo: poco.tipo,
+        local_propriedade: poco.local_propriedade,
 
-          utm_e: poco.utm_e,
-          utm_n: poco.utm_n,
-          zona_utm: poco.zona_utm ?? null,
-          hemisferio_utm: poco.hemisferio_utm ?? null,
+        utm_e: poco.utm_e,
+        utm_n: poco.utm_n,
+        zona_utm: poco.zona_utm ?? null,
+        hemisferio_utm: poco.hemisferio_utm ?? null,
 
-          latitude: poco.latitude ?? null,
-          longitude: poco.longitude ?? null,
-          precisao_gps: poco.precisao_gps ?? null,
-          altitude_gps: poco.altitude_gps ?? null,
-          gps_capturado_em: poco.gps_capturado_em ?? null,
-          gps: poco.gps ?? null,
+        latitude: normalizarNumeroPocoParaSupabase(
+          poco.latitude,
+          "latitude",
+          poco.local_id
+        ),
+        longitude: normalizarNumeroPocoParaSupabase(
+          poco.longitude,
+          "longitude",
+          poco.local_id
+        ),
+        precisao_gps: normalizarNumeroPocoParaSupabase(
+          poco.precisao_gps,
+          "precisao_gps",
+          poco.local_id
+        ),
+        altitude_gps: normalizarNumeroPocoParaSupabase(
+          poco.altitude_gps,
+          "altitude_gps",
+          poco.local_id
+        ),
+        gps_capturado_em: poco.gps_capturado_em ?? null,
+        gps: poco.gps ?? null,
 
-          profundidade_total: poco.profundidade_total ?? null,
-          diametro: poco.diametro,
-          poco_com_cap: poco.poco_com_cap ?? null,
-          perfil_construtivo: poco.perfil_construtivo ?? null,
+        profundidade_total: normalizarNumeroPocoParaSupabase(
+          poco.profundidade_total,
+          "profundidade_total",
+          poco.local_id
+        ),
+        diametro: poco.diametro,
+        poco_com_cap: poco.poco_com_cap ?? null,
+        perfil_construtivo: poco.perfil_construtivo ?? null,
 
-          fotos: poco.fotos || [],
+        fotos: poco.fotos || [],
 
-          ativo: poco.ativo !== false,
+        ativo: poco.ativo !== false,
 
-          criado_em: poco.criado_em,
-          atualizado_em: new Date().toISOString(),
+        criado_em: poco.criado_em,
+        atualizado_em: new Date().toISOString(),
 
-          excluido: false,
+        excluido: false,
+      };
+
+      console.log("PM preparado para sincronização:", {
+        local_id: poco.local_id || "sem local_id",
+        campos_numericos: {
+          latitude: pocoParaSupabase.latitude,
+          longitude: pocoParaSupabase.longitude,
+          profundidade_total: pocoParaSupabase.profundidade_total,
+          precisao_gps: pocoParaSupabase.precisao_gps,
+          altitude_gps: pocoParaSupabase.altitude_gps,
         },
-        {
+      });
+
+      const { error } = await supabaseClient
+        .from("pocos")
+        .upsert(pocoParaSupabase, {
           onConflict: "local_id",
-        }
-      );
+        });
 
       if (error) {
-        console.error(error);
+        console.error("Erro retornado pelo Supabase ao sincronizar PM:", {
+          error,
+          local_id: poco.local_id || "sem local_id",
+          payload: pocoParaSupabase,
+        });
         throw new Error("Erro ao sincronizar PM: " + error.message);
       }
 

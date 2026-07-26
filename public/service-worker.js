@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v53";
+const CACHE_NAME = "pocos-cache-v54";
 
 const FILES_TO_CACHE = [
   "/",
@@ -34,6 +34,7 @@ const FILES_TO_CACHE = [
   "/js/supabase.js",
   "/js/auth.js",
   "/js/db-local.js",
+  "/js/backup-local.js",
   "/js/calculos.js",
   "/js/sync.js",
 
@@ -117,7 +118,9 @@ self.addEventListener("fetch", (event) => {
     fetch(event.request)
       .then((response) => {
         if (!response || !response.ok) {
-          return caches.match(event.request).then((cached) => cached || response);
+          return caches
+            .match(event.request)
+            .then((cached) => cached || response);
         }
 
         return response;

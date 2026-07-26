@@ -58,6 +58,53 @@
         </button>
       </section>
 
+
+      <section class="card">
+        <strong>Backup local do aparelho</strong>
+
+        <p>
+          Exporte todo o banco local do HydroTrack antes de atualizar,
+          trocar de aparelho ou fazer alterações importantes.
+        </p>
+
+        <button
+          type="button"
+          class="btn-blue"
+          id="btnExportarBackupLocal"
+        >
+          Exportar backup local
+        </button>
+
+        <br /><br />
+
+        <button
+          type="button"
+          class="btn-blue"
+          id="btnImportarBackupLocal"
+        >
+          Restaurar backup local
+        </button>
+
+        <input
+          type="file"
+          id="arquivoBackupLocal"
+          accept=".json,application/json"
+          hidden
+        />
+
+        <p id="statusBackupLocal" aria-live="polite">
+          Verificando histórico de backups...
+        </p>
+
+        <p>
+          <small>
+            A restauração mescla os dados e preserva registros locais
+            pendentes. Guarde o arquivo em um local seguro, como Google
+            Drive ou computador.
+          </small>
+        </p>
+      </section>
+
       <section class="card">
         <strong>Exportações</strong>
         <p>Gere arquivos das fichas salvas.</p>
@@ -88,10 +135,10 @@
     </main>
 
     <nav class="bottom-nav">
-      <a href="menu.html"><span>☰</span>Menu</a>
-      <a href="dashboard.html"><span>⌂</span>Poços</a>
-      <a href="projetos.html"><span>▦</span>Projetos</a>
-      <a href="campanhas.html"><span>📋</span>Campanhas</a>
+      <a href="menu.html" class="active"><span>☰</span>Menu</a>
+      <a href="dashboard.html" class="active"><span>⌂</span>Poços</a>
+      <a href="projetos.html" class="active"><span>▦</span>Projetos</a>
+      <a href="campanhas.html" class="active"><span>📋</span>Campanhas</a>
       <a href="configuracoes.html" class="active"><span>⚙</span>Config.</a>
     </nav>
 
@@ -100,6 +147,7 @@
 
     <script src="js/supabase.js"></script>
     <script src="js/db-local.js"></script>
+    <script src="js/backup-local.js"></script>
     <script src="js/sync.js"></script>
     <script src="js/pdf.js"></script>
     <script src="js/pdf-fiscal.js"></script>
