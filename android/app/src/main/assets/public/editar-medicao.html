@@ -20,12 +20,12 @@
       <form class="form-card">
         <div class="grid">
           <div>
-            <label>Data da medição</label>
+        <label for="dataMedicao">Data da medição</label>
             <input type="date" id="dataMedicao" />
           </div>
 
           <div>
-            <label>Mês referência</label>
+        <label for="mesReferencia">Mês referência</label>
             <input type="month" id="mesReferencia" />
           </div>
         </div>
@@ -51,16 +51,16 @@
           </button>
         </fieldset>
 
-        <label>Responsável ALS</label>
+        <label for="responsavelAls">Responsável ALS</label>
         <input id="responsavelAls" placeholder="Ex.: Pedro Augusto" />
 
-        <label>Profundidade Total Medida (m)</label>
+        <label for="profundidadeTotalMes">Profundidade Total Medida (m)</label>
         <input type="number" step="0.01" id="profundidadeTotalMes" />
 
-        <label>Nível d'água / NA (m)</label>
+        <label for="nivelAgua">Nível d'água / NA (m)</label>
         <input type="number" step="0.01" id="nivelAgua" />
 
-        <label>Profundidade da bomba (m)</label>
+        <label for="profundidadeBomba">Profundidade da bomba (m)</label>
         <input type="number" step="0.01" id="profundidadeBomba" />
 
         <div class="result-box">
@@ -80,12 +80,12 @@
 
         <div class="grid">
           <div>
-            <label>Horário inicial</label>
+          <label for="horarioInicial">Horário inicial</label>
             <input type="time" id="horarioInicial" />
           </div>
 
           <div>
-            <label>Quantidade</label>
+          <label for="quantidadeLeituras">Quantidade</label>
             <input type="number" id="quantidadeLeituras" value="6" min="1" />
           </div>
         </div>
@@ -133,7 +133,7 @@
         <h3>Condições da Água</h3>
 
         <div class="grid">
-          <select id="corAgua">
+          <select id="corAgua" aria-label="Cor da água">
             <option value="">Cor da água</option>
             <option value="Incolor">Incolor</option>
             <option value="Amarelada">Amarelada</option>
@@ -142,7 +142,7 @@
             <option value="Esverdeada">Esverdeada</option>
           </select>
 
-          <select id="odorAgua">
+          <select id="odorAgua" aria-label="Odor da água">
             <option value="">Odor</option>
             <option value="Ausente">Ausente</option>
             <option value="Fraco">Fraco</option>
@@ -151,13 +151,13 @@
         </div>
 
         <div class="grid">
-          <select id="oleoAgua">
+          <select id="oleoAgua" aria-label="Presença de óleo">
             <option value="">Óleo</option>
             <option value="Não">Não</option>
             <option value="Sim">Sim</option>
           </select>
 
-          <select id="espumaAgua">
+          <select id="espumaAgua" aria-label="Presença de espuma">
             <option value="">Espuma</option>
             <option value="Não">Não</option>
             <option value="Sim">Sim</option>
@@ -165,13 +165,13 @@
         </div>
 
         <div class="grid">
-          <select id="materialFlutuante">
+          <select id="materialFlutuante" aria-label="Presença de material flutuante">
             <option value="">Material flutuante</option>
             <option value="Não">Não</option>
             <option value="Sim">Sim</option>
           </select>
 
-          <select id="chuva24h">
+          <select id="chuva24h" aria-label="Ocorrência de chuva nas últimas 24 horas">
             <option value="">Chuva 24h</option>
             <option value="Não">Não</option>
             <option value="Sim">Sim</option>
@@ -183,11 +183,13 @@
           step="0.1"
           id="temperaturaAmbiente"
           placeholder="Temperatura ambiente °C"
+          aria-label="Temperatura ambiente em graus Celsius"
         />
 
         <textarea
           id="observacoesGerais"
           placeholder="Observações gerais"
+          aria-label="Observações gerais"
         ></textarea>
 
         <h3>Fotos Existentes</h3>
@@ -198,6 +200,7 @@
         <input
           type="file"
           id="fotosMedicao"
+          aria-label="Adicionar novas fotos da medição"
           accept="image/*"
           capture="environment"
           multiple

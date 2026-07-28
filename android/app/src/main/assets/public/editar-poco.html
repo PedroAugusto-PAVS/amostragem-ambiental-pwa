@@ -18,15 +18,15 @@
       </div>
 
       <form class="form-card">
-        <label>Projeto</label>
+        <label for="projetoSelect">Projeto</label>
         <select id="projetoSelect">
           <option value="">Sem projeto</option>
         </select>
 
-        <label>Nome do poço *</label>
+        <label for="nomePoco">Nome do poço *</label>
         <input id="nomePoco" />
 
-        <label>Tipo do ponto *</label>
+        <label for="tipoPoco">Tipo do ponto *</label>
         <select id="tipoPoco">
           <option value="">Selecione</option>
           <option value="PM">PM - Poço de Monitoramento</option>
@@ -37,60 +37,60 @@
           <option value="OUTRO">Outro</option>
         </select>
 
-        <label>Local / Propriedade</label>
+        <label for="localPropriedade">Local / Propriedade</label>
         <input id="localPropriedade" />
 
         <h3>Localização GPS</h3>
 
         <div class="grid">
           <div>
-            <label>UTM E</label>
+        <label for="utmE">UTM E</label>
             <input id="utmE" />
           </div>
 
           <div>
-            <label>UTM N</label>
+        <label for="utmN">UTM N</label>
             <input id="utmN" />
           </div>
         </div>
 
         <div class="grid">
           <div>
-            <label>Zona UTM</label>
+        <label for="zonaUtm">Zona UTM</label>
             <input id="zonaUtm" readonly />
           </div>
 
           <div>
-            <label>Hemisfério</label>
+        <label for="hemisferioUtm">Hemisfério</label>
             <input id="hemisferioUtm" readonly />
           </div>
         </div>
 
         <div class="grid">
           <div>
-            <label>Latitude</label>
+        <label for="latitudeGps">Latitude</label>
             <input id="latitudeGps" />
           </div>
 
           <div>
-            <label>Longitude</label>
+        <label for="longitudeGps">Longitude</label>
             <input id="longitudeGps" />
           </div>
         </div>
 
         <div class="grid">
           <div>
-            <label>Precisão GPS</label>
+        <label for="precisaoGps">Precisão GPS</label>
             <input id="precisaoGps" readonly />
           </div>
 
           <div>
-            <label>Altitude</label>
+        <label for="altitudeGps">Altitude</label>
             <input id="altitudeGps" readonly />
           </div>
         </div>
 
-        <label>Data/Hora da captura GPS</label>
+        <label for="dataHoraGps">Data/Hora da captura GPS</label>
         <input id="dataHoraGps" readonly />
 
         <button type="button" class="btn-primary" onclick="capturarGPS()">
@@ -105,17 +105,17 @@
 
         <h3>Dados Básicos do Poço</h3>
 
-        <label>Profundidade total do poço (m)</label>
+        <label for="profundidadeTotal">Profundidade total do poço (m)</label>
         <input type="number" step="0.01" id="profundidadeTotal" />
 
-        <label>Diâmetro do poço</label>
+        <label for="diametro">Diâmetro do poço</label>
         <select id="diametro">
           <option value="">Selecione</option>
           <option value="5">5 cm - Área 2.03</option>
           <option value="2.5">2,5 cm - Área 0.51</option>
         </select>
 
-        <label>Poço com CAP?</label>
+        <label for="pocoComCap">Poço com CAP?</label>
         <select id="pocoComCap">
           <option value="">Selecione</option>
           <option value="Sim">Sim</option>
@@ -126,53 +126,53 @@
 
         <div class="grid">
           <div>
-            <label>Boca do tubo (m)</label>
+        <label for="bocaTubo">Boca do tubo (m)</label>
             <input type="number" step="0.01" id="bocaTubo" />
           </div>
 
           <div>
-            <label>Cota do terreno (m)</label>
+        <label for="cotaTerreno">Cota do terreno (m)</label>
             <input type="number" step="0.01" id="cotaTerreno" />
           </div>
         </div>
 
         <div class="grid">
           <div>
-            <label>Cota do tubo (m)</label>
+        <label for="cotaTubo">Cota do tubo (m)</label>
             <input type="number" step="0.01" id="cotaTubo" />
           </div>
 
           <div>
-            <label>Nível estático (m)</label>
+        <label for="nivelEstatico">Nível estático (m)</label>
             <input type="number" step="0.01" id="nivelEstatico" />
           </div>
         </div>
 
         <div class="grid">
           <div>
-            <label>Zona filtrante inicial (m)</label>
+        <label for="zonaFiltranteInicio">Zona filtrante inicial (m)</label>
             <input type="number" step="0.01" id="zonaFiltranteInicio" />
           </div>
 
           <div>
-            <label>Zona filtrante final (m)</label>
+        <label for="zonaFiltranteFim">Zona filtrante final (m)</label>
             <input type="number" step="0.01" id="zonaFiltranteFim" />
           </div>
         </div>
 
-        <label>Seção filtrante</label>
+        <label for="secaoFiltrante">Seção filtrante</label>
         <input
           id="secaoFiltrante"
           placeholder="Ex.: PVC ranhurado, tela inox"
         />
 
-        <label>Pré-filtro</label>
+        <label for="preFiltro">Pré-filtro</label>
         <input id="preFiltro" placeholder="Ex.: areia selecionada" />
 
-        <label>Revestimento</label>
+        <label for="revestimento">Revestimento</label>
         <input id="revestimento" placeholder="Ex.: PVC geomecânico 2 pol" />
 
-        <label>Tipo de tampa</label>
+        <label for="tipoTampa">Tipo de tampa</label>
         <select id="tipoTampa">
           <option value="">Selecione</option>
           <option value="Tampa metálica">Tampa metálica</option>
@@ -182,7 +182,7 @@
           <option value="Outro">Outro</option>
         </select>
 
-        <label>Condição do poço</label>
+        <label for="condicaoPoco">Condição do poço</label>
         <select id="condicaoPoco">
           <option value="">Selecione</option>
           <option value="Bom">Bom</option>
@@ -192,7 +192,7 @@
           <option value="Sem identificação">Sem identificação</option>
         </select>
 
-        <label>Status de amostragem</label>
+        <label for="statusAmostragem">Status de amostragem</label>
         <select id="statusAmostragem">
           <option value="">Normal / disponivel</option>
           <option value="SECO">Poco seco</option>
@@ -200,7 +200,7 @@
           <option value="JORRANTE">Poço Jorrante</option>
         </select>
 
-        <label>Observações construtivas</label>
+        <label for="observacoesConstrutivas">Observações construtivas</label>
         <textarea id="observacoesConstrutivas"></textarea>
 
         <br /><br />
