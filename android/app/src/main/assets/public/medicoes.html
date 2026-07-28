@@ -18,11 +18,13 @@
         <p>Historico das coletas</p>
       </div>
 
-      <section class="card offline-card">
-        <div class="offline-icon">↻</div>
+      <section class="card offline-card sync-status-card">
+        <div class="offline-icon sync-status-icon" aria-hidden="true">↻</div>
         <div>
           <strong>Status</strong>
-          <p id="statusSync">Dados salvos localmente</p>
+          <p id="statusSync" role="status" aria-live="polite">
+            Dados salvos localmente
+          </p>
         </div>
       </section>
 

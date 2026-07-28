@@ -553,8 +553,27 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .export-item, .pm-selection-item { min-height: 58px; padding: 11px 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
 .export-item:last-child, .pm-selection-item:last-child { border-bottom: none; }
 
-.admin-message { margin-bottom: 14px; padding: 12px 14px; border: 1px solid #bceccc; border-left: 5px solid var(--green); border-radius: 12px; background: var(--green-soft); color: var(--green); font-size: 13px; line-height: 1.4; box-shadow: var(--shadow-soft); }
+.feedback-message,
+.admin-message {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-left: 5px solid var(--primary);
+  border-radius: 12px;
+  background: var(--teal-soft);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: var(--shadow-soft);
+}
+.feedback-message:empty { display: none; }
+.admin-message { margin-top: 0; margin-bottom: 14px; border-color: #bceccc; border-left-color: var(--green); background: var(--green-soft); color: var(--green); }
+.feedback-success,
+.admin-message.success { border-color: #bceccc; border-left-color: var(--green); background: var(--green-soft); color: var(--green); }
+.feedback-error,
 .admin-message.error { border-color: #ffc8cc; border-left-color: var(--red); background: var(--red-soft); color: var(--red); }
+.feedback-warning { border-color: #f4d891; border-left-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+.feedback-info { border-color: var(--border-strong); border-left-color: var(--primary-blue); background: var(--blue-soft); color: var(--text); }
 .admin-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 18px; }
 .admin-list-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .admin-list-heading span { margin-bottom: 12px; color: var(--muted); font-size: 12px; }
@@ -567,7 +586,24 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .admin-user-header > div { min-width: 0; }
 .admin-user-header strong { display: block; color: var(--text); font-size: 14px; }
 .admin-user-header p { overflow-wrap: anywhere; }
-.admin-status { flex: 0 0 auto; padding: 5px 9px; border-radius: 999px; font-size: 10px; font-weight: 750; }
+.status-badge,
+.admin-status,
+.status-ok,
+.status-pending,
+.status-dry,
+.status-low-sample {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+.admin-status { flex: 0 0 auto; }
 .admin-status.active { border: 1px solid #a5e7bd; background: var(--green-soft); color: var(--green); }
 .admin-status.inactive { border: 1px solid #ffc0c4; background: var(--red-soft); color: var(--red); }
 .admin-user-details { margin-top: 10px; }
@@ -579,10 +615,10 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .admin-principal-badge { width: fit-content; margin-top: 7px; padding: 5px 9px; border: 1px solid #f4d891; border-radius: 999px; background: var(--gold-soft); color: var(--gold); font-size: 10px; font-weight: 800; }
 .admin-principal-badge::before { content: "♛ "; }
 
-.status-ok { background: var(--green-soft) !important; color: var(--green) !important; }
-.status-pending { background: var(--orange-soft) !important; color: var(--orange) !important; }
-.status-dry { background: var(--red-soft) !important; color: var(--red) !important; }
-.status-low-sample { background: var(--gold-soft) !important; color: var(--gold) !important; }
+.status-ok { border-color: #a5e7bd !important; background: var(--green-soft) !important; color: var(--green) !important; }
+.status-pending { border-color: #f7d18c !important; background: var(--orange-soft) !important; color: var(--orange) !important; }
+.status-dry { border-color: #ffc0c4 !important; background: var(--red-soft) !important; color: var(--red) !important; }
+.status-low-sample { border-color: #f4d891 !important; background: var(--gold-soft) !important; color: var(--gold) !important; }
 
 .result-box { margin-top: 12px; padding: 13px; border-left: 5px solid var(--primary); border-radius: var(--radius); background: var(--teal-soft); }
 .result-box p { margin: 7px 0; color: var(--text); }
@@ -600,11 +636,17 @@ tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: var(--surface-soft); }
 td input, td select { min-width: 75px; min-height: 38px; padding: 0 8px; font-size: 13px; }
 
-.offline-card { display: flex; align-items: center; gap: 12px; }
-.offline-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+.offline-card,
+.sync-status-card { display: flex; align-items: center; gap: 12px; }
+.offline-icon,
+.sync-status-icon { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+.sync-status-card [aria-live] { margin-top: 3px; }
 
+.empty-state,
 .dashboard-empty-state { padding: 25px 18px; border: 1px dashed var(--border-strong); border-radius: 14px; background: var(--surface-soft); text-align: center; }
+.empty-state strong,
 .dashboard-empty-state strong { display: block; margin-bottom: 6px; }
+.empty-state p,
 .dashboard-empty-state p { margin: 0; color: var(--muted); font-size: 13px; }
 
 .float-btn {
@@ -695,7 +737,9 @@ html[data-theme="dark"] .login-page {
 }
 html[data-theme="dark"] input::placeholder,
 html[data-theme="dark"] textarea::placeholder { color: #718892; }
+html[data-theme="dark"] .feedback-success,
 html[data-theme="dark"] .admin-message { color: #8ef0b0; }
+html[data-theme="dark"] .feedback-error,
 html[data-theme="dark"] .admin-message.error { color: #ff9aaa; }
 
 @media (min-width: 700px) {
