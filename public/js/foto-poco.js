@@ -84,11 +84,8 @@ async function carregarFotos() {
 
         <img
         src="${foto.base64}"
-        style="
-        width:100%;
-        border-radius:12px;
-        margin-top:10px;
-        ">
+        class="media-photo"
+        alt="Foto ${index + 1} do PM">
 
       </div>
       `;
@@ -122,11 +119,8 @@ async function carregarFotos() {
 
             <img
             src="${foto.base64}"
-            style="
-            width:100%;
-            border-radius:12px;
-            margin-top:10px;
-            ">
+            class="media-photo"
+            alt="Foto ${index + 1} da medição ${medicao.mes_referencia || ""}">
 
           </div>
           `;

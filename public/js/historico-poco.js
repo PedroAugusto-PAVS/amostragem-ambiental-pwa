@@ -36,7 +36,7 @@ async function carregarHistorico() {
       <p>Tipo: ${pocoAtual.tipo || "-"}</p>
       <p>Local: ${pocoAtual.local_propriedade || "-"}</p>
 
-      <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+      <hr class="content-divider">
 
       <strong>Localização</strong>
       <p>UTM E: ${pocoAtual.utm_e || "-"}</p>
@@ -56,7 +56,7 @@ async function carregarHistorico() {
           : "-"
       }</p>
 
-      <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+      <hr class="content-divider">
 
       <strong>Dados do PM</strong>
       <p>Profundidade total cadastrada: ${
@@ -149,7 +149,7 @@ async function carregarHistorico() {
   Imprimir ficha
 </button>
 
-<button class="btn-blue" style="background:#ef4444;" onclick="excluirMedicao('${
+<button class="btn-danger" onclick="excluirMedicao('${
       m.local_id
     }')">
   Excluir

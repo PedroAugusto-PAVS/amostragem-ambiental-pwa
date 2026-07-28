@@ -134,8 +134,18 @@ function renderizarResumoCampanha() {
         <div><strong>${pendentes}</strong><span>pendentes</span></div>
       </div>
 
-      <div class="campaign-progress">
-        <div style="width:${progresso}%"></div>
+      <div
+        class="campaign-progress"
+        role="progressbar"
+        aria-label="Progresso da campanha"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="${progresso}"
+      >
+        <div
+          class="campaign-progress-value"
+          style="--progress:${progresso}%"
+        ></div>
       </div>
 
       <p>${progresso}% concluido</p>

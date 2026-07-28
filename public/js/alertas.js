@@ -138,7 +138,7 @@ function num(valor) {
   
     const linhas = estabilizacao.resultados.map((r) => {
       return `
-        <div class="card" style="margin-top:10px;">
+        <div class="card nested-card">
           <strong>
             ${r.referencia ? "Referência" : `Linha ${r.linha}`}
             - ${r.horario || ""}
@@ -161,7 +161,7 @@ function num(valor) {
   
         <p>${estabilizacao.mensagem}</p>
   
-        <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+        <hr class="content-divider">
   
         <strong>Limites aceitos usando a 1ª leitura como referência</strong>
   

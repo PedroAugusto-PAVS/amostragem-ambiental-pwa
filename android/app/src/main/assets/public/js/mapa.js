@@ -48,7 +48,7 @@ function renderizarMapa(pocos) {
         <p>Projeto: ${projeto ? projeto.nome : "Sem projeto"}</p>
         <p>Local: ${poco.local_propriedade || "-"}</p>
 
-        <hr style="border:none;border-top:1px solid #dde6f2;margin:12px 0;">
+        <hr class="content-divider">
 
         <p>UTM E: ${poco.utm_e || "-"}</p>
         <p>UTM N: ${poco.utm_n || "-"}</p>

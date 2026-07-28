@@ -522,6 +522,15 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
   border: 0;
   background: var(--border);
 }
+.nested-card { margin-top: 10px; }
+.media-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 12px;
+  object-fit: cover;
+}
 
 .poco-item, .dashboard-pm-card { display: flex; align-items: center; gap: 12px; margin: 0; padding: 13px; }
 .dashboard-pm-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }

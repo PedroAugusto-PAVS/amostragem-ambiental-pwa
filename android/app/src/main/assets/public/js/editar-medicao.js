@@ -252,7 +252,8 @@ function renderizarFotosExistentes() {
         <p>${foto.criado_em ? new Date(foto.criado_em).toLocaleString("pt-BR") : ""}</p>
         <img 
           src="${foto.base64}" 
-          style="width:100%; border-radius:12px; margin-top:10px;"
+          class="media-photo"
+          alt="Foto ${index + 1} da medição"
         >
       </div>
     `;
