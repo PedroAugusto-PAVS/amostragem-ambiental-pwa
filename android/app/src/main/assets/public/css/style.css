@@ -425,33 +425,6 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
   line-height: 1.3;
 }
 
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  min-height: calc(62px + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) 14px 0;
-  color: #fff;
-  background: linear-gradient(135deg, var(--header), var(--primary));
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  box-shadow: 0 8px 20px rgba(5, 86, 100, 0.20);
-}
-.app-header h2 { min-width: 0; flex: 1; margin: 0; font-size: 18px; letter-spacing: -0.3px; }
-.icon-btn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 11px;
-  background: transparent;
-  color: #fff;
-  font-size: 23px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .dashboard-hero {
   position: relative;
   overflow: hidden;
@@ -661,12 +634,6 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 
 .result-box { margin-top: 12px; padding: 13px; border-left: 5px solid var(--primary); border-radius: var(--radius); background: var(--teal-soft); }
 .result-box p { margin: 7px 0; color: var(--text); }
-.steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 18px; text-align: center; }
-.step { color: var(--muted); font-size: 12px; }
-.step-circle { width: 36px; height: 36px; margin: 0 auto 6px; border-radius: 50%; background: var(--surface-muted); display: flex; align-items: center; justify-content: center; }
-.step.active { color: var(--primary-blue); font-weight: bold; }
-.step.active .step-circle { background: var(--primary-blue); color: #fff; }
-
 .table-wrapper { overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid var(--border); border-radius: 13px; background: var(--surface); scrollbar-gutter: stable; }
 table { width: 100%; border-collapse: collapse; background: var(--surface); color: var(--text); font-size: 12px; }
 th { padding: 10px 8px; background: var(--surface-soft); color: var(--text); font-weight: 750; line-height: 1.3; text-align: left; }
