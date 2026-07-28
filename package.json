@@ -1,6 +1,6 @@
 {
     "name": "amostragem-ambiental-pwa",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "description": "App offline de amostragem ambiental com Supabase",
     "main": "server.js",
     "scripts": {

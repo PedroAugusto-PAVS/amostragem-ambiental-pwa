@@ -1,7 +1,130 @@
-const DB_NAME = "amostragem_offline";
+const DB_NAME_LEGADO = "amostragem_offline";
 const DB_VERSION = 6;
+const DB_STORES = ["projetos", "campanhas", "pocos", "medicoes"];
+
+function obterUsuarioDoContextoLocal() {
+  if (typeof localStorage === "undefined") return null;
+
+  try {
+    const usuarioSalvo = JSON.parse(localStorage.getItem("usuario") || "null");
+    return usuarioSalvo?.id ? usuarioSalvo : null;
+  } catch {
+    return null;
+  }
+}
+
+const USUARIO_BANCO_LOCAL = obterUsuarioDoContextoLocal();
+const EH_NAVEGADOR =
+  typeof window !== "undefined" &&
+  typeof localStorage !== "undefined" &&
+  typeof indexedDB !== "undefined";
+
+if (EH_NAVEGADOR && !USUARIO_BANCO_LOCAL) {
+  if (typeof window.location?.replace === "function") {
+    window.location.replace("index.html");
+  } else if (window.location) {
+    window.location.href = "index.html";
+  }
+}
+
+const DB_OWNER_ID = USUARIO_BANCO_LOCAL?.id || "contexto-sem-usuario";
+const DB_OWNER_SEGMENTO = String(DB_OWNER_ID).replace(/[^a-zA-Z0-9_-]/g, "_");
+const DB_NAME = `${DB_NAME_LEGADO}_${DB_OWNER_SEGMENTO}`;
+const DB_MIGRATION_KEY = `hydrotrack_db_isolado_${DB_OWNER_SEGMENTO}`;
 
 let db;
+let migracaoLegadoEmAndamento = null;
+
+function bancoExiste(nome) {
+  if (typeof indexedDB.databases !== "function") return Promise.resolve(true);
+
+  return indexedDB
+    .databases()
+    .then((bancos) => bancos.some((banco) => banco.name === nome));
+}
+
+function abrirBancoPorNome(nome) {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(nome);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function lerRegistrosDoBanco(banco, storeName) {
+  return new Promise((resolve, reject) => {
+    if (!banco.objectStoreNames.contains(storeName)) {
+      resolve([]);
+      return;
+    }
+
+    const request = banco
+      .transaction([storeName], "readonly")
+      .objectStore(storeName)
+      .getAll();
+
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function adicionarRegistrosAusentes(banco, storeName, registros) {
+  if (!registros.length) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const tx = banco.transaction([storeName], "readwrite");
+    const store = tx.objectStore(storeName);
+
+    registros.forEach((registro) => {
+      const request = store.add(registro);
+      request.onerror = (event) => {
+        if (request.error?.name === "ConstraintError") {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+    });
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}
+
+async function migrarBancoLegadoParaUsuario(bancoDestino) {
+  if (
+    !EH_NAVEGADOR ||
+    !USUARIO_BANCO_LOCAL ||
+    localStorage.getItem(DB_MIGRATION_KEY) === "concluida"
+  ) {
+    return;
+  }
+
+  if (!(await bancoExiste(DB_NAME_LEGADO))) {
+    localStorage.setItem(DB_MIGRATION_KEY, "concluida");
+    return;
+  }
+
+  const bancoLegado = await abrirBancoPorNome(DB_NAME_LEGADO);
+
+  try {
+    for (const storeName of DB_STORES) {
+      const registros = await lerRegistrosDoBanco(bancoLegado, storeName);
+      const registrosDoUsuario = registros.filter(
+        (registro) => String(registro?.usuario_id || "") === String(DB_OWNER_ID),
+      );
+      await adicionarRegistrosAusentes(
+        bancoDestino,
+        storeName,
+        registrosDoUsuario,
+      );
+    }
+
+    localStorage.setItem(DB_MIGRATION_KEY, "concluida");
+  } finally {
+    bancoLegado.close();
+  }
+}
 
 function abrirBancoLocal() {
   return new Promise((resolve, reject) => {
@@ -9,9 +132,15 @@ function abrirBancoLocal() {
 
     request.onerror = () => reject("Erro ao abrir IndexedDB");
 
-    request.onsuccess = () => {
+    request.onsuccess = async () => {
       db = request.result;
-      resolve(db);
+      try {
+        migracaoLegadoEmAndamento ||= migrarBancoLegadoParaUsuario(db);
+        await migracaoLegadoEmAndamento;
+        resolve(db);
+      } catch (erro) {
+        reject(erro);
+      }
     };
 
     request.onupgradeneeded = (event) => {

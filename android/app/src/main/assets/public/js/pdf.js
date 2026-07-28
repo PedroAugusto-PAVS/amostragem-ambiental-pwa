@@ -106,7 +106,38 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     txt(texto(valor), x + wLabel, y, size, false);
   }
 
-  
+  function adicionarPaginasCodigosAmostras() {
+    if (typeof obterCodigosDaMedicao !== "function") return;
+
+    const codigos = obterCodigosDaMedicao(medicao);
+    const itensPorPagina = 24;
+
+    for (let inicio = 0; inicio < codigos.length; inicio += itensPorPagina) {
+      doc.addPage();
+      txt("Códigos das amostras", margem, 18, 12, true);
+      txt(
+        `${texto(poco?.nome || medicao.poco_nome)} — ${texto(medicao.data_medicao)}`,
+        margem,
+        25,
+        7
+      );
+
+      codigos
+        .slice(inicio, inicio + itensPorPagina)
+        .forEach((item, indice) => {
+          const tipo =
+            typeof formatarTipoCodigoAmostra === "function"
+              ? formatarTipoCodigoAmostra(item.tipo)
+              : texto(item.tipo);
+          txt(
+            `${inicio + indice + 1}. ${texto(item.codigo)} — ${tipo}`,
+            margem,
+            35 + indice * 9,
+            7
+          );
+        });
+    }
+  }
 
   const margem = 8;
   const largura = 194;
@@ -302,6 +333,8 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   txt("Responsável Cliente:", 110, y + 22, 6, true);
   line(152, y + 22, 195, y + 22);
   txt("Assinatura", 158, y + 27, 5.4);
+
+  adicionarPaginasCodigosAmostras();
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")

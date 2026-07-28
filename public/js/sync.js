@@ -747,17 +747,6 @@ async function sincronizarPocos(somenteExclusoes = false) {
         excluido: false,
       };
 
-      console.log("PM preparado para sincronização:", {
-        local_id: poco.local_id || "sem local_id",
-        campos_numericos: {
-          latitude: pocoParaSupabase.latitude,
-          longitude: pocoParaSupabase.longitude,
-          profundidade_total: pocoParaSupabase.profundidade_total,
-          precisao_gps: pocoParaSupabase.precisao_gps,
-          altitude_gps: pocoParaSupabase.altitude_gps,
-        },
-      });
-
       const { error } = await supabaseClient
         .from("pocos")
         .upsert(pocoParaSupabase, {
@@ -786,26 +775,18 @@ async function sincronizarPocos(somenteExclusoes = false) {
 
 async function sincronizarCampanhas(somenteExclusoes = false) {
   const campanhas = await listarCampanhasParaSync();
-  console.log("Campanhas para sincronizar:", campanhas);
 
   for (const campanha of campanhas) {
     /* ==========================
        EXCLUSÃO
     =========================== */
 
-    console.log("Sincronizando campanha:", campanha);
-    console.log("Excluído:", campanha.excluido);
-
     if (campanha.excluido === true) {
-      console.log("EXCLUINDO DO SUPABASE:", campanha.local_id);
       const { data, error } = await supabaseClient
         .from("campanhas")
         .delete()
         .eq("local_id", campanha.local_id)
         .select();
-
-      console.log("DELETE retornou:", data);
-      console.log("DELETE erro:", error); 
 
       if (error) {
         console.error(error);

@@ -4,6 +4,8 @@ Aplicativo profissional para gerenciamento de projetos, campanhas, poços de mon
 
 O HydroTrack foi desenvolvido para facilitar atividades de campo, permitindo registrar informações mesmo sem conexão com a internet e sincronizá-las posteriormente com o banco de dados em nuvem.
 
+Versão atual: **1.2.0**.
+
 ---
 
 ## Visão geral
@@ -189,30 +191,22 @@ O HydroTrack gera fichas de campo em PDF com informações como:
 
 ```text
 HydroTrack/
-├── android/
-├── css/
-│   └── style.css
-├── icons/
-├── js/
-│   ├── auth.js
-│   ├── backup-local.js
-│   ├── calculos.js
-│   ├── configuracoes.js
-│   ├── db-local.js
-│   ├── pdf.js
-│   ├── supabase.js
-│   ├── sync.js
-│   └── outros arquivos JavaScript
-├── libs/
-│   └── jspdf.umd.min.js
-├── index.html
-├── dashboard.html
-├── projetos.html
-├── campanhas.html
-├── configuracoes.html
-├── manifest.json
-├── service-worker.js
-├── capacitor.config.ts
+├── .github/workflows/       # validação e build Android na CI
+├── android/                 # projeto nativo gerado pelo Capacitor
+├── public/                  # aplicação web e PWA
+│   ├── css/
+│   ├── icons/
+│   ├── js/
+│   ├── libs/
+│   ├── index.html
+│   ├── manifest.json
+│   └── service-worker.js
+├── supabase/
+│   ├── functions/           # Edge Functions administrativas
+│   └── migrations/          # schema e políticas RLS versionadas
+├── tests/
+├── capacitor.config.json
+├── package.json
 └── README.md
 ```
 
@@ -260,7 +254,7 @@ npm install
 Configure a URL e a chave pública do projeto no arquivo responsável pela conexão, normalmente:
 
 ```text
-js/supabase.js
+public/js/supabase.js
 ```
 
 Exemplo:
@@ -290,15 +284,15 @@ A chave `service_role` nunca deve ser usada no front-end.
 
 ## Executar no navegador
 
-O projeto pode ser executado com uma extensão de servidor local ou outro servidor HTTP.
+O projeto possui um servidor HTTP local para desenvolvimento.
 
 Exemplo:
 
 ```bash
-npx serve .
+npm run dev
 ```
 
-Acesse o endereço exibido no terminal.
+Acesse `http://localhost:3000`.
 
 Algumas APIs, como geolocalização e Service Worker, exigem:
 
@@ -468,13 +462,11 @@ Melhorias previstas:
 
 ---
 
-## Propriedade intelectual
+## Licença
 
-O HydroTrack, seu código-fonte, identidade visual, estrutura, documentação e funcionalidades pertencem ao seu titular.
-
-A disponibilização do código em repositório não representa autorização automática para cópia, redistribuição, revenda ou uso comercial por terceiros.
-
-Todos os direitos reservados.
+Este projeto é distribuído sob a licença MIT. Consulte o arquivo
+[`LICENSE`](LICENSE) para conhecer os termos de uso, cópia, modificação e
+distribuição.
 
 ---
 

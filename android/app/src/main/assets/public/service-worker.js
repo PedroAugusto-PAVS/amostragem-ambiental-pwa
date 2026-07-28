@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocos-cache-v54";
+const CACHE_NAME = "pocos-cache-v55";
 
 const FILES_TO_CACHE = [
   "/",
@@ -79,6 +79,15 @@ const FILES_TO_CACHE = [
   "/js/exportar-fichas-fiscal.js",
 
   "/manifest.json",
+  "/icons/icon_48.png",
+  "/icons/icon_72.png",
+  "/icons/icon_96.png",
+  "/icons/icon_128.png",
+  "/icons/icon_144.png",
+  "/icons/icon_152.png",
+  "/icons/icon_192.png",
+  "/icons/icon_384.png",
+  "/icons/icon_512.png",
 ];
 
 self.addEventListener("install", (event) => {

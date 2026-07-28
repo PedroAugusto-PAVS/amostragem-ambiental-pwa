@@ -88,7 +88,6 @@ function mostrarMensagem(
     document.getElementById("adminMessage");
 
   if (!elemento) {
-    console.log(mensagem);
     return;
   }
 

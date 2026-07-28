@@ -1,48 +1,68 @@
 {
+  "id": "./",
   "name": "HydroTrack",
   "short_name": "HydroTrack",
+  "description": "Amostragem ambiental offline com sincronização segura.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f8fb",
+  "theme_color": "#075664",
   "icons": [
     {
-      "src": "../icons/icon-48.webp",
+      "src": "icons/icon_48.png",
       "type": "image/png",
       "sizes": "48x48",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-72.webp",
+      "src": "icons/icon_72.png",
       "type": "image/png",
       "sizes": "72x72",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-96.webp",
+      "src": "icons/icon_96.png",
       "type": "image/png",
       "sizes": "96x96",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-128.webp",
+      "src": "icons/icon_128.png",
       "type": "image/png",
       "sizes": "128x128",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-192.webp",
+      "src": "icons/icon_144.png",
+      "type": "image/png",
+      "sizes": "144x144",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon_152.png",
+      "type": "image/png",
+      "sizes": "152x152",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon_192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-256.webp",
+      "src": "icons/icon_384.png",
       "type": "image/png",
-      "sizes": "256x256",
-      "purpose": "any maskable"
+      "sizes": "384x384",
+      "purpose": "any"
     },
     {
-      "src": "../icons/icon-512.webp",
+      "src": "icons/icon_512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
