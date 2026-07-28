@@ -14,7 +14,7 @@ async function carregarMedicoes() {
 
   if (fichasCarregadas.length === 0) {
     lista.innerHTML = `
-      <div class="card">
+      <div class="card empty-state">
         <strong>Nenhuma medição encontrada</strong>
         <p>Adicione uma ficha para aparecer aqui.</p>
       </div>
@@ -30,12 +30,11 @@ async function carregarMedicoes() {
 
     lista.innerHTML += `
       <div class="card">
-        <label style="display:flex; gap:10px; align-items:center;">
+        <label class="selection-row">
           <input 
             type="checkbox" 
             class="checkFicha" 
             value="${ficha.local_id}"
-            style="width:20px; height:20px;"
           >
 
           <strong>${ficha.poco_nome || "Sem nome"}</strong>

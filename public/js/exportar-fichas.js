@@ -75,21 +75,21 @@ function carregarPocosSelect() {
   });
 
   if (pocosFiltrados.length === 0) {
-    container.innerHTML = `<p>Nenhum PM encontrado.</p>`;
+    container.innerHTML = `<div class="empty-state"><p>Nenhum PM encontrado.</p></div>`;
     return;
   }
 
   container.innerHTML = `
-      <label style="display:flex;gap:10px;align-items:center;">
+      <label class="selection-row">
         <input type="checkbox" id="todosPocos" onchange="alternarTodosPocos()">
         <strong>Selecionar todos os PMs</strong>
       </label>
-      <hr>
+      <hr class="content-divider">
     `;
 
   pocosFiltrados.forEach((poco) => {
     container.innerHTML += `
-        <label style="display:flex;gap:10px;align-items:center;margin:8px 0;">
+        <label class="selection-row">
           <input 
             type="checkbox" 
             class="checkPocoFiltro" 
@@ -170,7 +170,7 @@ function renderizarMedicoesExportacao() {
 
   if (medicoes.length === 0) {
     lista.innerHTML = `
-      <div class="card">
+      <div class="card empty-state">
         <strong>Nenhuma medição encontrada</strong>
         <p>Altere os filtros ou cadastre novas medições.</p>
       </div>
@@ -193,12 +193,11 @@ function renderizarMedicoesExportacao() {
 
       lista.innerHTML += `
         <div class="card">
-          <label style="display:flex;gap:10px;align-items:center;">
+          <label class="selection-row">
             <input 
               type="checkbox" 
               class="checkMedicaoExportacao" 
               value="${medicao.local_id}"
-              style="width:20px;height:20px;"
             >
 
             <strong>${poco?.nome || medicao.poco_nome || "PM sem nome"}</strong>

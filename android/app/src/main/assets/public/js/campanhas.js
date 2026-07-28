@@ -15,7 +15,7 @@ async function carregarCampanhas() {
 
   if (campanhas.length === 0) {
     lista.innerHTML = `
-      <div class="card">
+      <div class="card empty-state">
         <strong>Nenhuma campanha cadastrada</strong>
         <p>Clique no botão + para criar uma campanha.</p>
       </div>
@@ -67,8 +67,18 @@ async function carregarCampanhas() {
         <p>Coletados: ${coletados}</p>
         <p>Pendentes: ${pendentes}</p>
 
-        <div style="background:#e5e7eb;border-radius:10px;height:14px;margin-top:10px;">
-          <div style="width:${progresso}%;background:#005eea;height:14px;border-radius:10px;"></div>
+        <div
+          class="campaign-progress"
+          role="progressbar"
+          aria-label="Progresso da campanha"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="${progresso}"
+        >
+          <div
+            class="campaign-progress-value"
+            style="--progress:${progresso}%"
+          ></div>
         </div>
 
         <p>${progresso}% concluído</p>
