@@ -204,6 +204,13 @@ a { color: inherit; }
   transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.18s ease;
 }
 .card:active, .poco-item:active, .dashboard-stat-card:active, .project-card:active, .projeto-card:active { transform: scale(0.988); }
+.interactive-card { cursor: pointer; }
+.interactive-card:focus-visible {
+  outline: 3px solid rgba(18,111,232,.28);
+  outline-offset: 3px;
+  border-color: var(--primary-blue);
+  box-shadow: var(--shadow);
+}
 
 .btn, .btn-primary, .btn-blue, .btn-secondary, .btn-danger, .btn-activate,
 .btn-deactivate, .dashboard-add-btn, .compact-btn {
@@ -775,6 +782,16 @@ html[data-theme="dark"] .feedback-success,
 html[data-theme="dark"] .admin-message { color: #8ef0b0; }
 html[data-theme="dark"] .feedback-error,
 html[data-theme="dark"] .admin-message.error { color: #ff9aaa; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
 
 @media (min-width: 700px) {
   .container { max-width: var(--content-width-wide); padding-right: 22px; padding-left: 22px; }

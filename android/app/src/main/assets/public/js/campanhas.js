@@ -59,7 +59,13 @@ async function carregarCampanhas() {
     const progresso = total > 0 ? Math.round((coletados / total) * 100) : 0;
 
     lista.innerHTML += `
-      <div class="card" onclick="abrirCampanha('${campanha.local_id}')">
+      <div
+        class="card interactive-card"
+        role="link"
+        tabindex="0"
+        onclick="abrirCampanha('${campanha.local_id}')"
+        onkeydown="if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); abrirCampanha('${campanha.local_id}'); }"
+      >
         <strong>${campanha.nome}</strong>
         <p>Projeto: ${projeto ? projeto.nome : "-"}</p>
         <p>Mês: ${campanha.mes_referencia || "-"}</p>

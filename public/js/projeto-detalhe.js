@@ -78,7 +78,13 @@ async function carregarProjeto() {
     const statusAmostragem = obterStatusAmostragemPoco(poco);
 
     lista.innerHTML += `
-      <div class="poco-item" onclick="abrirHistorico('${poco.local_id}')">
+      <div
+        class="poco-item interactive-card"
+        role="link"
+        tabindex="0"
+        onclick="abrirHistorico('${poco.local_id}')"
+        onkeydown="if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); abrirHistorico('${poco.local_id}'); }"
+      >
         <div class="avatar">${poco.nome.substring(0, 2).toUpperCase()}</div>
 
         <div class="poco-info">

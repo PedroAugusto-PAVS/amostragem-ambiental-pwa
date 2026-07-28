@@ -34,7 +34,13 @@ function renderizarProjetos(projetos) {
     );
 
     lista.innerHTML += `
-      <div class="poco-item" onclick="abrirProjeto('${projeto.local_id}')">
+      <div
+        class="poco-item interactive-card"
+        role="link"
+        tabindex="0"
+        onclick="abrirProjeto('${projeto.local_id}')"
+        onkeydown="if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); abrirProjeto('${projeto.local_id}'); }"
+      >
         <div class="avatar">PR</div>
 
         <div class="poco-info">
