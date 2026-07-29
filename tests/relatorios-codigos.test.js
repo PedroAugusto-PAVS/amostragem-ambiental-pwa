@@ -57,7 +57,9 @@ class PdfFalso {
 
   constructor() {
     this.paginasAdicionadas = 0;
+    this.paginaAtual = 1;
     this.textos = [];
+    this.textosComPagina = [];
     this.internal = {
       pageSize: {
         height: 297,
@@ -79,11 +81,19 @@ class PdfFalso {
 
   addPage() {
     this.paginasAdicionadas += 1;
+    this.paginaAtual += 1;
   }
 
   text(valor) {
     const partes = Array.isArray(valor) ? valor : [valor];
-    this.textos.push(...partes.map(String));
+    const textos = partes.map(String);
+    this.textos.push(...textos);
+    this.textosComPagina.push(
+      ...textos.map((texto) => ({
+        pagina: this.paginaAtual,
+        texto,
+      }))
+    );
   }
 
   splitTextToSize(valor, largura) {
@@ -147,8 +157,18 @@ async function testarPdf(caminho, nomeFuncao) {
 
   const pdf = PdfFalso.instancias.at(-1);
   const textoCompleto = pdf.textos.join("\n");
+  const textoPrimeiraPagina = pdf.textosComPagina
+    .filter((item) => item.pagina === 1)
+    .map((item) => item.texto)
+    .join("\n");
 
   assert.ok(pdf.paginasAdicionadas > 0, `${caminho} deve paginar códigos.`);
+  assert.match(textoPrimeiraPagina, /AMOSTRA-01/);
+  assert.match(
+    textoPrimeiraPagina,
+    /AMOSTRA-02/,
+    `${caminho} deve exibir a duplicata no campo Código ALS.`,
+  );
   assert.match(textoCompleto, /Códigos das amostras/);
   assert.match(textoCompleto, /AMOSTRA-01/);
   assert.match(textoCompleto, /AMOSTRA-35/);

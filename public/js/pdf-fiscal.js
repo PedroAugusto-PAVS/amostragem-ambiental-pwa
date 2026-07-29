@@ -71,6 +71,25 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   const cond = medicao.condicoes_ambientais || {};
   const leituras = medicao.leituras || [];
   const faixas = calcularFaixasAceitacao(leituras);
+  const codigosAmostras =
+    typeof obterCodigosDaMedicao === "function"
+      ? obterCodigosDaMedicao(medicao)
+      : [];
+  const codigoAlsPrincipal =
+    typeof obterCodigoPrincipal === "function"
+      ? obterCodigoPrincipal(codigosAmostras)
+      : medicao.codigo_frascaria;
+  const codigosAls = [
+    codigoAlsPrincipal,
+    ...codigosAmostras
+      .filter((item) => item.tipo === "duplicata")
+      .map((item) => item.codigo),
+  ]
+    .filter(
+      (codigo, indice, codigos) =>
+        codigo && codigos.indexOf(codigo) === indice
+    )
+    .join(" / ") || medicao.codigo_frascaria;
 
   const jsPDF = window.jspdf?.jsPDF || window.jsPDF || window.jspdf;
 
@@ -104,6 +123,28 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   function labelValor(label, valor, x, y, wLabel = 32, size = 6.2) {
     txt(label, x, y, size, true);
     txt(texto(valor), x + wLabel, y, size, false);
+  }
+
+  function labelValorMultilinha(
+    label,
+    valor,
+    x,
+    y,
+    wLabel = 32,
+    size = 6.2,
+    maxWidth = 35
+  ) {
+    txt(label, x, y, size, true);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(size);
+
+    const linhas = doc.splitTextToSize(texto(valor), maxWidth);
+    const alturaLinha = size * (25.4 / 72) * 1.05;
+    const deslocamento = ((linhas.length - 1) * alturaLinha) / 2;
+
+    doc.text(linhas, x + wLabel, y - deslocamento, {
+      lineHeightFactor: 1.05,
+    });
   }
 
   function adicionarPaginasCodigosAmostras() {
@@ -211,7 +252,7 @@ txt("Ficha Fiscal", 170, y + 12, 5.5);
   line(135, y, 135, y + 24);
 
   labelValor("Identificação do PM:", poco?.nome || medicao.poco_nome, 10, y + 8, 38, 6);
-  labelValor("Código ALS:", medicao.codigo_frascaria, 10, y + 20, 28, 6);
+  labelValorMultilinha("Código ALS:", codigosAls, 10, y + 20, 28, 6, 35);
 
   labelValor("Data Amostragem:", medicao.data_medicao, 78, y + 8, 34, 6);
   labelValor("Prof. Bomba:", `${texto(medicao.profundidade_bomba)} m`, 78, y + 20, 28, 6);
