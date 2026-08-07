@@ -12,6 +12,29 @@ if (!projetoLocalId) {
 
 let projetoAtual = null;
 
+const comparadorNomePoco = new Intl.Collator("pt-BR", {
+  numeric: true,
+  sensitivity: "base",
+});
+
+function ordenarPocosPorNome(pocos) {
+  return [...pocos].sort((pocoA, pocoB) =>
+    comparadorNomePoco.compare(pocoA?.nome || "", pocoB?.nome || "")
+  );
+}
+
+function filtrarPocosProjeto() {
+  const termo = document
+    .getElementById("pesquisaPocoProjeto")
+    .value.trim()
+    .toLocaleLowerCase("pt-BR");
+
+  document.querySelectorAll("#listaPocosProjeto .poco-item").forEach((item) => {
+    const nome = item.dataset.nomePoco || "";
+    item.style.display = nome.includes(termo) ? "" : "none";
+  });
+}
+
 function obterStatusAmostragemPoco(poco) {
   const status = poco?.perfil_construtivo?.status_amostragem || "";
 
@@ -57,8 +80,10 @@ async function carregarProjeto() {
     </div>
   `;
 
-  const pocosDoProjeto = pocos.filter(
-    (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
+  const pocosDoProjeto = ordenarPocosPorNome(
+    pocos.filter(
+      (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
+    )
   );
 
   const lista = document.getElementById("listaPocosProjeto");
@@ -80,6 +105,7 @@ async function carregarProjeto() {
     lista.innerHTML += `
       <div
         class="poco-item interactive-card"
+        data-nome-poco="${(poco.nome || "").toLocaleLowerCase("pt-BR")}"
         role="link"
         tabindex="0"
         onclick="abrirHistorico('${poco.local_id}')"

@@ -37,6 +37,17 @@
 
       <h3 class="section-title">PMs do projeto</h3>
 
+      <div class="dashboard-search">
+        <input
+          type="search"
+          id="pesquisaPocoProjeto"
+          placeholder="Pesquisar PM por nome..."
+          aria-label="Pesquisar PM por nome"
+          autocomplete="off"
+          oninput="filtrarPocosProjeto()"
+        />
+      </div>
+
       <section id="listaPocosProjeto" class="content-list"></section>
     </main>
 
