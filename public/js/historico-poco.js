@@ -270,6 +270,8 @@ async function excluirPoco() {
   if (!confirmar) return;
 
   // Marca para exclusão
+  pocoAtual.exclusao_remota_necessaria =
+    pocoAtual.sincronizado === true || !!pocoAtual.sincronizado_em;
   pocoAtual.excluido = true;
   pocoAtual.sincronizado = false;
   pocoAtual.atualizado_em = new Date().toISOString();
@@ -301,6 +303,8 @@ async function excluirMedicao(localId) {
     return;
   }
 
+  medicao.exclusao_remota_necessaria =
+    medicao.sincronizado === true || !!medicao.sincronizado_em;
   medicao.excluido = true;
   medicao.sincronizado = false;
   medicao.atualizado_em = new Date().toISOString();

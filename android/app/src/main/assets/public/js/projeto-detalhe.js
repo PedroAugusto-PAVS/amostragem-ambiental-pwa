@@ -134,6 +134,8 @@ async function excluirProjeto() {
 
   if (!confirmar) return;
 
+  projetoAtual.exclusao_remota_necessaria =
+    projetoAtual.sincronizado === true || !!projetoAtual.sincronizado_em;
   projetoAtual.excluido = true;
   projetoAtual.sincronizado = false;
   projetoAtual.atualizado_em = new Date().toISOString();

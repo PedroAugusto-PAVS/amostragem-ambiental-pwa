@@ -290,6 +290,8 @@ async function excluirCampanhaLocal(localId) {
         return;
       }
 
+      campanha.exclusao_remota_necessaria =
+        campanha.sincronizado === true || !!campanha.sincronizado_em;
       campanha.excluido = true;
       campanha.sincronizado = false;
       campanha.excluido_em = new Date().toISOString();
@@ -369,6 +371,8 @@ async function excluirPocoLocal(localId) {
         return;
       }
 
+      poco.exclusao_remota_necessaria =
+        poco.sincronizado === true || !!poco.sincronizado_em;
       poco.excluido = true;
       poco.sincronizado = false;
       poco.excluido_em = new Date().toISOString();
@@ -937,6 +941,8 @@ async function excluirMedicaoLocal(localId) {
         return;
       }
 
+      medicao.exclusao_remota_necessaria =
+        medicao.sincronizado === true || !!medicao.sincronizado_em;
       medicao.excluido = true;
       medicao.sincronizado = false;
       medicao.excluido_em = new Date().toISOString();

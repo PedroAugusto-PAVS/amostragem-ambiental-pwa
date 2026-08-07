@@ -456,6 +456,14 @@ function exclusaoRemotaConfirmada(registros, localId) {
   );
 }
 
+function exclusaoRemotaNecessaria(registro) {
+  if (typeof registro?.exclusao_remota_necessaria === "boolean") {
+    return registro.exclusao_remota_necessaria;
+  }
+
+  return Boolean(registro?.sincronizado_em);
+}
+
 async function verificarConflitoRemoto(tabela, registro) {
   if (!registro.sincronizado_em) return;
 
@@ -495,21 +503,23 @@ async function sincronizarProjetos(somenteExclusoes = false) {
     ===========================*/
 
     if (projeto.excluido === true) {
-      const { data, error } = await supabaseClient
-        .from("projetos")
-        .delete()
-        .eq("local_id", projeto.local_id)
-        .select("local_id");
+      if (exclusaoRemotaNecessaria(projeto)) {
+        const { data, error } = await supabaseClient
+          .from("projetos")
+          .delete()
+          .eq("local_id", projeto.local_id)
+          .select("local_id");
 
-      if (error) {
-        console.error(error);
-        throw new Error("Erro ao excluir projeto: " + error.message);
-      }
+        if (error) {
+          console.error(error);
+          throw new Error("Erro ao excluir projeto: " + error.message);
+        }
 
-      if (!exclusaoRemotaConfirmada(data, projeto.local_id)) {
-        throw new Error(
-          "A exclusão do projeto não foi confirmada pelo Supabase. O registro local foi preservado."
-        );
+        if (!exclusaoRemotaConfirmada(data, projeto.local_id)) {
+          throw new Error(
+            "A exclusão do projeto não foi confirmada pelo Supabase. O registro local foi preservado."
+          );
+        }
       }
 
       await abrirBancoLocal();
@@ -649,21 +659,23 @@ async function sincronizarPocos(somenteExclusoes = false) {
     =========================== */
 
     if (poco.excluido === true) {
-      const { data, error } = await supabaseClient
-        .from("pocos")
-        .delete()
-        .eq("local_id", poco.local_id)
-        .select("local_id");
+      if (exclusaoRemotaNecessaria(poco)) {
+        const { data, error } = await supabaseClient
+          .from("pocos")
+          .delete()
+          .eq("local_id", poco.local_id)
+          .select("local_id");
 
-      if (error) {
-        console.error(error);
-        throw new Error("Erro ao excluir PM: " + error.message);
-      }
+        if (error) {
+          console.error(error);
+          throw new Error("Erro ao excluir PM: " + error.message);
+        }
 
-      if (!exclusaoRemotaConfirmada(data, poco.local_id)) {
-        throw new Error(
-          "A exclusão do PM não foi confirmada pelo Supabase. O registro local foi preservado."
-        );
+        if (!exclusaoRemotaConfirmada(data, poco.local_id)) {
+          throw new Error(
+            "A exclusão do PM não foi confirmada pelo Supabase. O registro local foi preservado."
+          );
+        }
       }
 
       await abrirBancoLocal();
@@ -782,21 +794,23 @@ async function sincronizarCampanhas(somenteExclusoes = false) {
     =========================== */
 
     if (campanha.excluido === true) {
-      const { data, error } = await supabaseClient
-        .from("campanhas")
-        .delete()
-        .eq("local_id", campanha.local_id)
-        .select();
+      if (exclusaoRemotaNecessaria(campanha)) {
+        const { data, error } = await supabaseClient
+          .from("campanhas")
+          .delete()
+          .eq("local_id", campanha.local_id)
+          .select("local_id");
 
-      if (error) {
-        console.error(error);
-        throw new Error("Erro ao excluir campanha: " + error.message);
-      }
+        if (error) {
+          console.error(error);
+          throw new Error("Erro ao excluir campanha: " + error.message);
+        }
 
-      if (!exclusaoRemotaConfirmada(data, campanha.local_id)) {
-        throw new Error(
-          "A exclusão da campanha não foi confirmada pelo Supabase. O registro local foi preservado."
-        );
+        if (!exclusaoRemotaConfirmada(data, campanha.local_id)) {
+          throw new Error(
+            "A exclusão da campanha não foi confirmada pelo Supabase. O registro local foi preservado."
+          );
+        }
       }
 
       await abrirBancoLocal();
@@ -1129,21 +1143,23 @@ async function sincronizarMedicoes(somenteExclusoes = false) {
     =========================== */
 
     if (medicao.excluido === true) {
-      const { data, error } = await supabaseClient
-        .from("medicoes")
-        .delete()
-        .eq("local_id", medicao.local_id)
-        .select("local_id");
+      if (exclusaoRemotaNecessaria(medicao)) {
+        const { data, error } = await supabaseClient
+          .from("medicoes")
+          .delete()
+          .eq("local_id", medicao.local_id)
+          .select("local_id");
 
-      if (error) {
-        console.error(error);
-        throw new Error("Erro ao excluir medição: " + error.message);
-      }
+        if (error) {
+          console.error(error);
+          throw new Error("Erro ao excluir medição: " + error.message);
+        }
 
-      if (!exclusaoRemotaConfirmada(data, medicao.local_id)) {
-        throw new Error(
-          "A exclusão da medição não foi confirmada pelo Supabase. O registro local foi preservado."
-        );
+        if (!exclusaoRemotaConfirmada(data, medicao.local_id)) {
+          throw new Error(
+            "A exclusão da medição não foi confirmada pelo Supabase. O registro local foi preservado."
+          );
+        }
       }
 
       await abrirBancoLocal();

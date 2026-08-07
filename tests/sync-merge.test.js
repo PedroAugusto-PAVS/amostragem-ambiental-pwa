@@ -6,6 +6,7 @@ globalThis.syncTestApi = {
   validarDadosBaixados,
   mesclarDadosRemotosComPendencias,
   exclusaoRemotaConfirmada,
+  exclusaoRemotaNecessaria,
   verificarConflitoRemoto
 };`;
 const context = {
@@ -20,6 +21,7 @@ const {
   validarDadosBaixados,
   mesclarDadosRemotosComPendencias,
   exclusaoRemotaConfirmada,
+  exclusaoRemotaNecessaria,
   verificarConflitoRemoto
 } = context.syncTestApi;
 
@@ -65,6 +67,28 @@ assert(
 assert(
   !exclusaoRemotaConfirmada([], "ausente"),
   "Exclusão sem linha retornada foi aceita."
+);
+assert(
+  !exclusaoRemotaNecessaria({ sincronizado: false }),
+  "Registro nunca sincronizado exigiu exclusão remota."
+);
+assert(
+  exclusaoRemotaNecessaria({ sincronizado_em: "2026-07-21T00:00:00.000Z" }),
+  "Registro sincronizado deixou de exigir exclusão remota."
+);
+assert(
+  exclusaoRemotaNecessaria({
+    exclusao_remota_necessaria: true,
+    sincronizado_em: null
+  }),
+  "Marca explícita de exclusão remota foi ignorada."
+);
+assert(
+  !exclusaoRemotaNecessaria({
+    exclusao_remota_necessaria: false,
+    sincronizado_em: "2026-07-21T00:00:00.000Z"
+  }),
+  "Marca explícita de registro apenas local foi ignorada."
 );
 
 async function testarConflitos() {

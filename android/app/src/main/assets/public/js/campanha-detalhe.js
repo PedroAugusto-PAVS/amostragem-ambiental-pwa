@@ -376,6 +376,8 @@ async function excluirCampanha() {
 
   if (!confirmar) return;
 
+  campanhaAtual.exclusao_remota_necessaria =
+    campanhaAtual.sincronizado === true || !!campanhaAtual.sincronizado_em;
   campanhaAtual.excluido = true;
   campanhaAtual.sincronizado = false;
   campanhaAtual.atualizado_em = new Date().toISOString();
