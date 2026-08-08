@@ -119,9 +119,9 @@ class ImagemFalsa {
   }
 }
 
-async function testarPdf(caminho, nomeFuncao) {
+async function testarPdf(caminho, nomeFuncao, quantidadeCodigos = 35) {
   PdfFalso.instancias.length = 0;
-  const codigos = Array.from({ length: 35 }, (_, indice) => ({
+  const codigos = Array.from({ length: quantidadeCodigos }, (_, indice) => ({
     codigo: `AMOSTRA-${String(indice + 1).padStart(2, "0")}`,
     tipo: indice === 1 ? "duplicata" : "normal",
   }));
@@ -162,16 +162,34 @@ async function testarPdf(caminho, nomeFuncao) {
     .map((item) => item.texto)
     .join("\n");
 
-  assert.ok(pdf.paginasAdicionadas > 0, `${caminho} deve paginar códigos.`);
+  if (quantidadeCodigos <= 8) {
+    assert.equal(
+      pdf.paginasAdicionadas,
+      0,
+      `${caminho} deve manter até oito códigos na primeira página.`,
+    );
+  } else {
+    assert.ok(
+      pdf.paginasAdicionadas > 0,
+      `${caminho} deve paginar somente os códigos excedentes.`,
+    );
+  }
   assert.match(textoPrimeiraPagina, /AMOSTRA-01/);
   assert.match(
     textoPrimeiraPagina,
     /AMOSTRA-02/,
     `${caminho} deve exibir a duplicata no campo Código ALS.`,
   );
+  assert.match(
+    textoPrimeiraPagina,
+    /PM-1 e DUPL/,
+    `${caminho} deve indicar a duplicata na identificação do PM.`,
+  );
   assert.match(textoCompleto, /Códigos das amostras/);
   assert.match(textoCompleto, /AMOSTRA-01/);
-  assert.match(textoCompleto, /AMOSTRA-35/);
+  if (quantidadeCodigos > 8) {
+    assert.match(textoCompleto, /AMOSTRA-35/);
+  }
   assert.match(textoCompleto, /Duplicata/);
 }
 
@@ -229,9 +247,15 @@ async function testarFichaImpressao() {
 
 async function executar() {
   await testarPdf("public/js/pdf.js", "imprimirFichaMedicao");
+  await testarPdf("public/js/pdf.js", "imprimirFichaMedicao", 2);
   await testarPdf(
     "public/js/pdf-fiscal.js",
     "imprimirFichaMedicaoFiscal"
+  );
+  await testarPdf(
+    "public/js/pdf-fiscal.js",
+    "imprimirFichaMedicaoFiscal",
+    2
   );
   await testarFichaImpressao();
   console.log("relatorios-codigos.test.js: ok");

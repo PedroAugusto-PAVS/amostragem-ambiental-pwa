@@ -90,6 +90,14 @@ async function imprimirFichaMedicao(medicaoLocalId) {
         codigo && codigos.indexOf(codigo) === indice
     )
     .join(" / ") || medicao.codigo_frascaria;
+  const temDuplicata = codigosAmostras.some(
+    (item) => item.tipo === "duplicata"
+  );
+  const nomePoco = texto(poco?.nome || medicao.poco_nome);
+  const identificacaoPoco =
+    temDuplicata && !/\bDUPL\b/i.test(nomePoco)
+      ? `${nomePoco} e DUPL`
+      : nomePoco;
 
   const jsPDF = window.jspdf?.jsPDF || window.jsPDF || window.jspdf;
 
@@ -147,17 +155,40 @@ async function imprimirFichaMedicao(medicaoLocalId) {
     });
   }
 
-  function adicionarPaginasCodigosAmostras() {
-    if (typeof obterCodigosDaMedicao !== "function") return;
+  function adicionarCodigosAmostras(yInicial) {
+    const codigos = codigosAmostras;
+    if (codigos.length === 0) return;
 
-    const codigos = obterCodigosDaMedicao(medicao);
+    const itensPrimeiraPagina = 8;
+    const codigosPrimeiraPagina = codigos.slice(0, itensPrimeiraPagina);
+
+    txt("Códigos das amostras", margem, yInicial, 7, true);
+    codigosPrimeiraPagina.forEach((item, indice) => {
+      const tipo =
+        typeof formatarTipoCodigoAmostra === "function"
+          ? formatarTipoCodigoAmostra(item.tipo)
+          : texto(item.tipo);
+      const coluna = indice % 2;
+      const linha = Math.floor(indice / 2);
+      txt(
+        `${indice + 1}. ${texto(item.codigo)} - ${tipo}`,
+        margem + coluna * 97,
+        yInicial + 7 + linha * 6,
+        6
+      );
+    });
+
     const itensPorPagina = 24;
 
-    for (let inicio = 0; inicio < codigos.length; inicio += itensPorPagina) {
+    for (
+      let inicio = itensPrimeiraPagina;
+      inicio < codigos.length;
+      inicio += itensPorPagina
+    ) {
       doc.addPage();
       txt("Códigos das amostras", margem, 18, 12, true);
       txt(
-        `${texto(poco?.nome || medicao.poco_nome)} — ${texto(medicao.data_medicao)}`,
+        `${identificacaoPoco} - ${texto(medicao.data_medicao)}`,
         margem,
         25,
         7
@@ -171,7 +202,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
               ? formatarTipoCodigoAmostra(item.tipo)
               : texto(item.tipo);
           txt(
-            `${inicio + indice + 1}. ${texto(item.codigo)} — ${tipo}`,
+            `${inicio + indice + 1}. ${texto(item.codigo)} - ${tipo}`,
             margem,
             35 + indice * 9,
             7
@@ -251,7 +282,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(75, y, 75, y + 24);
   line(135, y, 135, y + 24);
 
-  labelValor("Identificação do PM:", poco?.nome || medicao.poco_nome, 10, y + 8, 38, 6);
+  labelValor("Identificação do PM:", identificacaoPoco, 10, y + 8, 38, 6);
   labelValorMultilinha("Código ALS:", codigosAls, 10, y + 20, 28, 6, 35);
 
   labelValor("Data Amostragem:", medicao.data_medicao, 78, y + 8, 34, 6);
@@ -375,7 +406,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   line(152, y + 22, 195, y + 22);
   txt("Assinatura", 158, y + 27, 5.4);
 
-  adicionarPaginasCodigosAmostras();
+  adicionarCodigosAmostras(y + 40);
 
   const nomeArquivo = `ficha-${poco?.nome || medicao.poco_nome || "pm"}-${medicao.mes_referencia || "medicao"}.pdf`
     .replaceAll(" ", "-")
