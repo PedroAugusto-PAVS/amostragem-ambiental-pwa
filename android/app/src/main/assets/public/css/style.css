@@ -484,6 +484,10 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .dashboard-search input { padding-right: 44px; background: var(--surface); }
 .pms-list { display: grid; gap: 10px; }
 .content-list { display: grid; gap: 12px; }
+.campaign-filters { margin-bottom: 15px; }
+.campaign-filters > label:first-child { margin-top: 0; }
+.campaign-filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.campaign-filter-clear { min-height: 40px; margin-top: 13px; }
 .selection-row {
   display: flex;
   align-items: center;

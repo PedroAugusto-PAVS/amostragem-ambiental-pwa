@@ -17,6 +17,33 @@
         <p>Controle mensal das coletas</p>
       </div>
 
+      <section class="card campaign-filters" aria-label="Filtros de campanhas">
+        <label for="filtroProjetoCampanha">Projeto</label>
+        <select id="filtroProjetoCampanha">
+          <option value="">Todos os projetos</option>
+        </select>
+
+        <div class="campaign-filter-grid">
+          <div>
+            <label for="filtroMesCampanha">Mês</label>
+            <input type="month" id="filtroMesCampanha" />
+          </div>
+
+          <div>
+            <label for="filtroSituacaoCampanha">Situação</label>
+            <select id="filtroSituacaoCampanha">
+              <option value="">Todas</option>
+              <option value="concluida">Concluídas</option>
+              <option value="pendente">Pendentes</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="limparFiltrosCampanha" class="btn-secondary campaign-filter-clear">
+          Limpar filtros
+        </button>
+      </section>
+
       <section id="listaCampanhas" class="content-list"></section>
     </main>
 
