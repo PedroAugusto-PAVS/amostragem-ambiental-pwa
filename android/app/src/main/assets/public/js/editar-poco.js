@@ -143,16 +143,33 @@ function abrirGoogleMaps() {
 
 async function carregarProjetosNoSelect() {
   const projetos = await listarProjetosLocais();
-  const select = document.getElementById("projetoSelect");
+  const container = document.getElementById("projetoSelect");
+  const projetosSelecionados = obterProjetosLocaisDoPoco(pocoAtual);
 
-  select.innerHTML = `<option value="">Sem projeto</option>`;
+  container.innerHTML = "";
 
   projetos.forEach((projeto) => {
-    const option = document.createElement("option");
-    option.value = projeto.local_id;
-    option.textContent = projeto.nome;
-    select.appendChild(option);
+    const label = document.createElement("label");
+    label.className = "selection-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = projeto.local_id;
+    checkbox.checked = projetosSelecionados.includes(projeto.local_id);
+    checkbox.dataset.projetoId = projeto.local_id;
+
+    const nome = document.createElement("span");
+    nome.textContent = projeto.nome;
+
+    label.append(checkbox, nome);
+    container.appendChild(label);
   });
+}
+
+function obterProjetosSelecionados() {
+  return Array.from(
+    document.querySelectorAll('#projetoSelect input[type="checkbox"]:checked')
+  ).map((checkbox) => checkbox.dataset.projetoId);
 }
 
 function obterPerfilConstrutivo() {
@@ -225,7 +242,6 @@ async function carregarPoco() {
     capturado_em: pocoAtual.gps_capturado_em
   };
 
-  document.getElementById("projetoSelect").value = pocoAtual.projeto_local_id || "";
   document.getElementById("nomePoco").value = pocoAtual.nome || "";
   document.getElementById("tipoPoco").value = pocoAtual.tipo || "";
   document.getElementById("localPropriedade").value = pocoAtual.local_propriedade || "";
@@ -266,7 +282,8 @@ async function salvarEdicaoPoco() {
     return;
   }
 
-  pocoAtual.projeto_local_id = document.getElementById("projetoSelect").value;
+  pocoAtual.projeto_local_ids = obterProjetosSelecionados();
+  pocoAtual.projeto_local_id = pocoAtual.projeto_local_ids[0] || null;
 
   pocoAtual.nome = nome;
   pocoAtual.tipo = tipo;

@@ -30,7 +30,7 @@ function renderizarProjetos(projetos) {
 
   projetos.forEach((projeto) => {
     const pocosDoProjeto = pocosCarregados.filter(
-      (p) => p.projeto_local_id === projeto.local_id
+      (p) => pocoPertenceAoProjeto(p, projeto.local_id)
     );
 
     lista.innerHTML += `

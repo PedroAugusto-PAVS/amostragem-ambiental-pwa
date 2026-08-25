@@ -82,7 +82,7 @@ async function carregarProjeto() {
 
   const pocosDoProjeto = ordenarPocosPorNome(
     pocos.filter(
-      (p) => p.projeto_local_id === projetoAtual.local_id && p.ativo !== false
+      (p) => pocoPertenceAoProjeto(p, projetoAtual.local_id) && p.ativo !== false
     )
   );
 

@@ -18,7 +18,7 @@ async function carregarCampanhas() {
     );
     const pocosDoProjeto = pocos.filter(
       (poco) =>
-        poco.projeto_local_id === campanha.projeto_local_id &&
+        pocoPertenceAoProjeto(poco, campanha.projeto_local_id) &&
         poco.ativo !== false
     );
     const idsPmsDoProjeto = new Set(

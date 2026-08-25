@@ -118,7 +118,7 @@ async function carregarHistorico() {
       <div class="card">
         <strong>${m.mes_referencia || "Medição"}</strong>
 
-        <p>Data: ${m.data_medicao || "-"}</p>
+        <p>Data: ${formatarDataBrasileira(m.data_medicao)}</p>
         ${codigosHtml}
         <p>Profundidade total medida: ${m.profundidade_total_mes || 0} m</p>
         <p>Nível d'água: ${m.nivel_agua || 0} m</p>

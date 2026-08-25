@@ -707,6 +707,7 @@ async function sincronizarPocos(somenteExclusoes = false) {
         usuario_id: poco.usuario_id,
 
         projeto_local_id: poco.projeto_local_id ?? null,
+        projeto_local_ids: obterProjetosLocaisDoPoco(poco),
 
         nome: poco.nome,
         tipo: poco.tipo,

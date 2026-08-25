@@ -14,6 +14,13 @@ function texto(valor) {
   return String(valor);
 }
 
+function formatarDataFicha(data) {
+  const textoData = texto(data);
+  const partes = textoData.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : textoData;
+}
+
 function num(valor) {
   if (valor === null || valor === undefined || valor === "") return 0;
   return Number(String(valor).replace(",", "."));
@@ -188,7 +195,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
       doc.addPage();
       txt("Códigos das amostras", margem, 18, 12, true);
       txt(
-        `${identificacaoPoco} - ${texto(medicao.data_medicao)}`,
+        `${identificacaoPoco} - ${formatarDataFicha(medicao.data_medicao)}`,
         margem,
         25,
         7
@@ -285,7 +292,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   labelValor("Identificação do PM:", identificacaoPoco, 10, y + 8, 38, 6);
   labelValorMultilinha("Código ALS:", codigosAls, 10, y + 20, 28, 6, 35);
 
-  labelValor("Data Amostragem:", medicao.data_medicao, 78, y + 8, 34, 6);
+  labelValor("Data Amostragem:", formatarDataFicha(medicao.data_medicao), 78, y + 8, 34, 6);
   labelValor("Prof. Bomba:", `${texto(medicao.profundidade_bomba)} m`, 78, y + 20, 28, 6);
 
   labelValor("Vol. Estagnado:", `${texto(medicao.volume_estagnado)} L`, 138, y + 7, 32, 5.6);

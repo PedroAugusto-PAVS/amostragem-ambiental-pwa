@@ -15,6 +15,24 @@ if (!pocoLocalId) {
 let pocoAtual = null;
 let campanhasDisponiveis = [];
 
+function preencherCampanhasNoSelect() {
+  const select = document.getElementById("campanhaSelect");
+  const campanhaSelecionada = select.value || campanhaLocalId || "";
+  const projetosDoPoco = obterProjetosLocaisDoPoco(pocoAtual);
+  const campanhasDoPoco = campanhasDisponiveis
+    .filter((campanha) => !campanha.excluido && campanha.ativo !== false && projetosDoPoco.includes(campanha.projeto_local_id))
+    .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+
+  select.innerHTML = `<option value="">Sem campanha</option>`;
+  campanhasDoPoco.forEach((campanha) => {
+    const option = document.createElement("option");
+    option.value = campanha.local_id;
+    option.textContent = campanha.nome;
+    option.selected = campanha.local_id === campanhaSelecionada;
+    select.appendChild(option);
+  });
+}
+
 const profundidadeTotalMesInput = document.getElementById("profundidadeTotalMes");
 const nivelAguaInput = document.getElementById("nivelAgua");
 const profundidadeBombaInput = document.getElementById("profundidadeBomba");
@@ -53,6 +71,8 @@ async function carregarPoco() {
 
   document.getElementById("responsavelAls").value =
     usuario.nome || "";
+
+  preencherCampanhasNoSelect();
 
   atualizarCalculos();
 }
@@ -233,7 +253,7 @@ async function salvarMedicao() {
     poco_local_id: pocoAtual.local_id,
     poco_nome: pocoAtual.nome,
 
-    campanha_local_id: campanhaLocalId || null,
+    campanha_local_id: document.getElementById("campanhaSelect").value || null,
 
     usuario_id: usuario.id,
     coletor_nome: usuario.nome,
@@ -283,7 +303,7 @@ async function salvarMedicao() {
 
   localStorage.setItem("poco_selecionado", pocoAtual.local_id);
 
-  if (campanhaLocalId && medicao.campanha_local_id) {
+  if (medicao.campanha_local_id) {
     window.location.href = "campanha-detalhe.html";
   } else {
     window.location.href = "historico-poco.html";

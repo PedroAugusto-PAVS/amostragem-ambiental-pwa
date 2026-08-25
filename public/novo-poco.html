@@ -18,10 +18,9 @@
       </div>
 
       <form class="form-card">
-        <label for="projetoSelect">Projeto</label>
-        <select id="projetoSelect">
-          <option value="">Sem projeto</option>
-        </select>
+        <label for="projetoSelect">Projetos</label>
+        <div id="projetoSelect" class="project-selection-list" aria-describedby="projetosAjuda"></div>
+        <p id="projetosAjuda" class="helper-text">Selecione todos os projetos que utilizam este PM.</p>
 
         <label for="nomePoco">Nome do poço *</label>
         <input id="nomePoco" placeholder="Ex.: PM-01" />

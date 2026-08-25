@@ -71,7 +71,7 @@ function carregarPocosSelect() {
 
   const pocosFiltrados = pocosExportacao.filter((poco) => {
     if (!projetoId) return true;
-    return poco.projeto_local_id === projetoId;
+    return pocoPertenceAoProjeto(poco, projetoId);
   });
 
   if (pocosFiltrados.length === 0) {
@@ -141,7 +141,7 @@ function obterMedicoesFiltradas() {
       (p) => p.local_id === medicao.poco_local_id
     );
 
-    if (projetoId && poco?.projeto_local_id !== projetoId) return false;
+    if (projetoId && !pocoPertenceAoProjeto(poco, projetoId)) return false;
     if (
       campanhaId &&
       !medicaoEhCompativelComCampanha(
@@ -205,7 +205,7 @@ function renderizarMedicoesExportacao() {
 
           <p>Projeto: ${projeto?.nome || "-"}</p>
           <p>Campanha: ${campanha?.nome || medicao.mes_referencia || "-"}</p>
-          <p>Data: ${medicao.data_medicao || "-"}</p>
+          <p>Data: ${formatarDataBrasileira(medicao.data_medicao)}</p>
           <p>Códigos das amostras: ${
             escaparHtml(formatarCodigosDaMedicao(medicao)) || "-"
           }</p>

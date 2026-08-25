@@ -2,6 +2,13 @@ function t(valor) {
     if (valor === null || valor === undefined || valor === "") return "-";
     return String(valor);
   }
+
+  function formatarDataFicha(data) {
+    const textoData = t(data);
+    const partes = textoData.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : textoData;
+  }
   
   async function carregarFichaImpressao() {
     const medicaoId = localStorage.getItem("medicao_imprimir");
@@ -67,7 +74,7 @@ function t(valor) {
       <div class="linha"><strong>Tipo:</strong> ${t(poco?.tipo)}</div>
       <div class="linha"><strong>Local / Propriedade:</strong> ${t(poco?.local_propriedade)}</div>
       <div class="linha"><strong>Coletor:</strong> ${t(medicao.coletor_nome)}</div>
-      <div class="linha"><strong>Data da medição:</strong> ${t(medicao.data_medicao)}</div>
+      <div class="linha"><strong>Data da medição:</strong> ${formatarDataFicha(medicao.data_medicao)}</div>
       <div class="linha"><strong>Mês referência:</strong> ${t(medicao.mes_referencia)}</div>
       <h3 style="break-after:avoid;page-break-after:avoid;">Códigos das amostras</h3>
       ${listaCodigosAmostras}

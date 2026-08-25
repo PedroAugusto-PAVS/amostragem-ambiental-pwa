@@ -13,6 +13,7 @@ if (!medicaoLocalId) {
 
 let medicaoAtual = null;
 let pocoAtual = null;
+let campanhasDisponiveis = [];
 
 const profundidadeTotalMesInput = document.getElementById("profundidadeTotalMes");
 const nivelAguaInput = document.getElementById("nivelAgua");
@@ -22,9 +23,38 @@ profundidadeTotalMesInput.addEventListener("input", atualizarCalculos);
 nivelAguaInput.addEventListener("input", atualizarCalculos);
 profundidadeBombaInput.addEventListener("input", atualizarCalculos);
 
+function preencherCampanhasNoSelect() {
+  const select = document.getElementById("campanhaSelect");
+  const projetosDoPoco = obterProjetosLocaisDoPoco(pocoAtual);
+
+  const campanhasDoPoco = campanhasDisponiveis
+    .filter(
+      (campanha) =>
+        !campanha.excluido &&
+        (campanha.ativo !== false || campanha.local_id === medicaoAtual.campanha_local_id) &&
+        projetosDoPoco.includes(campanha.projeto_local_id)
+    )
+    .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+
+  select.innerHTML = `<option value="">Sem campanha</option>`;
+
+  campanhasDoPoco.forEach((campanha) => {
+    const option = document.createElement("option");
+    option.value = campanha.local_id;
+    option.textContent = campanha.nome;
+    option.selected = campanha.local_id === medicaoAtual.campanha_local_id;
+    select.appendChild(option);
+  });
+}
+
 async function carregarEdicao() {
   const medicoes = await listarMedicoesLocais();
-  const pocos = await listarPocosLocais();
+  const [pocos, campanhas] = await Promise.all([
+    listarPocosLocais(),
+    listarCampanhasLocais(),
+  ]);
+
+  campanhasDisponiveis = campanhas;
 
   medicaoAtual = medicoes.find((m) => m.local_id === medicaoLocalId);
 
@@ -46,6 +76,8 @@ async function carregarEdicao() {
 
   document.getElementById("dataMedicao").value = medicaoAtual.data_medicao || "";
   document.getElementById("mesReferencia").value = medicaoAtual.mes_referencia || "";
+
+  preencherCampanhasNoSelect();
 
   inicializarFormularioCodigosAmostras(
     obterCodigosDaMedicao(medicaoAtual),
@@ -295,6 +327,8 @@ async function salvarEdicaoMedicao() {
 
   medicaoAtual.data_medicao = document.getElementById("dataMedicao").value;
   medicaoAtual.mes_referencia = document.getElementById("mesReferencia").value;
+  medicaoAtual.campanha_local_id =
+    document.getElementById("campanhaSelect").value || null;
 
   medicaoAtual.codigos_amostras = codigosAmostras;
   medicaoAtual.codigo_frascaria = obterCodigoPrincipal(codigosAmostras);

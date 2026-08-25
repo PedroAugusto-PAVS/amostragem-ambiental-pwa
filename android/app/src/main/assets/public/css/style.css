@@ -500,6 +500,19 @@ input[type="checkbox"] { width: 21px; height: 21px; min-height: 21px; flex: 0 0 
 .selection-row + .selection-row { margin-top: 6px; }
 .selection-row input[type="checkbox"],
 .selection-row input[type="radio"] { flex: 0 0 auto; }
+.project-selection-list {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  background: var(--input-background);
+}
+.project-selection-list:empty::before {
+  content: "Nenhum projeto disponível";
+  color: var(--muted);
+  font-size: var(--font-size-sm);
+}
 .content-divider {
   height: 1px;
   margin: 12px 0;

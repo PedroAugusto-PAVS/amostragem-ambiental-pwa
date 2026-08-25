@@ -746,6 +746,43 @@ function dataEstaDentroDoPeriodo(dataMedicao, dataInicio, dataFim) {
   return !!(inicio || fim);
 }
 
+function formatarDataBrasileira(data) {
+  if (data === null || data === undefined || data === "") {
+    return "-";
+  }
+
+  const texto = String(data);
+  const partes = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (partes) {
+    return `${partes[3]}/${partes[2]}/${partes[1]}`;
+  }
+
+  return texto;
+}
+
+function obterProjetosLocaisDoPoco(poco) {
+  if (!poco) return [];
+
+  const projetos = Array.isArray(poco.projeto_local_ids)
+    ? [...poco.projeto_local_ids]
+    : [];
+
+  if (poco.projeto_local_id) {
+    projetos.push(poco.projeto_local_id);
+  }
+
+  return [...new Set(projetos.filter(Boolean))];
+}
+
+function pocoPertenceAoProjeto(poco, projetoLocalId) {
+  return !!projetoLocalId && obterProjetosLocaisDoPoco(poco).includes(projetoLocalId);
+}
+
+function campanhaPertenceAosProjetosDoPoco(campanha, poco) {
+  return !!campanha && pocoPertenceAoProjeto(poco, campanha.projeto_local_id);
+}
+
 function campanhaCombinaComMedicao(campanha, medicao, poco) {
   if (!campanha || !medicao || !poco) {
     return false;
@@ -755,7 +792,7 @@ function campanhaCombinaComMedicao(campanha, medicao, poco) {
     return false;
   }
 
-  if (!poco.projeto_local_id || campanha.projeto_local_id !== poco.projeto_local_id) {
+  if (!pocoPertenceAoProjeto(poco, campanha.projeto_local_id)) {
     return false;
   }
 
@@ -794,7 +831,7 @@ function calcularPontuacaoCompatibilidadeCampanha(campanha, medicao) {
 }
 
 function obterCampanhasCompativeisParaMedicao(medicao, poco, campanhas = []) {
-  if (!medicao || !poco?.projeto_local_id) {
+  if (!medicao || obterProjetosLocaisDoPoco(poco).length === 0) {
     return [];
   }
 
@@ -847,7 +884,7 @@ function medicaoEhCompativelComCampanha(
 }
 
 function obterCampanhaCompativelParaMedicao(medicao, poco, campanhas = []) {
-  if (!medicao || !poco?.projeto_local_id) {
+  if (!medicao || obterProjetosLocaisDoPoco(poco).length === 0) {
     return null;
   }
 
@@ -881,10 +918,7 @@ async function sincronizarVinculoCampanhaMedicao(
       (campanha) => campanha.local_id === campanhaLocalIdAtual
     );
 
-    if (
-      campanhaAtual &&
-      campanhaCombinaComMedicao(campanhaAtual, medicao, pocoAtual)
-    ) {
+    if (campanhaPertenceAosProjetosDoPoco(campanhaAtual, pocoAtual)) {
       return medicao;
     }
   }

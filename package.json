@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node server.js",
         "dev": "node server.js",
-        "test": "node tests/codigos-amostras.test.js && node tests/codigos-amostras-ui.test.js && node tests/sync-codigos.test.js && node tests/medicao-codigos-migration.test.js && node tests/relatorios-codigos.test.js && node tests/sync-merge.test.js && node tests/sync-exclusoes.test.js && node tests/projeto-pocos.test.js && node tests/exportar-fichas.test.js",
+        "test": "node tests/codigos-amostras.test.js && node tests/codigos-amostras-ui.test.js && node tests/sync-codigos.test.js && node tests/medicao-codigos-migration.test.js && node tests/relatorios-codigos.test.js && node tests/sync-merge.test.js && node tests/sync-exclusoes.test.js && node tests/projeto-pocos.test.js && node tests/pocos-multiplos-projetos.test.js && node tests/exportar-fichas.test.js",
         "check": "node --check server.js && node --check public/js/db-local.js && node --check public/js/codigos-amostras-form.js && node --check public/js/sync.js && node --check public/js/projeto-detalhe.js && node --check public/js/pdf.js && node --check public/js/pdf-fiscal.js && node --check public/js/exportar-fichas.js && node --check public/js/exportar-fichas-fiscal.js && npm test"
     },
     "dependencies": {

@@ -85,7 +85,7 @@ async function carregarCampanha() {
 
   pmsCampanha = pocos.filter(
     (poco) =>
-      poco.projeto_local_id === campanhaAtual.projeto_local_id &&
+      pocoPertenceAoProjeto(poco, campanhaAtual.projeto_local_id) &&
       poco.ativo !== false
   );
 

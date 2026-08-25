@@ -156,22 +156,33 @@ function converterFotosBase64(files) {
 
 async function carregarProjetosNoSelect() {
   const projetos = await listarProjetosLocais();
-  const select = document.getElementById("projetoSelect");
+  const container = document.getElementById("projetoSelect");
 
-  select.innerHTML = `<option value="">Sem projeto</option>`;
-
-  projetos.forEach((projeto) => {
-    const option = document.createElement("option");
-    option.value = projeto.local_id;
-    option.textContent = projeto.nome;
-    select.appendChild(option);
-  });
-
+  container.innerHTML = "";
   const projetoSelecionado = localStorage.getItem("projeto_selecionado");
 
-  if (projetoSelecionado) {
-    select.value = projetoSelecionado;
-  }
+  projetos.forEach((projeto) => {
+    const label = document.createElement("label");
+    label.className = "selection-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = projeto.local_id;
+    checkbox.checked = projeto.local_id === projetoSelecionado;
+    checkbox.dataset.projetoId = projeto.local_id;
+
+    const nome = document.createElement("span");
+    nome.textContent = projeto.nome;
+
+    label.append(checkbox, nome);
+    container.appendChild(label);
+  });
+}
+
+function obterProjetosSelecionados() {
+  return Array.from(
+    document.querySelectorAll('#projetoSelect input[type="checkbox"]:checked')
+  ).map((checkbox) => checkbox.dataset.projetoId);
 }
 
 function obterPerfilConstrutivo() {
@@ -212,7 +223,8 @@ async function salvarPoco() {
     local_id: crypto.randomUUID(),
     usuario_id: usuario.id,
 
-    projeto_local_id: document.getElementById("projetoSelect").value,
+    projeto_local_ids: obterProjetosSelecionados(),
+    projeto_local_id: obterProjetosSelecionados()[0] || null,
 
     nome,
     tipo,
