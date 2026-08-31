@@ -184,11 +184,11 @@ function renderizarMedicoesExportacao() {
       const poco = pocosExportacao.find(
         (p) => p.local_id === medicao.poco_local_id
       );
-      const projeto = projetosExportacao.find(
-        (p) => p.local_id === poco?.projeto_local_id
-      );
       const campanha = campanhasExportacao.find(
         (c) => c.local_id === medicao.campanha_local_id
+      );
+      const projeto = projetosExportacao.find(
+        (p) => p.local_id === (campanha?.projeto_local_id || poco?.projeto_local_id)
       );
 
       lista.innerHTML += `

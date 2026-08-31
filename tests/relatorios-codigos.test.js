@@ -128,6 +128,7 @@ async function testarPdf(caminho, nomeFuncao, quantidadeCodigos = 35) {
   const medicao = {
     local_id: "medicao-1",
     poco_local_id: "poco-1",
+    campanha_local_id: "campanha-arcadis",
     codigos_amostras: codigos,
     leituras: [],
     condicoes_ambientais: {},
@@ -141,7 +142,11 @@ async function testarPdf(caminho, nomeFuncao, quantidadeCodigos = 35) {
     ],
     listarMedicoesLocais: async () => [medicao],
     listarProjetosLocais: async () => [
-      { local_id: "projeto-1", nome: "Projeto" },
+      { local_id: "projeto-1", nome: "Maracá Chapada" },
+      { local_id: "projeto-2", nome: "Arcadis" },
+    ],
+    listarCampanhasLocais: async () => [
+      { local_id: "campanha-arcadis", projeto_local_id: "projeto-2" },
     ],
     obterCodigosDaMedicao,
     obterCodigoPrincipal,
@@ -191,6 +196,8 @@ async function testarPdf(caminho, nomeFuncao, quantidadeCodigos = 35) {
     assert.match(textoCompleto, /AMOSTRA-35/);
   }
   assert.match(textoCompleto, /Duplicata/);
+  assert.match(textoCompleto, /Arcadis/);
+  assert.doesNotMatch(textoCompleto, /Maracá Chapada/);
 }
 
 async function testarFichaImpressao() {
@@ -201,6 +208,7 @@ async function testarFichaImpressao() {
   const medicao = {
     local_id: "medicao-1",
     poco_local_id: "poco-1",
+    campanha_local_id: "campanha-arcadis",
     codigos_amostras: [
       { codigo: "<script>alert(1)</script>", tipo: "normal" },
       { codigo: "AMOSTRA-DUP", tipo: "duplicata" },
@@ -227,7 +235,11 @@ async function testarFichaImpressao() {
     ],
     listarMedicoesLocais: async () => [medicao],
     listarProjetosLocais: async () => [
-      { local_id: "projeto-1", nome: "Projeto" },
+      { local_id: "projeto-1", nome: "Maracá Chapada" },
+      { local_id: "projeto-2", nome: "Arcadis" },
+    ],
+    listarCampanhasLocais: async () => [
+      { local_id: "campanha-arcadis", projeto_local_id: "projeto-2" },
     ],
     obterCodigosDaMedicao,
     formatarTipoCodigoAmostra,
@@ -243,6 +255,8 @@ async function testarFichaImpressao() {
   assert.doesNotMatch(fichaContainer.innerHTML, /<script>alert\(1\)<\/script>/);
   assert.match(fichaContainer.innerHTML, /AMOSTRA-DUP/);
   assert.match(fichaContainer.innerHTML, /Duplicata/);
+  assert.match(fichaContainer.innerHTML, /Arcadis/);
+  assert.doesNotMatch(fichaContainer.innerHTML, /Maracá Chapada/);
 }
 
 async function executar() {

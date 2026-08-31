@@ -516,9 +516,7 @@ async function sincronizarProjetos(somenteExclusoes = false) {
         }
 
         if (!exclusaoRemotaConfirmada(data, projeto.local_id)) {
-          throw new Error(
-            "A exclusão do projeto não foi confirmada pelo Supabase. O registro local foi preservado."
-          );
+          console.info("Projeto já não existia no Supabase; concluindo exclusão local.", projeto.local_id);
         }
       }
 
@@ -672,9 +670,7 @@ async function sincronizarPocos(somenteExclusoes = false) {
         }
 
         if (!exclusaoRemotaConfirmada(data, poco.local_id)) {
-          throw new Error(
-            "A exclusão do PM não foi confirmada pelo Supabase. O registro local foi preservado."
-          );
+          console.info("PM já não existia no Supabase; concluindo exclusão local.", poco.local_id);
         }
       }
 
@@ -808,9 +804,7 @@ async function sincronizarCampanhas(somenteExclusoes = false) {
         }
 
         if (!exclusaoRemotaConfirmada(data, campanha.local_id)) {
-          throw new Error(
-            "A exclusão da campanha não foi confirmada pelo Supabase. O registro local foi preservado."
-          );
+          console.info("Campanha já não existia no Supabase; concluindo exclusão local.", campanha.local_id);
         }
       }
 
@@ -1157,9 +1151,7 @@ async function sincronizarMedicoes(somenteExclusoes = false) {
         }
 
         if (!exclusaoRemotaConfirmada(data, medicao.local_id)) {
-          throw new Error(
-            "A exclusão da medição não foi confirmada pelo Supabase. O registro local foi preservado."
-          );
+          console.info("Medição já não existia no Supabase; concluindo exclusão local.", medicao.local_id);
         }
       }
 

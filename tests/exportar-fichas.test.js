@@ -21,7 +21,8 @@ globalThis.exportTestApi = {
   },
   atualizarFiltroProjeto,
   atualizarFiltroCampanha,
-  obterMedicoesFiltradas
+  obterMedicoesFiltradas,
+  renderizarMedicoesExportacao
 };`;
 
   const elementos = {
@@ -91,6 +92,12 @@ const dados = {
       nome: "Campanha 3",
       mes_referencia: "2026-07",
     },
+    {
+      local_id: "campanha-multi-projeto",
+      projeto_local_id: "projeto-2",
+      nome: "Campanha Multi Projeto",
+      mes_referencia: "2026-09",
+    },
   ],
   pocos: [
     { local_id: "pm-1", projeto_local_id: "projeto-1", nome: "PM-1" },
@@ -121,6 +128,12 @@ const dados = {
       poco_local_id: "pm-3",
       campanha_local_id: "campanha-3",
       mes_referencia: "2026-07",
+    },
+    {
+      local_id: "medicao-multi-projeto",
+      poco_local_id: "pm-1",
+      campanha_local_id: "campanha-multi-projeto",
+      mes_referencia: "2026-09",
     },
   ],
 };
@@ -180,6 +193,16 @@ function testarExportador(caminho, inicializador) {
     /value="pm-[12]"/,
     `${caminho} não deve misturar PMs de outros projetos.`
   );
+
+  tela.elementos.filtroProjeto.value = "";
+  tela.elementos.filtroCampanha.value = "";
+  tela.selecionarPocos([]);
+  tela.api.renderizarMedicoesExportacao();
+  assert.match(
+    tela.elementos.listaMedicoesExportacao.innerHTML,
+    /value="medicao-multi-projeto"[\s\S]*PM-1[\s\S]*Projeto: Projeto 2[\s\S]*Campanha: Campanha Multi Projeto/,
+    `${caminho} deve exibir o projeto da campanha quando o PM pertence a mais de um projeto.`
+  );
 }
 
 testarExportador("public/js/exportar-fichas.js", "carregarExportacao");
@@ -197,6 +220,19 @@ for (const caminho of [
   assert.match(html, /filtroProjeto" onchange="atualizarFiltroProjeto\(\)"/);
   assert.match(html, /filtroCampanha" onchange="atualizarFiltroCampanha\(\)"/);
   assert.doesNotMatch(html, /onchange="atualizarFiltros\(\)"/);
+}
+
+for (const caminho of [
+  "public/js/pdf.js",
+  "android/app/src/main/assets/public/js/pdf.js",
+]) {
+  const source = fs.readFileSync(caminho, "utf8");
+
+  assert.match(
+    source,
+    /labelValor\("Chuva 24h:",\s*cond\.chuva_24h,/,
+    `${caminho} deve mostrar na ficha de campo a chuva das últimas 24 horas informada na medição.`
+  );
 }
 
 console.log("exportar-fichas.test.js: ok");

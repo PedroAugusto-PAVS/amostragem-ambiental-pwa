@@ -1,16 +1,33 @@
 package br.com.pavs.hydrotrack;
 
+import android.os.Bundle;
+
+import androidx.activity.OnBackPressedCallback;
+
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
-    @SuppressWarnings("deprecation")
-    public void onBackPressed() {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navegarParaTelaAnterior();
+            }
+        });
+    }
+
+    private void navegarParaTelaAnterior() {
         if (getBridge() != null && getBridge().getWebView().canGoBack()) {
             getBridge().getWebView().goBack();
             return;
         }
 
-        super.onBackPressed();
+        getBridge().getWebView().evaluateJavascript(
+            "window.location.replace('dashboard.html');",
+            null
+        );
     }
 }

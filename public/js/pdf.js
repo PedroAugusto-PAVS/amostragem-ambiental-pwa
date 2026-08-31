@@ -65,6 +65,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
+  const campanhas = await listarCampanhasLocais();
 
   const medicao = medicoes.find((m) => m.local_id === medicaoLocalId);
 
@@ -74,7 +75,12 @@ async function imprimirFichaMedicao(medicaoLocalId) {
   }
 
   const poco = pocos.find((p) => p.local_id === medicao.poco_local_id);
-  const projeto = projetos.find((p) => p.local_id === poco?.projeto_local_id);
+  const campanha = campanhas.find(
+    (item) => item.local_id === medicao.campanha_local_id
+  );
+  const projeto = projetos.find(
+    (item) => item.local_id === (campanha?.projeto_local_id || poco?.projeto_local_id)
+  );
   const cond = medicao.condicoes_ambientais || {};
   const leituras = medicao.leituras || [];
   const faixas = calcularFaixasAceitacao(leituras);
@@ -392,7 +398,7 @@ async function imprimirFichaMedicao(medicaoLocalId) {
 
   labelValor("Hora Inicial:", leituras[0]?.horario, 10, y + 5, 28, 5.6);
   labelValor("Hora Final:", leituras[3]?.horario || leituras[leituras.length - 1]?.horario, 78, y + 5, 25, 5.6);
-  labelValor("Diâmetro:", `${texto(poco?.diametro)} cm`, 143, y + 5, 22, 5.6);
+  labelValor("Chuva 24h:", cond.chuva_24h, 143, y + 5, 25, 5.6);
 
   txt("Observações:", 10, y + 21, 5.6, true);
   const obs = doc.splitTextToSize(texto(cond.observacoes_gerais), 160);

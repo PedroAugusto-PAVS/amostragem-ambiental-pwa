@@ -25,11 +25,13 @@ globalThis.syncExclusoesTestApi = {
   sincronizarProjetos,
   sincronizarCampanhas,
   sincronizarPocos,
+  sincronizarMedicoes,
   configurar({ registro, resposta }) {
     respostaDeleteTeste = resposta || { data: [], error: null };
     listarProjetosParaSync = async () => registro.tabela === "projetos" ? [registro] : [];
     listarCampanhasParaSync = async () => registro.tabela === "campanhas" ? [registro] : [];
     listarPocosParaSync = async () => registro.tabela === "pocos" ? [registro] : [];
+    listarMedicoesParaSync = async () => registro.tabela === "medicoes" ? [registro] : [];
   }
 };`,
     contexto,
@@ -74,6 +76,7 @@ async function executarExclusao(api, tabela) {
     projetos: "sincronizarProjetos",
     campanhas: "sincronizarCampanhas",
     pocos: "sincronizarPocos",
+    medicoes: "sincronizarMedicoes",
   };
   await api[nomes[tabela]](true);
 }
@@ -115,7 +118,7 @@ async function testarExclusaoRemotaConfirmada(tabela) {
   assert.equal(teste.removidos.length, 1, `${tabela}: não removeu localmente.`);
 }
 
-async function testarExclusaoRemotaNaoConfirmada(tabela) {
+async function testarExclusaoRemotaJaConcluida(tabela) {
   const teste = carregarApi();
   teste.api.configurar({
     registro: {
@@ -127,15 +130,15 @@ async function testarExclusaoRemotaNaoConfirmada(tabela) {
     resposta: { data: [], error: null },
   });
 
-  await assert.rejects(() => executarExclusao(teste.api, tabela));
-  assert.equal(teste.removidos.length, 0, `${tabela}: perdeu o tombstone local.`);
+  await executarExclusao(teste.api, tabela);
+  assert.equal(teste.removidos.length, 1, `${tabela}: não concluiu a exclusão local.`);
 }
 
 async function main() {
-  for (const tabela of ["projetos", "campanhas", "pocos"]) {
+  for (const tabela of ["projetos", "campanhas", "pocos", "medicoes"]) {
     await testarExclusaoSomenteLocal(tabela);
     await testarExclusaoRemotaConfirmada(tabela);
-    await testarExclusaoRemotaNaoConfirmada(tabela);
+    await testarExclusaoRemotaJaConcluida(tabela);
   }
   console.log("sync-exclusoes.test.js: ok");
 }

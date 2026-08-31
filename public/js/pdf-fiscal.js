@@ -65,6 +65,7 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   const pocos = await listarPocosLocais();
   const medicoes = await listarMedicoesLocais();
   const projetos = await listarProjetosLocais();
+  const campanhas = await listarCampanhasLocais();
 
   const medicao = medicoes.find((m) => m.local_id === medicaoLocalId);
 
@@ -74,7 +75,12 @@ async function imprimirFichaMedicaoFiscal(medicaoLocalId) {
   }
 
   const poco = pocos.find((p) => p.local_id === medicao.poco_local_id);
-  const projeto = projetos.find((p) => p.local_id === poco?.projeto_local_id);
+  const campanha = campanhas.find(
+    (item) => item.local_id === medicao.campanha_local_id
+  );
+  const projeto = projetos.find(
+    (item) => item.local_id === (campanha?.projeto_local_id || poco?.projeto_local_id)
+  );
   const cond = medicao.condicoes_ambientais || {};
   const leituras = medicao.leituras || [];
   const faixas = calcularFaixasAceitacao(leituras);
